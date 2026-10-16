@@ -28,6 +28,7 @@ npm run dev:otp     # http://localhost:5174 — OTP viewer (test environments on
 npm run dev:partner # http://localhost:5175 — partner cabinet (demo: office@2.ge, sales1@2.ge)
 npm run dev:client  # http://localhost:5176 — customer site (any e-mail; the first login creates the account)
 # API description for integration (Swagger): http://localhost:4000/docs
+npm run demo:webhook  # http://localhost:5190 — test "bank system" that receives webhooks (WEBHOOK_SECRET=whsec_… to check signatures)
 npm run test:api    # own database (loans_test): migrate + seed, start the API, run all API test suites
 ```
 
