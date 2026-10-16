@@ -733,3 +733,16 @@
   .grp-compare:hover { background: var(--green-dark); border-color: var(--green-dark); }
   .grp-compare svg { width: 16px; height: 16px; }
   .grp-compare:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+
+  /* answer summary: folding groups (will be accepted / cancelled) */
+  .cf-groups { display: grid; gap: 8px; margin: 12px 0; }
+  .cf-group { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+  .cf-group summary { display: flex; align-items: center; gap: 8px; padding: 10px 12px; cursor: pointer; list-style: none; font-size: 14px; }
+  .cf-group summary::-webkit-details-marker { display: none; }
+  .cf-group.ok summary b { color: var(--green); }
+  .cf-group.no summary b { color: #d9534f; }
+  .cf-group .cnt { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; display: inline-grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; background: #d9534f; }
+  .cf-group.ok .cnt { background: var(--green); }
+  .cf-group summary svg { width: 16px; height: 16px; margin-inline-start: auto; fill: none; stroke: var(--muted); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .15s; }
+  .cf-group[open] summary svg { transform: rotate(180deg); }
+  .cf-group ul { margin: 0; padding: 0 12px 10px 30px; display: grid; gap: 4px; font-size: 13px; }

@@ -574,34 +574,32 @@ export function MarkBar({ m }: { m: OfferMarks }) {
 
 /** Before answering: which offers will be accepted and which cancelled (it cannot be undone). */
 export function ConfirmOffers({ accept, cancel, pending = [], busy, error, onYes, onClose }: { accept: AppOrg[]; cancel: AppOrg[]; pending?: AppOrg[]; busy: boolean; error: string; onYes: () => void; onClose: () => void }) {
-  const names = (l: AppOrg[]) => l.map((o) => n(o.Organization)).join(', ');
+  // each group folds: the heading with its count, the organisations inside
+  const group = (kind: 'ok' | 'no', title: string, l: AppOrg[]) =>
+    l.length > 0 && (
+      <details className={`cf-group ${kind}`}>
+        <summary>
+          <b>{t(title)}</b>
+          <span className="cnt">{l.length}</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </summary>
+        <ul>
+          {l.map((o) => (
+            <li key={o.ID}>{n(o.Organization)}</li>
+          ))}
+        </ul>
+      </details>
+    );
   return (
     <Modal onClose={onClose} labelledBy="confirmOffersTitle">
       <h3 id="confirmOffersTitle">{t('პასუხის გაგზავნა')}</h3>
-      {accept.length > 0 && (
-        <p>
-          <b style={{ color: 'var(--green)' }}>
-            {t('დადასტურდება')} ({accept.length}):
-          </b>{' '}
-          {names(accept)}
-        </p>
-      )}
-      {cancel.length > 0 && (
-        <p>
-          <b style={{ color: '#d9534f' }}>
-            {t('გაუქმდება')} ({cancel.length}):
-          </b>{' '}
-          {names(cancel)}
-        </p>
-      )}
-      {pending.length > 0 && (
-        <p>
-          <b style={{ color: '#d9534f' }}>
-            {t('გაუქმდება (შეთავაზება ჯერ არ გამოუგზავნიათ)')} ({pending.length}):
-          </b>{' '}
-          {names(pending)}
-        </p>
-      )}
+      <div className="cf-groups">
+        {group('ok', 'დადასტურდება', accept)}
+        {group('no', 'გაუქმდება', cancel)}
+        {group('no', 'გაუქმდება (შეთავაზება ჯერ არ გამოუგზავნიათ)', pending)}
+      </div>
       <p>{t(accept.length ? 'არჩეულ ორგანიზაციებს გაეგზავნება თანხმობა პროცესის გაგრძელებაზე. ამ მოქმედების გაუქმება ვერ მოხერხდება.' : 'ამ მოქმედების გაუქმება ვერ მოხერხდება.')}</p>
       <div className="cancel-actions">
         <button type="button" className="btn btn-ghost" onClick={onClose}>
