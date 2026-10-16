@@ -56,10 +56,13 @@ export interface App {
 type Found = Page<App> & { Counts: { Active: number; Done: number } };
 
 /** Order of the status groups in a card: what needs an answer first, closed ones last. */
-const GROUP_ORDER = ['offer', 'interested', 'sent', 'accepted', 'done', 'declined', 'cancelled', 'expired'];
+// "declined-none" — declined before any offer came (shown as "უარყოფილი", apart from the declined offers)
+const GROUP_ORDER = ['offer', 'interested', 'sent', 'accepted', 'done', 'declined', 'declined-none', 'cancelled', 'expired'];
+/** Group of a record in the card: its status, a declined one without an offer apart. */
+const groupOf = (o: AppOrg) => (o.Status === 'declined' && !o.Offers.length ? 'declined-none' : o.Status);
 const OPEN_GROUPS = ['offer', 'interested'];const PAGE_SIZE = 5;
 /** CSS of the prototype has no class for "expired" — it looks like "cancelled". */
-export const stCls = (k: string) => (k === 'expired' ? 'cancelled' : k);
+export const stCls = (k: string) => (k === 'expired' ? 'cancelled' : k === 'declined-none' ? 'declined' : k);
 const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
 
 export const useStatus = () => {
@@ -67,6 +70,8 @@ export const useStatus = () => {
   const st = (k: string): StatusRow | undefined => statuses.find((s) => s.Key === k);
   return {
     label: (k: string) => (lang() === 'en' ? st(k)?.CustomerEn : st(k)?.CustomerKa) ?? k,
+    /** a record's text: declined before any offer came — "უარყოფილი" */
+    orgLabel: (o: AppOrg) => (o.Status === 'declined' && !o.Offers.length ? t('უარყოფილი') : ((lang() === 'en' ? st(o.Status)?.CustomerEn : st(o.Status)?.CustomerKa) ?? o.Status)),
     categoryOf: (k: string) => st(k)?.Category,
     /** next status of a record that cancels it / accepts it (allowed transitions come from the API) */
     cancelOf: (o: AppOrg) => o.Next.find((k) => st(k)?.Category === 'canceled'),
@@ -285,7 +290,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
       {open && (
         <div className="cab-det">
           {GROUP_ORDER.map((st) => {
-            const list = a.Orgs.filter((o) => o.Status === st);
+            const list = a.Orgs.filter((o) => groupOf(o) === st);
             if (!list.length) return null;
             const isOpen = !closed.has(st);
             const toggle = () => {
@@ -297,7 +302,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             return (
               <div key={st} className={`cab-stat${isOpen ? '' : ' closed'}`}>
                 <div className="cab-det-group" role="button" tabIndex={0} aria-expanded={isOpen} onClick={toggle} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), toggle())}>
-                  <em className={`status ${stCls(st)}`}>{s.label(st)}</em>
+                  <em className={`status ${stCls(st)}`}>{st === 'declined-none' ? t('უარყოფილი') : s.label(st)}</em>
                   <span className="grp-right">
                     {/* the offers that came in — side by side */}
                     {st === 'offer' && (
@@ -424,7 +429,7 @@ function ViewModal({ a, onClose }: { a: App; onClose: () => void }) {
           ['ჯამური თვიური შემოსავალი', `${fmt(total)} ₾`],
           ['ბანკის სერვისები', (a.Banks ?? []).map((b) => refName(organizations, b)).join(', ')],
         ])}
-        {sec('ორგანიზაციები', a.Orgs.map((o): [string, string, string] => [n(o.Organization), s.label(o.Status), stCls(o.Status)]))}
+        {sec('ორგანიზაციები', a.Orgs.map((o): [string, string, string] => [n(o.Organization), s.orgLabel(o), stCls(o.Status)]))}
         {sec('პირადი მონაცემები', [
           ['პირადი ნომერი', a.Pid],
           ['სახელი, გვარი', `${a.FirstName} ${a.LastName}`],
@@ -455,7 +460,7 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
       </h3>
       <div className="offer-head">
         <div className="offer-row offer-center">
-          <em className={`status ${stCls(o.Status)}`}>{s.label(o.Status)}</em>
+          <em className={`status ${stCls(o.Status)}`}>{s.orgLabel(o)}</em>
         </div>
       </div>
       <div className="view-body" id="offerBody">
