@@ -67,6 +67,7 @@ export const useStatus = () => {
   const st = (k: string): StatusRow | undefined => statuses.find((s) => s.Key === k);
   return {
     label: (k: string) => (lang() === 'en' ? st(k)?.CustomerEn : st(k)?.CustomerKa) ?? k,
+    categoryOf: (k: string) => st(k)?.Category,
     /** next status of a record that cancels it / accepts it (allowed transitions come from the API) */
     cancelOf: (o: AppOrg) => o.Next.find((k) => st(k)?.Category === 'canceled'),
     acceptOf: (o: AppOrg) => o.Next.find((k) => st(k)?.Category !== 'canceled'),
@@ -229,6 +230,8 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
   const [cancel, setCancel] = useState(false);
   const refresh = () => qc.invalidateQueries({ queryKey: ['apps'] });
   const isClosed = a.Orgs.every((o) => !o.Next.length);
+  // closed without any offer accepted (nothing completed) — the application is cancelled
+  const isCancelled = isClosed && !a.Orgs.some((o) => s.categoryOf(o.Status) === 'complete');
   // offers waiting for the customer's answer are answered in the comparison (choose / cancel, then send)
   const answerable = a.Orgs.filter((o) => s.acceptOf(o) && o.Offers.length);
   const declineOrg = async (o: AppOrg) => {
@@ -259,9 +262,21 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             <small className="when">
               {[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '—'} · {fmtDate(a.CreatedOn)}
             </small>
+            {/* the organisations that sent an offer — in one line */}
+            {a.Orgs.some((o) => o.Offers.length) && (
+              <span className="offered">
+                {a.Orgs.filter((o) => o.Offers.length).map((o) => (
+                  <span key={o.ID} className="of-org">
+                    <OrgLogo org={o.Organization} />
+                    {n(o.Organization)}
+                  </span>
+                ))}
+              </span>
+            )}
           </span>
           <span className="right">
             <i className="amt">{money(a.Amount, a.Currency)}</i>
+            {isCancelled && <em className="app-cancelled">{t('გაუქმებული')}</em>}
           </span>
         </button>
         <div className="cab-acts">
