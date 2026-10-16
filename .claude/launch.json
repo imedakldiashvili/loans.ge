@@ -33,6 +33,31 @@
         "@loans/otp-viewer"
       ],
       "port": 5174
+    },
+    {
+      "name": "partner",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "-w",
+        "@loans/partner"
+      ],
+      "port": 5175
+    },
+    {
+      "name": "prototypes",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "exec",
+        "--",
+        "vite",
+        "prototype",
+        "--port",
+        "5180",
+        "--strictPort"
+      ],
+      "port": 5180
     }
   ]
 }

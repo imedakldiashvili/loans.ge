@@ -13,7 +13,8 @@
     "db:down": "docker compose down",
     "test:api": "npm run build && npm run test:api -w @loans/api",
     "dev:admin": "npm run dev -w @loans/admin",
-    "dev:otp": "npm run dev -w @loans/otp-viewer"
+    "dev:otp": "npm run dev -w @loans/otp-viewer",
+    "dev:partner": "npm run dev -w @loans/partner"
   },
   "engines": {
     "node": ">=20"

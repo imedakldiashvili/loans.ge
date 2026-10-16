@@ -58,7 +58,7 @@ export class AuthService {
         userId, isDeleted: false, isEnable: true, profileType: { code: GATEWAY_PROFILE[gateway] },
         ...(gateway === 'partner' ? { organization: { isDeleted: false, isEnable: true } } : {}),
       },
-      include: { profileType: true, organization: { select: { id: true, uid: true, nameKa: true, nameEn: true } } },
+      include: { profileType: true, organization: { select: { id: true, uid: true, nameKa: true, nameEn: true, category: true, color: true, logoPath: true } } },
       orderBy: { id: 'asc' },
     });
   }
