@@ -65,13 +65,7 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
   const qc = useQueryClient();
   const s = useStatus();
   const [filter, setFilter] = useState<Kind[]>(['offer', 'accepted', 'declined']);
-  // only organisations that sent an offer can be compared; one column per offer
-  const withOffers = a.Orgs.filter((o) => o.Offers.length);
-  const cols = FILTERS.flatMap(([k]) => (filter.includes(k) ? withOffers.filter((o) => kindOf(o) === k) : [])).flatMap((o) =>
-    o.Offers.map((of) => ({ o, of, c: calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth })! })),
-  );
-  const dense = cols.length >= 5;
-  // marks: choose / cancel per organisation (several offer columns of one organisation share it), sent together
+  // marks: choose per organisation (several offer columns of one organisation share it), sent together
   const marks = useOfferMarks(a, () => {
     reload();
     void qc.invalidateQueries({ queryKey: ['apps'] });
@@ -79,6 +73,12 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
   const answerable = marks.answerable;
   // a chosen offer's whole column is green
   const chosen = (o: AppOrg) => (marks.marks.get(o.ID) === 'accept' ? 'chosen' : '');
+  // only organisations that sent an offer can be compared; one column per offer; the chosen ones move to the left
+  const withOffers = a.Orgs.filter((o) => o.Offers.length);
+  const cols = FILTERS.flatMap(([k]) => (filter.includes(k) ? withOffers.filter((o) => kindOf(o) === k) : []))
+    .flatMap((o) => o.Offers.map((of) => ({ o, of, c: calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth })! })))
+    .sort((x, y) => Number(!!chosen(y.o)) - Number(!!chosen(x.o)));
+  const dense = cols.length >= 5;
   const row = (label: string, vals: number[], f: (v: number) => string, best = false, cls = '') => {
     const min = Math.min(...vals);
     const mark = best && vals.filter((v) => v === min).length < vals.length;
