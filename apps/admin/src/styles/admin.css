@@ -314,3 +314,5 @@
   /* compare filters: rejected (red) and waiting (grey) — like the customer site */
   .cmp-f.f-rejected { color: var(--red); border-color: var(--red); } .cmp-f.f-rejected.on { background: var(--red); color: #fff; }
   .cmp-f.f-waiting { color: var(--muted); border-color: var(--muted); } .cmp-f.f-waiting.on { background: var(--muted); border-color: var(--muted); color: #fff; }
+  /* offers list: the offer's terms under the organisation's status */
+  .off-line { display: block; margin-top: 4px; } .off-line b { color: var(--fg); font-weight: 600; }
