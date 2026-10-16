@@ -551,14 +551,17 @@ export function MarkBar({ m }: { m: OfferMarks }) {
   const canSend = m.accepts.length > 0 && !m.sending;
   return (
     <div className="pick-bar">
-      <span className={`pick-n${m.accepts.length ? ' on' : ''}`}>
-        {t('შერჩეულია')} <b>{m.accepts.length}</b>
-      </span>
-      {m.pending.length > 0 && (
-        <span className="pick-pending">
-          {t('შეთავაზებას ჯერ ელოდება')}: <b>{m.pending.map((o) => n(o.Organization)).join(', ')}</b> — {t('შედარების დასრულებისას გაუქმდება')}
+      <span className="pick-stats">
+        <span className={m.accepts.length ? 'on' : undefined}>
+          {t('შერჩეულია')}: <b>{m.accepts.length}</b>
         </span>
-      )}
+        <span>
+          {t('შეთავაზება გამოაგზავნა')}: <b>{m.answerable.length}</b>
+        </span>
+        <span>
+          {t('შეთავაზებას ველოდებით')}: <b>{m.pending.length}</b>
+        </span>
+      </span>
       <span className="pick-acts">
         <button type="button" className="btn btn-green sm" title={canSend ? undefined : t('აირჩიე მინიმუმ ერთი შეთავაზება')} disabled={!canSend} onClick={() => (m.setError(''), m.setAsking(true))}>
           {t('შედარების დასრულება')}

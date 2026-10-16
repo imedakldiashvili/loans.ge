@@ -282,7 +282,7 @@
  "აირჩიე მინიმუმ ერთი შეთავაზება": "Choose at least one offer",
  "შედარების დასრულება": "Finish comparison",
  "შერჩეულია": "Selected",
- "შეთავაზებას ჯერ ელოდება": "Still waiting for an offer from",
- "შედარების დასრულებისას გაუქმდება": "cancelled when you finish the comparison",
- "გაუქმდება (შეთავაზება ჯერ არ გამოუგზავნიათ)": "Will be cancelled (no offer sent yet)"
+ "გაუქმდება (შეთავაზება ჯერ არ გამოუგზავნიათ)": "Will be cancelled (no offer sent yet)",
+ "შეთავაზება გამოაგზავნა": "Sent an offer",
+ "შეთავაზებას ველოდებით": "Waiting for an offer"
 }
