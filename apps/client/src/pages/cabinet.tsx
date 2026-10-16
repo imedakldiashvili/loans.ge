@@ -575,9 +575,10 @@ export function MarkBar({ m }: { m: OfferMarks }) {
 /** Before answering: which offers will be accepted and which cancelled (it cannot be undone). */
 export function ConfirmOffers({ accept, cancel, pending = [], busy, error, onYes, onClose }: { accept: AppOrg[]; cancel: AppOrg[]; pending?: AppOrg[]; busy: boolean; error: string; onYes: () => void; onClose: () => void }) {
   // each group folds: the heading with its count, the organisations inside; "will be accepted" starts open
-  const group = (kind: 'ok' | 'no', title: string, l: AppOrg[]) =>
-    l.length > 0 && (
-      <details className={`cf-group ${kind}`} open={kind === 'ok'}>
+  // the cancel groups show even with 0; an empty group doesn't open
+  const group = (kind: 'ok' | 'no', title: string, l: AppOrg[], always = false) =>
+    (l.length > 0 || always) && (
+      <details className={`cf-group ${kind}${l.length ? '' : ' empty'}`} open={kind === 'ok' && l.length > 0} onToggle={(e) => !l.length && (e.currentTarget.open = false)}>
         <summary>
           <b>{t(title)}</b>
           <span className="cnt">{l.length}</span>
@@ -608,8 +609,8 @@ export function ConfirmOffers({ accept, cancel, pending = [], busy, error, onYes
       <h3 id="confirmOffersTitle">{t('პასუხის გაგზავნა')}</h3>
       <div className="cf-groups">
         {group('ok', 'დადასტურდება', accept)}
-        {group('no', 'გაუქმდება', cancel)}
-        {group('no', 'გაუქმდება (შეთავაზება ჯერ არ გამოუგზავნიათ)', pending)}
+        {group('no', 'გაუქმდება - შეთავაზება', cancel, true)}
+        {group('no', 'გაუქმდება - შეთავაზება მიუღებელი', pending, true)}
       </div>
       <p>{t(accept.length ? 'არჩეულ ორგანიზაციებს გაეგზავნება თანხმობა პროცესის გაგრძელებაზე. ამ მოქმედების გაუქმება ვერ მოხერხდება.' : 'ამ მოქმედების გაუქმება ვერ მოხერხდება.')}</p>
       <div className="cancel-actions">
