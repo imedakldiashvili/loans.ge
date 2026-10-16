@@ -12,7 +12,7 @@ const root = join(here, '..');
 const port = process.env.TEST_PORT ?? '4099';
 const base = `http://localhost:${port}`;
 const log = join(root, '.api-test.log');
-const SUITES = ['auth', 'smoke', 'admin-config', 'users', 'views', 'partner', 'client'];
+const SUITES = ['auth', 'smoke', 'admin-config', 'users', 'views', 'partner', 'client', 'integration'];
 
 // tests use their own database — the working one (DATABASE_URL in .env) is never touched
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL ?? 'postgresql://loans:loans@localhost:5433/loans_test';
@@ -46,7 +46,7 @@ const suite = (name) => {
 };
 
 let failed = 0;
-let api = start({ EXPIRY_WORKER: 'false' });
+let api = start({ EXPIRY_WORKER: 'false', WEBHOOK_INTERVAL_SECONDS: '1' });
 try {
   await waitUp();
   for (const s of SUITES) if (!suite(s)) failed++;

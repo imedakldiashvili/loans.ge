@@ -12,9 +12,10 @@ export const SESSION_HOURS: Record<AuthGateway, number> = { admin: 12, partner: 
 export const sessionCookie = (g: AuthGateway) => `lg_${g}`;
 
 export interface AuthInfo {
-  sessionId: bigint;
-  userId: bigint;
-  userProfileId: bigint;
+  /** null when the caller is a bank system with an API key */
+  sessionId: bigint | null;
+  userId: bigint | null;
+  userProfileId: bigint | null;
   gateway: AuthGateway;
   /** admin: super | operator | analyst; staff: sales | back; customer: null */
   role: string | null;
@@ -22,6 +23,16 @@ export interface AuthInfo {
   /** staff sales scope — empty = everything */
   scopeCities: bigint[];
   scopeProducts: bigint[];
+  /** API key calls (partner gateway, integration): the key and what it may do */
+  apiKeyId?: bigint;
+  scopes?: string[];
 }
 
 export type AuthedRequest = Request & { auth?: AuthInfo };
+
+/** The signed-in user of a session (not an API key) — for auth/me, logout, switchProfile. */
+export const userAuth = (req: AuthedRequest) => {
+  const a = req.auth;
+  if (!a?.sessionId || !a.userId || !a.userProfileId) throw new Error('user session required');
+  return a as AuthInfo & { sessionId: bigint; userId: bigint; userProfileId: bigint };
+};

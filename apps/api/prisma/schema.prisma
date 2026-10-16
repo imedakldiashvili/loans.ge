@@ -214,10 +214,12 @@ model Organization {
   isPartner Boolean @default(true) @map("is_partner")
   sort      Int     @default(0)
 
-  productTypes     OrganizationProductType[]
-  products         PartnerProduct[]
-  profiles         UserProfile[]
-  applicationOrgs  ApplicationOrg[]
+  productTypes    OrganizationProductType[]
+  products        PartnerProduct[]
+  profiles        UserProfile[]
+  applicationOrgs ApplicationOrg[]
+  apiKeys         ApiKey[]
+  webhooks        WebhookEndpoint[]
 
   @@map("organization")
 }
@@ -255,10 +257,10 @@ model PartnerProduct {
   deletedBy BigInt?   @map("deleted_by")
   deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
 
-  organizationId BigInt       @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  productTypeId  BigInt       @map("product_type_id")
-  productType    ProductType  @relation(fields: [productTypeId], references: [id])
+  organizationId BigInt             @map("organization_id")
+  organization   Organization       @relation(fields: [organizationId], references: [id])
+  productTypeId  BigInt             @map("product_type_id")
+  productType    ProductType        @relation(fields: [productTypeId], references: [id])
   description    String?
   /// currency codes enabled for this product
   currencies     String[]
@@ -367,8 +369,10 @@ model UserProfile {
   scopeProducts  BigInt[]      @map("scope_products")
   scopeCities    BigInt[]      @map("scope_cities")
 
-  customer CustomerDetail?
-  sessions Session[]
+  customer          CustomerDetail?
+  sessions          Session[]
+  notifications     Notification[]
+  pushSubscriptions PushSubscription[]
 
   @@unique([userId, profileTypeId, organizationId])
   @@map("user_profile")
@@ -784,8 +788,8 @@ model DevOutbox {
   deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
 
   /// sms | email
-  channel   String
-  target    String
+  channel      String
+  target       String
   /// login:admin | login:partner | login:client | …
   purpose      String
   code         String
@@ -797,4 +801,131 @@ model DevOutbox {
   @@index([createdOn])
   @@index([target])
   @@map("dev_outbox")
+}
+
+// ───────────────────────── Notifications and integration ─────────────────────────
+
+/// In-app notification for one profile (the bell in the partner cabinet / customer site).
+model Notification {
+  id        BigInt   @id @default(autoincrement())
+  uid       String   @unique @default(uuid()) @db.Uuid
+  createdOn DateTime @default(now()) @map("created_on") @db.Timestamptz(3)
+  isDeleted Boolean  @default(false) @map("is_deleted")
+
+  userProfileId    BigInt      @map("user_profile_id")
+  userProfile      UserProfile @relation(fields: [userProfileId], references: [id])
+  /// application.created | application.status
+  type             String
+  /// status the record moved to (for application.status)
+  status           String?
+  title            String
+  body             String?
+  applicationId    BigInt?     @map("application_id")
+  applicationOrgId BigInt?     @map("application_org_id")
+  readOn           DateTime?   @map("read_on") @db.Timestamptz(3)
+
+  @@index([userProfileId, readOn])
+  @@index([userProfileId, createdOn])
+  @@map("notification")
+}
+
+/// Browser push subscription (Web Push) of one profile on one browser.
+model PushSubscription {
+  id        BigInt   @id @default(autoincrement())
+  uid       String   @unique @default(uuid()) @db.Uuid
+  createdOn DateTime @default(now()) @map("created_on") @db.Timestamptz(3)
+  isDeleted Boolean  @default(false) @map("is_deleted")
+
+  userProfileId BigInt      @map("user_profile_id")
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id])
+  endpoint      String      @unique
+  p256dh        String
+  auth          String
+  userAgent     String?     @map("user_agent")
+  lastSentOn    DateTime?   @map("last_sent_on") @db.Timestamptz(3)
+
+  @@index([userProfileId])
+  @@map("push_subscription")
+}
+
+/// API key of a partner organisation — the bank's system calls the partner gateway with it (X-Api-Key).
+model ApiKey {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  organizationId BigInt       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  /// first characters of the key, shown in lists and used to find it
+  prefix         String       @unique
+  /// sha256 of the whole key — the key itself is shown once and never stored
+  keyHash        String       @map("key_hash")
+  /// applications:read | applications:write | catalog:read | catalog:write
+  scopes         String[]
+  lastUsedOn     DateTime?    @map("last_used_on") @db.Timestamptz(3)
+  expiresOn      DateTime?    @map("expires_on") @db.Timestamptz(3)
+
+  @@index([organizationId])
+  @@map("api_key")
+}
+
+/// Webhook of a partner organisation: events are POSTed to its URL, signed with HMAC-SHA256.
+model WebhookEndpoint {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  organizationId BigInt            @map("organization_id")
+  organization   Organization      @relation(fields: [organizationId], references: [id])
+  url            String
+  /// signing secret (needed in clear to sign)
+  secret         String
+  /// application.created | application.status
+  events         String[]
+  deliveries     WebhookDelivery[]
+
+  @@index([organizationId])
+  @@map("webhook_endpoint")
+}
+
+/// One event to one webhook: retried with growing pauses until it succeeds or the attempts run out.
+model WebhookDelivery {
+  id        BigInt   @id @default(autoincrement())
+  uid       String   @unique @default(uuid()) @db.Uuid
+  createdOn DateTime @default(now()) @map("created_on") @db.Timestamptz(3)
+
+  endpointId     BigInt          @map("endpoint_id")
+  endpoint       WebhookEndpoint @relation(fields: [endpointId], references: [id])
+  organizationId BigInt          @map("organization_id")
+  event          String
+  payload        Json
+  /// pending | ok | failed
+  status         String
+  attempts       Int             @default(0)
+  nextAttemptOn  DateTime?       @map("next_attempt_on") @db.Timestamptz(3)
+  lastAttemptOn  DateTime?       @map("last_attempt_on") @db.Timestamptz(3)
+  deliveredOn    DateTime?       @map("delivered_on") @db.Timestamptz(3)
+  responseCode   Int?            @map("response_code")
+  responseBody   String?         @map("response_body")
+  error          String?
+  durationMs     Int?            @map("duration_ms")
+
+  @@index([status, nextAttemptOn])
+  @@index([organizationId, createdOn])
+  @@map("webhook_delivery")
 }

@@ -39,6 +39,8 @@ const SETTING_VALUES: Record<string, z.ZodTypeAny> = {
     .object({ sms: otpChannel, email: otpChannel })
     .refine((v) => v.sms.on || v.email.on, { message: 'ერთი არხი მაინც უნდა იყოს ჩართული', path: ['sms', 'on'] }),
   contacts: z.object({ phone: z.string().trim().min(1), email: z.string().trim().email() }),
+  // who gets e-mail / SMS about applications (the bell and browser notifications are always on)
+  notify: z.object({ staffEmail: z.boolean(), staffSms: z.boolean(), customerEmail: z.boolean(), customerSms: z.boolean() }),
 };
 
 const configs: CrudConfig[] = [
@@ -163,6 +165,8 @@ const configs: CrudConfig[] = [
       if (!r.success) for (const i of r.error.issues) ctx.addIssue({ ...i, path: ['value', ...i.path] });
     }),
     searchFields: ['key'], unique: [['key']],
+    // only the editable settings (internal ones, e.g. the push keys, stay hidden)
+    scope: { key: { in: Object.keys(SETTING_VALUES) } },
   },
 ];
 

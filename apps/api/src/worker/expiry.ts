@@ -8,10 +8,11 @@ import { EventsService } from '../events/events';
 // Status deadlines: a record whose status has a time limit (status.ttl_minutes) and whose expires_on has passed
 // is moved by the system into the expiry status (status flagged is_expiry_target, e.g. "expired"), if that
 // transition exists for the actor "system". Runs inside the API every EXPIRY_INTERVAL_SECONDS (default 60 — once a minute);
-// a PostgreSQL advisory lock makes sure only one API instance does it at a time.
+// With several API instances each one runs it: a record moves only if its status is still the one that expired
+// (conditional update), so it is never changed twice. (A session advisory lock does not work over Prisma's
+// connection pool — lock and unlock may run on different connections.)
 // Runs that changed something or failed are written to job_run (admin → ლოგები → ჯობების ლოგი); empty runs are not.
 
-const LOCK_KEY = 7_311_001; // any constant shared by all instances
 export const EXPIRY_JOB = 'expiry';
 const INSTANCE = `${hostname()}:${process.pid}`;
 
@@ -47,27 +48,18 @@ export class ExpiryWorker implements OnApplicationBootstrap, OnApplicationShutdo
   async tick(): Promise<number> {
     if (this.running) return 0;
     this.running = true;
+    const startedOn = new Date();
+    const run: Run = { checked: 0, changes: [] };
     try {
-      const [{ locked }] = await this.prisma.$queryRaw<{ locked: boolean }[]>`SELECT pg_try_advisory_lock(${LOCK_KEY}) AS locked`;
-      if (!locked) return 0; // another instance is running it
-      const startedOn = new Date();
-      const run: Run = { checked: 0, changes: [] };
-      try {
-        await this.expireDue(run);
-        if (run.changes.length) await this.record(startedOn, 'ok', run);
-      } catch (e) {
-        this.log.error(`expiry pass failed: ${(e as Error).message}`);
-        await this.record(startedOn, 'error', run, (e as Error).message).catch(() => undefined);
-      } finally {
-        await this.prisma.$queryRaw`SELECT pg_advisory_unlock(${LOCK_KEY})`;
-      }
-      return run.changes.length;
+      await this.expireDue(run);
+      if (run.changes.length) await this.record(startedOn, 'ok', run);
     } catch (e) {
       this.log.error(`expiry pass failed: ${(e as Error).message}`);
-      return 0;
+      await this.record(startedOn, 'error', run, (e as Error).message).catch(() => undefined);
     } finally {
       this.running = false;
     }
+    return run.changes.length;
   }
 
   private record(startedOn: Date, status: 'ok' | 'error', run: Run, error?: string) {

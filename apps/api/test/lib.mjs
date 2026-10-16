@@ -31,7 +31,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export const otpFromLog = async (target) => {
   if (!LOG) throw new Error('API log file is required (3rd argument or API_LOG) to read the OTP code');
   for (let i = 0; i < 20; i++) {
-    const lines = readFileSync(LOG, 'utf8').split('\n').filter((l) => l.includes(`→ ${target}`));
+    // only code messages (notifications go to the same addresses)
+    const lines = readFileSync(LOG, 'utf8').split('\n').filter((l) => l.includes(`→ ${target}`) && /კოდ/.test(l));
     // Nest colours its log lines — strip ANSI codes before reading the code
     const m = lines.at(-1)?.replace(/\x1b\[[0-9;]*m/g, '').match(/(\d{4,6})\s*$/);
     if (m) return m[1];

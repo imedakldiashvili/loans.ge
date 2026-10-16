@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, Req, Res, Type }
 import type { Response } from 'express';
 import { AppError, notFound } from '../core/errors';
 import { AuthService } from './auth.service';
-import { AuthedRequest, AuthGateway, sessionCookie } from './auth.types';
+import { AuthedRequest, AuthGateway, sessionCookie, userAuth } from './auth.types';
 import { SessionService } from './session.service';
 
 /** Login: POST /public/auth/sendOtp → POST /public/auth/verifyOtp (sets the session cookie of the gateway). */
@@ -36,13 +36,13 @@ const gatewayAuthController = (gateway: AuthGateway): Type => {
 
     @Get('me')
     me(@Req() req: AuthedRequest) {
-      const a = req.auth!;
+      const a = userAuth(req);
       return this.auth.me(gateway, a.userId, a.userProfileId);
     }
 
     @Put('logout')
     async logout(@Req() req: AuthedRequest, @Res({ passthrough: true }) res: Response) {
-      const a = req.auth!;
+      const a = userAuth(req);
       const closed = await this.sessions.close(a.sessionId, a.userId);
       res.clearCookie(sessionCookie(gateway), { path: '/' });
       return closed;
@@ -50,7 +50,7 @@ const gatewayAuthController = (gateway: AuthGateway): Type => {
 
     @Put('switchProfile/:id/:uid')
     async switchProfile(@Param('id', ParseIntPipe) id: number, @Param('uid') uid: string, @Req() req: AuthedRequest) {
-      const a = req.auth!;
+      const a = userAuth(req);
       const profiles = await this.auth.eligibleProfiles(a.userId, gateway);
       const p = profiles.find((x) => x.id === BigInt(id));
       if (!p) throw notFound('პროფილი');
