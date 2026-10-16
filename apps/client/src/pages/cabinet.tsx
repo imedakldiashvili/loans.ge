@@ -529,18 +529,16 @@ export function useOfferMarks(a: App, onSent: () => void) {
 }
 export type OfferMarks = ReturnType<typeof useOfferMarks>;
 
-/** ✓ choose / ✕ cancel on one offer. */
+/** ✓ choose / ✕ cancel on one offer (icons; the words are in the tooltip). */
 export function MarkButtons({ o, m }: { o: AppOrg; m: OfferMarks }) {
   const v = m.marks.get(o.ID);
   return (
     <span className="marks" role="group" aria-label={n(o.Organization)}>
-      <button type="button" className={`mark ok${v === 'accept' ? ' on' : ''}`} aria-pressed={v === 'accept'} title={t('არჩევა')} onClick={() => m.mark(o.ID, 'accept')}>
+      <button type="button" className={`mark ok${v === 'accept' ? ' on' : ''}`} aria-pressed={v === 'accept'} title={t('არჩევა')} aria-label={t('არჩევა')} onClick={() => m.mark(o.ID, 'accept')}>
         <svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10" /></svg>
-        <span>{t('არჩევა')}</span>
       </button>
-      <button type="button" className={`mark no${v === 'decline' ? ' on' : ''}`} aria-pressed={v === 'decline'} title={t('გაუქმება')} onClick={() => m.mark(o.ID, 'decline')}>
+      <button type="button" className={`mark no${v === 'decline' ? ' on' : ''}`} aria-pressed={v === 'decline'} title={t('გაუქმება')} aria-label={t('გაუქმება')} onClick={() => m.mark(o.ID, 'decline')}>
         <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
-        <span>{t('გაუქმება')}</span>
       </button>
     </span>
   );

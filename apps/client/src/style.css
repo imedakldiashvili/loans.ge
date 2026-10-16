@@ -703,15 +703,15 @@
 
   /* choose / cancel marks on an offer — applied on "send" */
   .marks { display: inline-flex; gap: 6px; }
-  .mark { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--muted); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
-  .mark svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .mark { display: inline-flex; align-items: center; justify-content: center; gap: 5px; width: 34px; height: 34px; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--muted); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .mark svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
   .mark.ok:hover, .mark.ok.on { color: var(--green); border-color: var(--green); }
   .mark.ok.on { background: var(--green); color: #fff; }
   .mark.no:hover, .mark.no.on { color: #d9534f; border-color: #d9534f; }
   .mark.no.on { background: #d9534f; color: #fff; }
   .cab-det-row.marked-accept .nm { font-weight: 700; color: var(--green); }
   .cab-det-row.marked-decline .nm { text-decoration: line-through; color: var(--muted); }
-  @media (max-width: 600px) { .mark span { display: none; } .mark { padding: 0 8px; } }
+
   .cmp .acts .marks { justify-content: center; }
 
   /* "compare" in the header of the received-offers group */
