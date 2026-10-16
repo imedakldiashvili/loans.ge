@@ -325,7 +325,7 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
 
   return (
     <div className={`card${open ? ' open' : ''}`}>
-      <div className="row">
+      <div className="row r4">
         <span className="ico" style={{ background: statusColor(s, r.Status), color: '#fff' }}>
           <svg viewBox="0 0 24 24">
             <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
@@ -335,16 +335,18 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
         <span className="info">
           <b>{a.ProductType.NameKa}</b>
           <small>{applicantName(r)}</small>
-        </span>
-        <span className="mid">
-          <span className={`st ${r.Status}`}>{s?.ChipLabel ?? r.Status}</span>
-          <Countdown r={r} s={s} />
-        </span>
-        <span className="right">
-          <span className="amt">{money(a.Amount, a.Currency)}</span>
           <small>
             {cities.find((c) => c.ID === a.CityID)?.NameKa ?? '—'} · {fmtDate(a.CreatedOn)}
           </small>
+        </span>
+        <span className="right">
+          <span className="amt-line">
+            <Countdown r={r} s={s} />
+            <span className="amt">{money(a.Amount, a.Currency)}</span>
+          </span>
+          <span className="st-text" style={{ color: statusColor(s, r.Status) }}>
+            {s?.ChipLabel ?? r.Status}
+          </span>
         </span>
         <button type="button" className="ib tg" aria-label="ჩამოშლა" aria-expanded={open} onClick={onToggle}>
           <Chevron />
