@@ -53,7 +53,9 @@
   /* ბექ-ოფისის მენიუ ჰედერში: განაცხადები / პროდუქტები / მომხმარებლები */
   .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: -4px; }
   .tabs button { flex: 1 1 0; text-align: center; padding: 11px 14px; border: 0; border-bottom: 2px solid transparent; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap; }
+  .tabs a { flex: 1 1 0; text-align: center; padding: 11px 14px; border: 0; border-bottom: 2px solid transparent; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap; }
   .tabs button { position: relative; } .tabs button.on { color: var(--green); } .tabs button.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--green); border-radius: 3px 3px 0 0; } .tabs button:hover { color: var(--fg); }
+  .tabs a { position: relative; } .tabs a.on { color: var(--green); } .tabs a.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--green); border-radius: 3px 3px 0 0; } .tabs a:hover { color: var(--fg); }
   /* პროდუქტების / მომხმარებლების სია */
   .prow { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto 76px; gap: 14px; align-items: center; padding: 12px 16px; }
   .prow > * { min-width: 0; } .prow .pinfo { display: grid; gap: 3px; justify-items: start; }
@@ -257,7 +259,7 @@
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; z-index: 20; box-shadow: 0 8px 20px rgba(0,0,0,.2); }
 
   @media (max-width: 900px) { .ws { grid-template-columns: 1fr; } .row { grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px 12px; } .row .mid { min-width: 0; margin-inline-start: 0; } .row .right { grid-column: 2; justify-self: start; text-align: left; } .row .right small { white-space: normal; } .row .tg { grid-column: 3; justify-self: end; align-self: end; }  }
-  @media (max-width: 640px) { .who > span:last-child { display: none; } .tabs button { padding: 11px 4px; font-size: 13px; } .srow { gap: 8px; } .search { flex: 1 1 100%; min-width: 0; } .fsel { flex: 1 1 0; min-width: 0; padding-right: 30px; } .chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; gap: 6px; } .chip { padding: 6px 10px; font-size: 12px; } .top h2 { font-size: 18px; } .wrap { padding-inline: 12px; } .kv { grid-template-columns: 1fr; gap: 2px 0; } .kv span { font-size: 12px; } }
+  @media (max-width: 640px) { .who > span:last-child { display: none; } .tabs button, .tabs a { padding: 11px 4px; font-size: 13px; } .srow { gap: 8px; } .search { flex: 1 1 100%; min-width: 0; } .fsel { flex: 1 1 0; min-width: 0; padding-right: 30px; } .chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; gap: 6px; } .chip { padding: 6px 10px; font-size: 12px; } .top h2 { font-size: 18px; } .wrap { padding-inline: 12px; } .kv { grid-template-columns: 1fr; gap: 2px 0; } .kv span { font-size: 12px; } }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
   /* the bell — notifications */
@@ -291,3 +293,5 @@
   .row .st-text { font-size: 12px; font-weight: 700; white-space: nowrap; }
   .row .amt-line .cd { height: 22px; font-size: 12px; padding: 0 7px; }
   @media (max-width: 900px) { .row.r4 { grid-template-columns: 40px minmax(0, 1fr) auto 28px; } .row.r4 .right { grid-column: 3; grid-row: 1; justify-self: end; text-align: right; } .row.r4 .tg { grid-column: 4; grid-row: 1; align-self: center; } }
+
+  .tabs a { text-decoration: none; display: block; }

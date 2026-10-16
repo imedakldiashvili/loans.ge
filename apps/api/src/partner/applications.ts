@@ -24,6 +24,8 @@ export const findBody = z.preprocess(
     filter: z.preprocess(
       (v) => v ?? {},
       z.object({
+        /** one record (a link / notification opens it) */
+        id: z.coerce.bigint().optional(),
         search: z.string().trim().optional(),
         statuses: z.array(z.string()).optional(),
         from: z.coerce.date().optional(),
@@ -84,6 +86,7 @@ export class PartnerApplicationService {
     const app = base.application as Prisma.ApplicationWhereInput;
     const scoped: Prisma.ApplicationOrgWhereInput = {
       ...base,
+      ...(f.id ? { id: f.id } : {}),
       application: {
         ...app,
         ...(f.from || f.to ? { createdOn: { ...(f.from ? { gte: f.from } : {}), ...(f.to ? { lte: f.to } : {}) } } : {}),

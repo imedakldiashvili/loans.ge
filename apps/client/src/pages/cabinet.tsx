@@ -220,6 +220,7 @@ function Countdown({ o }: { o: AppOrg }) {
 function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onCompare: () => void }) {
   const qc = useQueryClient();
   const s = useStatus();
+  const { cities, districts } = useRefs();
   const [open, setOpen] = useState(expanded);
   const [closed, setClosed] = useState<Set<string>>(new Set(GROUP_ORDER.filter((k) => !OPEN_GROUPS.includes(k))));
   const [view, setView] = useState(false);
@@ -251,7 +252,9 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             <span className="who">
               {a.FirstName} {a.LastName}
             </span>
-            <small className="when">{fmtDate(a.CreatedOn)}</small>
+            <small className="when">
+              {[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '—'} · {fmtDate(a.CreatedOn)}
+            </small>
           </span>
           <span className="right">
             <i className="amt">{money(a.Amount, a.Currency)}</i>

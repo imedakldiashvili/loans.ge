@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ApiError, crud, findAll, Ref } from '../api';
 import { Field, useRefs } from '../session';
 import { Chevron, curSym, EditIcon, ErrorLine, fmt, Modal, Switch, useToast } from '../ui/ui';
@@ -40,16 +41,14 @@ export function ProductsPage() {
   const qc = useQueryClient();
   const toast = useToast();
   const [open, setOpen] = useState<number | null>(null);
-  const [edit, setEdit] = useState<number | 'new' | null>(null);
+  const nav = useNavigate();
   const refresh = () => qc.invalidateQueries({ queryKey: ['products'] });
-
-  if (edit !== null) return <ProductForm id={edit} onBack={() => (setEdit(null), refresh())} onCreated={(id) => setEdit(id)} />;
   const list = q.data ?? [];
   return (
     <div className="main">
       <div className="top">
         <h2>პროდუქტები</h2>
-        <button type="button" className="btn btn-green topbtn" onClick={() => setEdit('new')}>
+        <button type="button" className="btn btn-green topbtn" onClick={() => nav('/products/new')}>
           + პროდუქტი
         </button>
       </div>
@@ -94,7 +93,7 @@ export function ProductsPage() {
                       }
                     }}
                   />
-                  <button type="button" className="ib edit" title="რედაქტირება" aria-label="რედაქტირება" onClick={() => setEdit(p.ID)}>
+                  <button type="button" className="ib edit" title="რედაქტირება" aria-label="რედაქტირება" onClick={() => nav(`/products/${p.ID}`)}>
                     <EditIcon />
                   </button>
                 </span>
@@ -175,6 +174,24 @@ function CardInfo({ p, k }: { p: Product; k: CardRow }) {
       <small>{l2}</small>
       {extra && <small className="extra">{extra}</small>}
     </span>
+  );
+}
+
+/** /products/new and /products/{id}: the product form on its own address. */
+export function ProductFormPage() {
+  const { id = 'new' } = useParams();
+  const nav = useNavigate();
+  const qc = useQueryClient();
+  return (
+    <ProductForm
+      key={id}
+      id={id === 'new' ? 'new' : Number(id)}
+      onBack={() => {
+        void qc.invalidateQueries({ queryKey: ['products'] });
+        nav('/products');
+      }}
+      onCreated={(newId) => nav(`/products/${newId}`, { replace: true })}
+    />
   );
 }
 

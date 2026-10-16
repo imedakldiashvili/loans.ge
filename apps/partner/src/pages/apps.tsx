@@ -2,6 +2,7 @@ import { calcOffer } from '@loans/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError, crud, findAll, Page, Ref } from '../api';
 import { Named, StatusRow, statusColor, useRefs, useSession } from '../session';
 import { Chevron, curSym, ErrorLine, fmt, fmtCd, fmtDate, Modal, useNow, useToast } from '../ui/ui';
@@ -97,12 +98,17 @@ export const cardTerms = (card: Card, amountAsked: number) => {
 export function AppsPage() {
   const refs = useRefs();
   const qc = useQueryClient();
+  // the open record is in the address: /applications/{id} (a link or a notification opens it)
+  const { id } = useParams();
+  const nav = useNavigate();
+  const sel = id ? Number(id) : null;
+  const setSel = (x: number | null) => nav(x ? `/applications/${x}` : '/applications', { replace: true });
   const [search, setSearch] = useState('');
   const [city, setCity] = useState('all');
   const [time, setTime] = useState<keyof typeof TIMES | 'all'>('24h');
   const [view, setView] = useState<Set<string> | null>(null);
   const [page, setPage] = useState(1);
-  const [sel, setSel] = useState<number | null>(null);
+  const first = useRef(true);
   const [ddOpen, setDdOpen] = useState(false);
   const ddBtn = useRef<HTMLButtonElement>(null);
 
@@ -122,8 +128,15 @@ export function AppsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, city, time, [...shown].join()]);
   useEffect(() => {
+    // a filter change closes the open record (not on the first render — it may come from the address)
+    if (!refs.statuses.length) return; // the default status filter is not known yet
+    if (first.current) {
+      first.current = false;
+      return;
+    }
     setPage(1);
     setSel(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(filter)]);
 
   const q = useQuery({
@@ -143,6 +156,13 @@ export function AppsPage() {
   const refresh = () => qc.invalidateQueries({ queryKey: ['apps'] });
 
   const rows = q.data?.Items ?? [];
+  // the record from the address, when it is not on this page / in this filter — shown on top
+  const pinned = useQuery({
+    queryKey: ['apps', 'one', sel],
+    queryFn: () => api<FindResult>('POST', '/partner/application/find/1/1', { Filter: { ID: sel } }).then((p) => p.Items[0] ?? null),
+    enabled: !!sel && !!q.data && !rows.some((r) => r.ID === sel),
+  });
+  const extra = sel && pinned.data && !rows.some((r) => r.ID === sel) ? pinned.data : null;
   const pages = q.data?.TotalPages ?? 1;
 
   return (
@@ -214,6 +234,7 @@ export function AppsPage() {
         </span>
       </div>
       <div className="list">
+        {extra && <AppCard key={`pinned-${extra.ID}`} r={extra} open onToggle={() => setSel(null)} st={st} onChanged={refresh} />}
         {!rows.length ? (
           <div className="empty">{q.isLoading ? 'იტვირთება…' : shown.size ? 'მონიშნულ სტატუსებში განაცხადი არ არის' : 'მონიშნე სტატუსი, რომ განაცხადები გამოჩნდეს'}</div>
         ) : (

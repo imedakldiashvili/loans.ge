@@ -1,9 +1,10 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
+import { Link, Navigate, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
 import { api, ApiError, Ref } from './api';
 import logo from './logo.png';
 import { AppsPage } from './pages/apps';
 import { IntegrationPage } from './pages/integration';
-import { ProductsPage } from './pages/products';
+import { ProductFormPage, ProductsPage } from './pages/products';
 import { UsersPage } from './pages/users';
 import { chime, useTitleCounter } from './attention';
 import { Bell } from './bell';
@@ -11,8 +12,9 @@ import { useLiveEvents } from './live';
 import { ROLES, useSession } from './session';
 import { useToast } from './ui/ui';
 
-// Partner cabinet (prototype partner.html): login → workspace with tabs for the back office
-// (applications / products / users); sales see applications only.
+// Partner cabinet (prototype partner.html): login → workspace. Every tab has its own address:
+//   /applications (/applications/{id} — that record open) · /products (/products/new, /products/{id}) · /users · /integration.
+// Sales see applications only; the back-office addresses send them back there.
 
 const ORG_COLORS = ['#1e63b5', '#7b4fb5', '#0f9d8a', '#c0392b', '#b8860b', '#2e7d32'];
 
@@ -39,7 +41,7 @@ function useTheme(): [boolean, () => void] {
 export function App() {
   const { me, loading, logout, switchTo } = useSession();
   const [, toggleTheme] = useTheme();
-  const [tab, setTab] = useState<'apps' | 'products' | 'users' | 'integration'>('apps');
+  const nav = useNavigate();
   const p = me?.Profile;
   const back = p?.Role === 'back';
   const toast = useToast();
@@ -53,8 +55,12 @@ export function App() {
     }
     else if (e.Actor === 'customer') toast('მომხმარებელმა განაცხადი განაახლა');
   });
+  // another organisation chosen → its applications (not on the first load — the address may point anywhere)
+  const prevProfile = useRef<number | null>(null);
   useEffect(() => {
-    setTab('apps');
+    if (prevProfile.current !== null && p && prevProfile.current !== p.ID) nav('/applications', { replace: true });
+    prevProfile.current = p?.ID ?? null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p?.ID]);
   if (loading) return null;
   const org = p?.Organization as (NonNullable<typeof p>['Organization'] & { Color?: string | null }) | undefined;
@@ -63,12 +69,12 @@ export function App() {
     <>
       <header>
         <div className="wrap nav">
-          <a className="logo" href="/" title="loans.ge">
+          <Link className="logo" to="/applications" title="loans.ge">
             <img src={logo} alt="" />
             <b>
               Loans<span>.ge</span>
             </b>
-          </a>
+          </Link>
           <span className="tag">პარტნიორი</span>
           {p && (
             <div className="who">
@@ -92,7 +98,7 @@ export function App() {
               )}
             </div>
           )}
-          {p && <Bell gateway="partner" onOpen={() => setTab('apps')} />}
+          {p && <Bell gateway="partner" onOpen={(n) => nav(n.ApplicationOrgID ? `/applications/${n.ApplicationOrgID}` : '/applications')} />}
           <button type="button" className="ctl" title="თემა" aria-label="თემა" onClick={toggleTheme}>
             <svg viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="4" />
@@ -115,17 +121,29 @@ export function App() {
           <section className="ws">
             {back && (
               <nav className="tabs">
-                {(['apps', 'products', 'users', 'integration'] as const).map((t) => (
-                  <button key={t} type="button" className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
-                    {{ apps: 'განაცხადები', products: 'პროდუქტები', users: 'მომხმარებლები', integration: 'ინტეგრაცია' }[t]}
-                  </button>
+                {(
+                  [
+                    ['/applications', 'განაცხადები'],
+                    ['/products', 'პროდუქტები'],
+                    ['/users', 'მომხმარებლები'],
+                    ['/integration', 'ინტეგრაცია'],
+                  ] as const
+                ).map(([to, label]) => (
+                  <NavLink key={to} to={to} className={({ isActive }) => (isActive ? 'on' : '')}>
+                    {label}
+                  </NavLink>
                 ))}
               </nav>
             )}
-            {tab === 'apps' && <AppsPage key={p.ID} />}
-            {tab === 'products' && back && <ProductsPage key={p.ID} />}
-            {tab === 'users' && back && <UsersPage key={p.ID} />}
-            {tab === 'integration' && back && <IntegrationPage key={p.ID} />}
+            <Routes>
+              <Route path="/applications" element={<AppsPage key={p.ID} />} />
+              <Route path="/applications/:id" element={<AppsPage key={p.ID} />} />
+              <Route path="/products" element={back ? <ProductsPage key={p.ID} /> : <Navigate to="/applications" replace />} />
+              <Route path="/products/:id" element={back ? <ProductFormPage /> : <Navigate to="/applications" replace />} />
+              <Route path="/users" element={back ? <UsersPage key={p.ID} /> : <Navigate to="/applications" replace />} />
+              <Route path="/integration" element={back ? <IntegrationPage key={p.ID} /> : <Navigate to="/applications" replace />} />
+              <Route path="*" element={<Navigate to="/applications" replace />} />
+            </Routes>
           </section>
         )}
       </main>
