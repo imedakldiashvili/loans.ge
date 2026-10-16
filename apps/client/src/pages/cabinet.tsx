@@ -597,7 +597,6 @@ export function ConfirmOffers({ accept, cancel, pending = [], busy, error, onYes
       <h3 id="confirmOffersTitle">{t('პასუხის გაგზავნა')}</h3>
       <div className="cf-groups">
         {group('ok', 'დადასტურდება', accept)}
-        {accept.length > 0 && <p className="cf-note">{t('არჩეულ ორგანიზაციებს გაეგზავნება თანხმობა პროცესის გაგრძელებაზე.')}</p>}
         {group('no', 'გაუქმდება - შეთავაზება', cancel, true)}
         {group('no', 'გაუქმდება - შეთავაზება მიუღებელი', pending, true)}
       </div>
