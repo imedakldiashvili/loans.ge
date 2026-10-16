@@ -552,9 +552,6 @@ export function MarkBar({ m }: { m: OfferMarks }) {
   return (
     <div className="pick-bar">
       <span className="pick-stats">
-        <span className={m.accepts.length ? 'on' : undefined}>
-          {t('შერჩეულია')}: <b>{m.accepts.length}</b>
-        </span>
         <span>
           {t('შეთავაზება გამოაგზავნა')}: <b>{m.answerable.length}</b>
         </span>
@@ -563,6 +560,9 @@ export function MarkBar({ m }: { m: OfferMarks }) {
         </span>
       </span>
       <span className="pick-acts">
+        <span className={`pick-n${m.accepts.length ? ' on' : ''}`}>
+          {t('შერჩეულია')}: <b>{m.accepts.length}</b>
+        </span>
         <button type="button" className="btn btn-green sm" title={canSend ? undefined : t('აირჩიე მინიმუმ ერთი შეთავაზება')} disabled={!canSend} onClick={() => (m.setError(''), m.setAsking(true))}>
           {t('შედარების დასრულება')}
         </button>
