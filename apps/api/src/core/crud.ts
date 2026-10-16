@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Type } from '@nestjs/common';
 import { z, ZodTypeAny } from 'zod';
-import { fromApi, pascalKey } from './case';
+import { camelKey, fromApi, pascalKey } from './case';
 import { AppError, notFound, validation } from './errors';
 import { PrismaService } from './prisma.service';
 import { currentUserId } from './request-context';
@@ -179,7 +179,8 @@ export class CrudService<S extends ZodTypeAny = ZodTypeAny> {
       where.OR = this.cfg.searchFields.map((f) => f.split('.').reduceRight<object>((acc, k) => ({ [k]: acc }), { contains: search, mode: 'insensitive' }));
     }
     const sortable = new Set(['id', 'createdOn', 'sort', ...(this.cfg.filterFields ?? []), ...(this.cfg.searchFields ?? []).filter((f) => !f.includes('.'))]);
-    const orderBy = (sort?.length ? sort : this.cfg.defaultSort ?? [{ field: 'id', dir: 'asc' as const }]).map((s) => {
+    // Sort.Field comes as an API name (PascalCase, e.g. RegionID) — same mapping as keys
+    const orderBy = (sort?.length ? sort.map((x) => ({ ...x, field: camelKey(x.field) })) : this.cfg.defaultSort ?? [{ field: 'id', dir: 'asc' as const }]).map((s) => {
       if (!sortable.has(s.field)) throw validation([{ field: `Sort.${s.field}`, message: 'ამ ველით სორტირება არ არის დაშვებული' }]);
       return { [s.field]: s.dir };
     });
