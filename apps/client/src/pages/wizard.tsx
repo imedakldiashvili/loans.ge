@@ -19,7 +19,7 @@ export interface Sent {
 
 const STEPS = 6;
 
-export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () => void; onSent: (s: Sent) => void }) {
+export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => void }) {
   const { me } = useSession();
   const askLogin = useAskLogin();
   const refs = useRefs();
@@ -371,11 +371,6 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
           )}
         </div>
         <div className="wz-foot">{nav('foot')}</div>
-        <p style={{ textAlign: 'center', marginTop: 12 }}>
-          <button type="button" className="btn btn-ghost" onClick={onClose}>
-            {t('მთავარზე დაბრუნება')}
-          </button>
-        </p>
       </div>
       {otp && (
         <OtpModal

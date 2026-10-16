@@ -168,7 +168,7 @@ export function App() {
       <Routes>
         <Route path="/" element={<HomePage onStart={begin} />} />
         {/* the wizard starts from the home page (loan, amount, currency) — opened directly it goes back there */}
-        <Route path="/apply" element={start ? <Wizard key={`${start.productType.ID}-${start.amount}`} start={start} onClose={() => nav('/')} onSent={setSent} /> : <Navigate to="/" replace />} />
+        <Route path="/apply" element={start ? <Wizard key={`${start.productType.ID}-${start.amount}`} start={start} onSent={setSent} /> : <Navigate to="/" replace />} />
         <Route path="/cabinet" element={<RequireLogin><Cabinet view="active" onNew={() => setNewApp(true)} /></RequireLogin>} />
         <Route path="/cabinet/closed" element={<RequireLogin><Cabinet view="done" onNew={() => setNewApp(true)} /></RequireLogin>} />
         <Route path="/cabinet/profile" element={<RequireLogin><Cabinet view="profile" onNew={() => setNewApp(true)} /></RequireLogin>} />
