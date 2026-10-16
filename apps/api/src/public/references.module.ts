@@ -25,7 +25,11 @@ const configs: CrudConfig[] = [
   ro('productTypeField', 'productTypeField', { filterFields: ['productTypeId'] }),
   // texts and categories for every surface; behaviour flags stay server-side
   ro('status', 'status'),
-  ro('organization', 'organization', { searchFields: ['nameKa', 'nameEn'], filterFields: ['category', 'isPartner'] }),
+  // product types it accepts — the wizard lists only organisations that take the chosen loan
+  ro('organization', 'organization', {
+    searchFields: ['nameKa', 'nameEn'], filterFields: ['category', 'isPartner'],
+    include: { productTypes: { where: { isDeleted: false }, select: { productTypeId: true } } },
+  }),
 ];
 
 const parts = configs.map(crudModuleParts);
