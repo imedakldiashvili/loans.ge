@@ -1,3 +1,4 @@
+import './env';
 import 'reflect-metadata';
 import './core/zod-ka';
 import { Logger } from '@nestjs/common';

@@ -1,0 +1,59 @@
+/* OTP viewer — loans.ge tokens (same palette as the admin console) */
+:root {
+  color-scheme: light;
+  --bg: #ffffff; --bg-soft: #f8fafd; --fg: #343c5c; --fg-body: #333333; --muted: #808080; --line: #e3e7f1;
+  --green: #5ebb47; --green-soft: #e8f6e3; --orange: #f47429; --orange-soft: #fdeee4; --red: #d9534f; --red-soft: #fdecec;
+  --blue: #1e63b5; --blue-soft: #e6eef9; --grey: #8a8f9f;
+  --font: "Noto Sans Georgian", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #151826; --bg-soft: #1b1f30; --fg: #e8ebf5; --fg-body: #d5d9e6; --muted: #9aa0b8; --line: #2e3450;
+    --green: #6cc955; --green-soft: #1f3320; --orange: #f98a47; --orange-soft: #3a2a20; --red: #f08a86; --red-soft: #3a2222;
+    --blue: #6ea3e6; --blue-soft: #1c2a40;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg-soft); color: var(--fg-body); font-family: var(--font); font-size: 14px; line-height: 1.6; }
+code { font-family: ui-monospace, Consolas, monospace; font-size: 12px; background: var(--bg-soft); padding: 1px 5px; border-radius: 4px; color: var(--fg); }
+.wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; }
+header { background: var(--bg); border-bottom: 1px solid var(--line); }
+.nav { display: flex; align-items: center; gap: 10px; height: 64px; }
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo img { height: 34px; }
+.logo b { font-size: 20px; font-weight: 700; color: var(--green); }
+.logo b span { color: var(--orange); }
+.tag { background: var(--orange-soft); color: var(--orange); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.env { margin-inline-start: auto; font-size: 12px; font-weight: 600; color: var(--red); border: 1px solid var(--red); border-radius: 999px; padding: 2px 10px; }
+main { padding-block: 20px 40px; }
+.warn { margin: 0 0 16px; padding: 10px 14px; background: var(--orange-soft); border-radius: 8px; color: var(--fg); font-size: 13px; }
+.bar { display: flex; gap: 8px; margin-bottom: 14px; }
+.bar input { flex: 1; min-width: 0; height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font: inherit; }
+.bar input:focus { outline: 2px solid var(--green); outline-offset: -1px; }
+.btn { height: 40px; padding: 0 14px; border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer; }
+.btn.ghost { background: var(--bg); color: var(--fg); border: 1px solid var(--line); }
+.btn:disabled { opacity: .5; cursor: default; }
+.note { padding: 18px; text-align: center; color: var(--muted); background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; }
+.list { display: grid; gap: 10px; }
+.card { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; padding: 12px 16px; background: var(--bg); border: 1px solid var(--line); border-left: 4px solid var(--green); border-radius: 8px; }
+.card.used, .card.expired { border-left-color: var(--grey); opacity: .65; }
+.code { display: grid; justify-items: center; min-width: 120px; padding: 6px 12px; border: 1px dashed var(--line); border-radius: 8px; background: var(--bg-soft); color: var(--fg); font: 700 26px/1.2 ui-monospace, Consolas, monospace; letter-spacing: 4px; cursor: pointer; }
+.code small { font: 500 11px var(--font); letter-spacing: 0; color: var(--muted); }
+.code:hover { border-color: var(--green); }
+.who { display: grid; min-width: 0; }
+.who b { color: var(--fg); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who > span { font-size: 12px; color: var(--muted); }
+.ch { font-weight: 700; }
+.ch.sms { color: var(--blue); }
+.ch.email { color: var(--orange); }
+.state { display: grid; justify-items: end; gap: 2px; }
+.state small { font-size: 11px; color: var(--red); }
+.pill { font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pill.live { background: var(--green-soft); color: var(--green); }
+.pill.used { background: var(--blue-soft); color: var(--blue); }
+.pill.expired { background: var(--red-soft); color: var(--red); }
+@media (max-width: 560px) {
+  .card { grid-template-columns: 1fr; justify-items: start; }
+  .state { justify-items: start; }
+}

@@ -7,7 +7,8 @@ import { requestContext, RequestContext } from './request-context';
 // Every API call gets a UID and is logged — STANDARDS.md §4.
 // action_log + action_log_request + action_log_response, linked by uid only; written after the response is sent.
 
-const GATEWAYS = new Set(['public', 'client', 'partner', 'admin']);
+// `dev` exists only in test environments (DEV_OUTBOX=true)
+const GATEWAYS = new Set(['public', 'client', 'partner', 'admin', 'dev']);
 const UID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Keys whose values are replaced with *** before logging (secrets only — everything else is kept). */

@@ -24,6 +24,7 @@
 | `client` | მსესხებელი (customer პროფილი) | სესია |
 | `partner` | ორგანიზაცია — **კაბინეტიც და ბანკის სისტემაც (ინტეგრაცია) ერთი და იგივე API-ა** | კაბინეტი: სესია (staff პროფილი); ინტეგრაცია: ორგანიზაციის API გასაღები |
 | `admin` | loans.ge-ს გუნდი (admin პროფილი) | სესია |
+| `dev` | **მხოლოდ სატესტო გარემო:** OTP კოდების სანახავი (`apps/otp-viewer`) | — ; რთავს `DEV_OUTBOX=true`, `NODE_ENV=production`-ზე მარშრუტები საერთოდ არ არსებობს |
 
 ✅ `partner` = integration: ცალკე `integration` gateway არ არის. ბანკის სისტემა იმავე endpoint-ებს იძახებს, რასაც კაბინეტი; წესები (სტატუსები, PII დაფარვა, scope) ერთია. განსხვავება მხოლოდ ავტორიზაციაშია (`Authorization: ApiKey …`) და actionLog-ში `actorType = integration`.
 

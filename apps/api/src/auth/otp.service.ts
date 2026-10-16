@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createHash, randomInt, timingSafeEqual } from 'crypto';
 import { AppError, notFound } from '../core/errors';
 import { PrismaService } from '../core/prisma.service';
+import { DevOutbox } from '../dev/dev-outbox';
 import { EmailSender, SmsSender } from '../notify/notifier';
 
 interface Channel {
@@ -25,6 +26,7 @@ export class OtpService {
     private readonly prisma: PrismaService,
     private readonly sms: SmsSender,
     private readonly email: EmailSender,
+    private readonly outbox: DevOutbox,
   ) {}
 
   private async settings(channel: OtpChannel): Promise<Channel> {
@@ -50,6 +52,8 @@ export class OtpService {
     const text = cfg.tpl.replace('{code}', code);
     if (channel === 'sms') await this.sms.send(target, text);
     else await this.email.send(target, 'loans.ge — ერთჯერადი კოდი', text);
+    // test environments only (DEV_OUTBOX=true): keep a copy for the OTP viewer
+    await this.outbox.record({ channel, target, purpose, code, text, expiresOn: row.expiresOn, challengeUid: row.uid });
     return { id: row.id, uid: row.uid };
   }
 

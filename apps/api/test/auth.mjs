@@ -23,6 +23,9 @@ ok(s1.status === 200 && Object.keys(s1.json.Data).join() === 'ID,UID', 'sendOtp 
 const again = await call('POST', '/public/auth/sendOtp', { Gateway: 'admin', Login: 'operator@loans.ge' });
 ok(again.status === 429 && again.json.Error.Code === 'RATE_LIMITED', 'resend before the interval → 429');
 const code = await otpFromLog('operator@loans.ge');
+// test environment: the OTP viewer outbox has the same code (DEV_OUTBOX=true in .env)
+const box = await call('POST', '/dev/outbox/find/1/5', { Filter: { Search: 'operator@loans.ge' } });
+ok(box.status === 200 && box.json.Data.Items[0]?.Code === code && box.json.Data.Items[0].IsUsed === false, 'dev outbox: latest code visible for the OTP viewer', box.json);
 const wrong = String((Number(code) + 1) % 10 ** code.length).padStart(code.length, '0');
 const w = await call('POST', '/public/auth/verifyOtp', { ID: s1.json.Data.ID, UID: s1.json.Data.UID, Otp: wrong });
 ok(w.status === 400 && w.json.Error.Message.includes('დარჩა'), 'wrong code → 400 with tries left', w.json);
@@ -32,6 +35,8 @@ ok(v.status === 200 && /lg_admin=.+HttpOnly/i.test(cookie), 'verifyOtp → sessi
 setCookie('admin', cookie.split(';')[0]);
 const reuse = await call('POST', '/public/auth/verifyOtp', { ID: s1.json.Data.ID, UID: s1.json.Data.UID, Otp: code });
 ok(reuse.status === 404, 'a code works only once');
+const box2 = await call('POST', '/dev/outbox/find/1/5', { Filter: { Search: 'operator@loans.ge' } });
+ok(box2.json.Data.Items[0].IsUsed === true, 'dev outbox: used code marked as used');
 const vLog = await prisma.actionLog.findUnique({ where: { uid: v.uid } });
 const req = await prisma.actionLogRequest.findUnique({ where: { uid: v.uid } });
 ok(vLog?.createdBy === BigInt(v.json.Data.ID) && req?.body?.Otp === '***', 'actionLog: verify → CreatedBy = user, Otp masked');

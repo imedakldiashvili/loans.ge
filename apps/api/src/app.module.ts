@@ -7,11 +7,12 @@ import { AuthModule } from './auth/auth.module';
 import { ActionLogMiddleware } from './core/action-log';
 import { EnvelopeExceptionFilter, EnvelopeInterceptor } from './core/envelope';
 import { PrismaModule } from './core/prisma.service';
+import { DevOutboxModule } from './dev/dev-outbox';
 import { HealthController } from './health/health.controller';
 import { NotifyModule } from './notify/notify.module';
 
 @Module({
-  imports: [PrismaModule, NotifyModule, AuthModule, AdminReferencesModule, AdminUsersModule, AdminViewsModule],
+  imports: [PrismaModule, NotifyModule, DevOutboxModule.register(), AuthModule, AdminReferencesModule, AdminUsersModule, AdminViewsModule],
   controllers: [HealthController],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: EnvelopeInterceptor },

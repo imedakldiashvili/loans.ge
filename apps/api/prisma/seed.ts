@@ -16,7 +16,7 @@ const amountNum = (s: string) => Number(String(s).replace(/[^\d.]/g, ''));
 async function clear() {
   // children first
   const tables = [
-    'action_log_response', 'action_log_request', 'action_log',
+    'dev_outbox', 'action_log_response', 'action_log_request', 'action_log',
     'status_event', 'offer', 'application_org', 'application',
     'session', 'oauth_identity', 'customer_detail', 'user_profile', 'otp_challenge', 'user', 'profile_type',
     'partner_offer_card', 'partner_product', 'organization_product_type', 'organization',

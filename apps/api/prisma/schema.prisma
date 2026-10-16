@@ -742,3 +742,34 @@ model ActionLogResponse {
 
   @@map("action_log_response")
 }
+
+// ───────────────────────── Test environments only ─────────────────────────
+
+/// Copy of every OTP sent — written only when DEV_OUTBOX=true (never in production). Read by the OTP viewer (apps/otp-viewer).
+model DevOutbox {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  /// sms | email
+  channel   String
+  target    String
+  /// login:admin | login:partner | login:client | …
+  purpose      String
+  code         String
+  text         String
+  expiresOn    DateTime @map("expires_on") @db.Timestamptz(3)
+  /// otp_challenge.uid — to show whether the code was already used
+  challengeUid String   @map("challenge_uid") @db.Uuid
+
+  @@index([createdOn])
+  @@index([target])
+  @@map("dev_outbox")
+}
