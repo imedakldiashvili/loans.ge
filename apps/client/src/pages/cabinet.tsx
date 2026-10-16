@@ -19,6 +19,8 @@ export interface OfferRow {
   Rate: number;
   Fee: number;
   InsMonth: number;
+  /** the customer chose this offer */
+  ChosenOn?: string | null;
 }
 export interface AppOrg {
   ID: number;
@@ -325,7 +327,8 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                           {o.Offers.length > 0 && (
                             <span className="of-terms">
                               {o.Offers.map((of) => (
-                                <span key={of.ID}>
+                                <span key={of.ID} className={of.ChosenOn ? 'chosen' : undefined} title={of.ChosenOn ? t('არჩეული') : undefined}>
+                                  {of.ChosenOn ? '✓ ' : ''}
                                   {money(of.Amount, of.Currency)} · {t(`${of.Months} თვე`)} · {of.Rate}%
                                 </span>
                               ))}
@@ -507,34 +510,34 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
 
 // ── the customer's answers to offers: each waiting offer is marked "choose" or "cancel" (or left), sent together
 
-export type Mark = 'accept';
-
-/** Marks of one application's offers and sending them (PUT /client/application/respond). */
+/** Choices of one application's offers (by offer — an organisation may have sent several) and sending them (PUT /client/application/respond). */
 export function useOfferMarks(a: App, onSent: () => void) {
   const s = useStatus();
   const answerable = a.Orgs.filter((o) => s.acceptOf(o) && o.Offers.length);
   // organisations still working on it (no offer yet) — finishing the comparison cancels them too
   const pending = a.Orgs.filter((o) => !o.Offers.length && s.cancelOf(o));
-  const [marks, setMarks] = useState<Map<number, Mark>>(new Map());
+  const [marks, setMarks] = useState<Set<number>>(new Set());
   const [asking, setAsking] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-  const mark = (id: number, m: Mark) =>
+  /** choose / unchoose one offer */
+  const mark = (offerId: number) =>
     setMarks((x) => {
-      const n = new Map(x);
-      if (n.get(id) === m) n.delete(id);
-      else n.set(id, m);
+      const n = new Set(x);
+      if (n.has(offerId)) n.delete(offerId);
+      else n.add(offerId);
       return n;
     });
-  const accepts = answerable.filter((o) => marks.get(o.ID) === 'accept');
-  // finishing the comparison: the chosen ones go ahead, every other waiting offer is cancelled
-  const declines = answerable.filter((o) => marks.get(o.ID) !== 'accept');
+  const chosenOffers = answerable.flatMap((o) => o.Offers.filter((of) => marks.has(of.ID)));
+  // an organisation goes ahead when one of its offers is chosen; finishing the comparison cancels every other waiting one
+  const accepts = answerable.filter((o) => o.Offers.some((of) => marks.has(of.ID)));
+  const declines = answerable.filter((o) => !o.Offers.some((of) => marks.has(of.ID)));
   const send = async () => {
     setSending(true);
     setError('');
     try {
-      await api('PUT', `/client/application/respond/${a.ID}/${a.UID}`, { AcceptIDs: accepts.map((o) => o.ID), DeclineIDs: [...declines, ...pending].map((o) => o.ID) });
-      setMarks(new Map());
+      await api('PUT', `/client/application/respond/${a.ID}/${a.UID}`, { OfferIDs: chosenOffers.map((of) => of.ID), DeclineIDs: [...declines, ...pending].map((o) => o.ID) });
+      setMarks(new Set());
       setAsking(false);
       onSent();
     } catch (e) {
@@ -543,16 +546,16 @@ export function useOfferMarks(a: App, onSent: () => void) {
       setSending(false);
     }
   };
-  return { answerable, pending, marks, mark, accepts, declines, asking, setAsking, sending, error, setError, send };
+  return { answerable, pending, marks, mark, chosenOffers, accepts, declines, asking, setAsking, sending, error, setError, send };
 }
 export type OfferMarks = ReturnType<typeof useOfferMarks>;
 
 /** ✓ choose one offer (icon; the word is in the tooltip) — the ones left unchosen are cancelled on "finish". */
-export function MarkButtons({ o, m }: { o: AppOrg; m: OfferMarks }) {
-  const v = m.marks.get(o.ID);
+export function MarkButtons({ o, of, m }: { o: AppOrg; of: OfferRow; m: OfferMarks }) {
+  const on = m.marks.has(of.ID);
   return (
     <span className="marks" role="group" aria-label={n(o.Organization)}>
-      <button type="button" className={`mark ok${v === 'accept' ? ' on' : ''}`} aria-pressed={v === 'accept'} title={t('არჩევა')} aria-label={t('არჩევა')} onClick={() => m.mark(o.ID, 'accept')}>
+      <button type="button" className={`mark ok${on ? ' on' : ''}`} aria-pressed={on} title={t('არჩევა')} aria-label={t('არჩევა')} onClick={() => m.mark(of.ID)}>
         <svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10" /></svg>
       </button>
     </span>
@@ -566,20 +569,20 @@ export function MarkBar({ m }: { m: OfferMarks }) {
   return (
     <div className="pick-bar">
       <span className="pick-acts">
-        <span className={`pick-n${m.accepts.length ? ' on' : ''}`}>
-          {t('არჩეულია')}: <b>{m.accepts.length}</b>
+        <span className={`pick-n${m.chosenOffers.length ? ' on' : ''}`}>
+          {t('არჩეულია')}: <b>{m.chosenOffers.length}</b>
         </span>
         <button type="button" className="btn btn-green sm" disabled={!canSend} onClick={() => (m.setError(''), m.setAsking(true))}>
           {t('შედარების დასრულება')}
         </button>
       </span>
-      {m.asking && <ConfirmOffers accept={m.accepts} cancel={m.declines} pending={m.pending} busy={m.sending} error={m.error} onYes={m.send} onClose={() => m.setAsking(false)} />}
+      {m.asking && <ConfirmOffers accept={m.accepts} chosen={m.marks} cancel={m.declines} pending={m.pending} busy={m.sending} error={m.error} onYes={m.send} onClose={() => m.setAsking(false)} />}
     </div>
   );
 }
 
 /** Before answering: which offers will be accepted and which cancelled (it cannot be undone). */
-export function ConfirmOffers({ accept, cancel, pending = [], busy, error, onYes, onClose }: { accept: AppOrg[]; cancel: AppOrg[]; pending?: AppOrg[]; busy: boolean; error: string; onYes: () => void; onClose: () => void }) {
+export function ConfirmOffers({ accept, chosen, cancel, pending = [], busy, error, onYes, onClose }: { accept: AppOrg[]; chosen?: Set<number>; cancel: AppOrg[]; pending?: AppOrg[]; busy: boolean; error: string; onYes: () => void; onClose: () => void }) {
   // each group folds: the heading with its count, the organisations inside; "will be accepted" starts open
   // the cancel groups show even with 0; an empty group doesn't open
   const group = (kind: 'ok' | 'no', title: string, l: AppOrg[], always = false) =>
@@ -597,8 +600,8 @@ export function ConfirmOffers({ accept, cancel, pending = [], busy, error, onYes
             <li key={o.ID}>
               <OrgLogo org={o.Organization} />
               <span className="nm">{n(o.Organization)}</span>
-              {/* the offer's terms (one per offer); an organisation without an offer — none */}
-              {o.Offers.map((of) => (
+              {/* the offer's terms (one per offer; going ahead — only the chosen ones); an organisation without an offer — none */}
+              {o.Offers.filter((of) => kind === 'no' || !chosen || chosen.has(of.ID)).map((of) => (
                 <span key={of.ID} className="terms">
                   {money(of.Amount, of.Currency)} · {t(`${of.Months} თვე`)} · {of.Rate}%
                 </span>

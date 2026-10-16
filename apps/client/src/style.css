@@ -768,3 +768,5 @@
   .cmp-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 16px; }
   .cmp-bar .cmp-filter { margin-bottom: 0; justify-content: flex-start; }
   .cmp-bar .pick-bar { margin-inline-start: auto; padding: 0; border-top: 0; }
+  /* card: the offer the customer chose */
+  .cab-det-row .of-terms .chosen { color: var(--green); font-weight: 600; }

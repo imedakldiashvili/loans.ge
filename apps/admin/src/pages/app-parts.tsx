@@ -17,6 +17,8 @@ export interface Offer {
   Fee: number;
   InsMonth: number;
   CreatedOn: string;
+  /** the customer chose this one (an organisation may have sent several) */
+  ChosenOn?: string | null;
 }
 export interface StatusEvent {
   ID: number;
@@ -347,10 +349,11 @@ export function OfferTable({ app, o, st, opts = {} }: { app: Application; o: App
               <th>
                 {app.ProductType.NameKa} · {money(app.Amount, app.Currency)}
               </th>
-              {cols.map((_, i) => (
+              {cols.map((x, i) => (
                 <th key={i}>
                   <OrgMark org={o.Organization} cls="cm" />
                   <span className="cmp-on">{o.Organization.NameKa}</span>
+                  {x.t?.ChosenOn && <small className="chosen">✓ მომხმარებელმა აირჩია</small>}
                 </th>
               ))}
             </tr>

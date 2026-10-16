@@ -674,6 +674,8 @@ model Offer {
   insMonth         Decimal           @default(0) @map("ins_month") @db.Decimal(14, 2)
   /// other card field values at the moment of sending
   values           Json?
+  /// the customer chose this offer (an organisation may have sent several; null = not chosen)
+  chosenOn         DateTime?         @map("chosen_on") @db.Timestamptz(3)
 
   @@map("offer")
 }

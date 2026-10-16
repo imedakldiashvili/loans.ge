@@ -41,6 +41,8 @@ interface OfferRow {
   Fee: number;
   InsMonth: number;
   CreatedOn: string;
+  /** the customer chose this one (several offers — the customer picks) */
+  ChosenOn: string | null;
 }
 interface Rec {
   ID: number;
@@ -509,8 +511,8 @@ const OffersRO = ({ offers }: { offers: OfferRow[] }) => (
     {offers.map((t) => {
       const c = calcOffer({ amount: t.Amount, months: t.Months, rate: t.Rate, fee: t.Fee, insMonth: t.InsMonth });
       return (
-        <div key={t.ID}>
-          <b>შეთავაზება</b>
+        <div key={t.ID} className={t.ChosenOn ? 'chosen' : undefined}>
+          <b>{t.ChosenOn ? '✓ მომხმარებელმა აირჩია' : 'შეთავაზება'}</b>
           <em>
             {money(t.Amount, t.Currency)} · {t.Rate}% · {t.Months} თვე · თვეში <strong>{money(c?.monthly ?? 0, t.Currency)}</strong>
           </em>

@@ -81,8 +81,8 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
     onBack();
   });
   const answerable = marks.answerable;
-  // a chosen offer's whole column is green
-  const chosen = (o: AppOrg) => (marks.marks.get(o.ID) === 'accept' ? 'chosen' : '');
+  // a chosen offer's whole column is green (each offer on its own — one organisation may have sent several)
+  const chosen = (of: OfferRow | null) => (of && marks.marks.has(of.ID) ? 'chosen' : '');
   // one column per offer; an organisation without an offer (waiting / rejected) — one empty column; the chosen ones move to the left
   const count = (k: Kind) => a.Orgs.filter((o) => kindOf(o) === k).length;
   type Col = { o: AppOrg; of: OfferRow | null; key: string; c: ReturnType<typeof calcOffer> | null };
@@ -92,7 +92,7 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
         ? o.Offers.map((of) => ({ o, of, key: `of-${of.ID}`, c: calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth })! }))
         : [{ o, of: null, key: `org-${o.ID}`, c: null }],
     )
-    .sort((x, y) => Number(!!chosen(y.o)) - Number(!!chosen(x.o)));
+    .sort((x, y) => Number(!!chosen(y.of)) - Number(!!chosen(x.of)));
   const dense = cols.length >= 5;
   // a value of every column ("—" where there is no offer); the best one is marked among the offers only
   const row = (label: string, val: (x: Col) => number | undefined, f: (v: number) => string, best = false, cls = '') => {
@@ -104,7 +104,7 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
       <tr className={cls}>
         <td>{t(label)}</td>
         {vals.map((v, i) => (
-          <td key={cols[i].key} className={[mark && v === min ? 'best' : '', v === undefined ? 'none' : '', chosen(cols[i].o)].filter(Boolean).join(' ') || undefined}>
+          <td key={cols[i].key} className={[mark && v === min ? 'best' : '', v === undefined ? 'none' : '', chosen(cols[i].of)].filter(Boolean).join(' ') || undefined}>
             {v === undefined ? '—' : f(v)}
           </td>
         ))}
@@ -150,8 +150,8 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
               <thead>
                 <tr>
                   <th />
-                  {cols.map(({ o, key }) => (
-                    <th key={key} className={chosen(o) || undefined}>
+                  {cols.map(({ o, of, key }) => (
+                    <th key={key} className={chosen(of) || undefined}>
                       <OrgLogo org={o.Organization} />
                       {n(o.Organization)}
                     </th>
@@ -171,14 +171,14 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
                 {row('სულ გადასახდელი', (x) => x.c?.total, m, true, 'total')}
                 <tr>
                   <td />
-                  {cols.map(({ o, key }) => {
+                  {cols.map(({ o, of, key }) => {
                     const k = kindOf(o);
                     const done = ['accepted', 'done'].includes(o.Status);
                     return (
-                      <td key={key} className={chosen(o) || undefined}>
+                      <td key={key} className={chosen(of) || undefined}>
                         <div className="acts">
-                          {k === 'offer' && answerable.includes(o) ? (
-                            <MarkButtons o={o} m={marks} />
+                          {k === 'offer' && of && answerable.includes(o) ? (
+                            <MarkButtons o={o} of={of} m={marks} />
                           ) : (
                             <span className={`cmp-st ${done ? 'accepted' : k}`} title={s.label(o.Status)}>
                               {done ? FILLED.accepted : k === 'rejected' ? FILLED.rejected : k === 'waiting' ? ICONS.waiting : ICONS.offer}

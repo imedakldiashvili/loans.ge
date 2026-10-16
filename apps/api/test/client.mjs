@@ -98,6 +98,7 @@ const makeOffer = async (o) => {
 };
 await makeOffer(p1);
 await makeOffer(p2);
+const offers3first = await prisma.offer.findFirst({ where: { applicationOrgId: BigInt(p1.ID) } });
 const respond = (b) => call('PUT', `/client/application/respond/${app3.ID}/${app3.UID}`, b);
 const st3 = async () => Object.fromEntries((await prisma.applicationOrg.findMany({ where: { applicationId: BigInt(app3.ID) } })).map((x) => [Number(x.id), x]));
 ok((await respond({})).status === 400, 'nothing marked → 400');
@@ -115,6 +116,23 @@ ok((await respond({ DeclineIDs: [p2.ID, ...(p3 ? [p3.ID] : [])] })).status === 2
 s3 = await st3();
 ok(s3[p2.ID].status === 'declined' && !s3[p2.ID].contactsOpenedOn, '→ cancelled by the customer, contacts stay closed');
 if (p3) ok(s3[p3.ID].status === 'withdrawn', 'an organisation that had not sent its offer yet is cancelled too (withdrawn)');
+
+// one organisation, two offers: the customer chooses one of them (OfferIDs)
+const add4 = await call('POST', '/client/application/add', { ...body, Amount: 9000, OrganizationIDs: accepting.slice(0, 1).map((o) => o.ID) });
+const app4 = (await call('GET', `/client/application/detail/${add4.json.Data.ID}/${add4.json.Data.UID}`)).json.Data;
+const [q1] = app4.Orgs;
+await makeOffer(q1);
+await prisma.offer.create({ data: { applicationOrgId: BigInt(q1.ID), amount: 9000, currency: 'GEL', months: 36, rate: 15 } });
+const offers4 = await prisma.offer.findMany({ where: { applicationOrgId: BigInt(q1.ID) }, orderBy: { id: 'asc' } });
+const respond4 = (b) => call('PUT', `/client/application/respond/${app4.ID}/${app4.UID}`, b);
+ok((await respond4({ AcceptIDs: [q1.ID] })).status === 400, 'two offers: accepting the organisation without naming the offer → 400');
+ok((await respond4({ OfferIDs: [Number(offers3first.id)] })).status === 400, "another application's offer → 400");
+const r4 = await respond4({ OfferIDs: [Number(offers4[1].id)] });
+const chosen4 = await prisma.offer.findMany({ where: { applicationOrgId: BigInt(q1.ID) }, orderBy: { id: 'asc' } });
+ok(r4.status === 200 && (await prisma.applicationOrg.findUnique({ where: { id: BigInt(q1.ID) } })).status === 'accepted', 'the chosen offer → its organisation accepted', r4.json);
+ok(!chosen4[0].chosenOn && chosen4[1].chosenOn, 'only the chosen offer is marked chosen');
+const seen4 = (await call('GET', `/client/application/detail/${app4.ID}/${app4.UID}`)).json.Data.Orgs[0].Offers;
+ok(seen4.find((x) => x.ID === Number(offers4[1].id)).ChosenOn && !seen4.find((x) => x.ID === Number(offers4[0].id)).ChosenOn, 'the customer sees which one was chosen');
 
 // ── profile
 const edit = await call('PUT', `/client/profile/edit/${me.Profile.ID}/${me.Profile.UID}`, { UserName: 'tester', Pid: '01001012345', FirstName: 'ტესტი', LastName: 'კლიენტი', BirthDate: '1990-05-01', CityID: Number(city.id), DistrictID: null, Village: null });
