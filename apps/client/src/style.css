@@ -651,3 +651,7 @@
   /* the list block: header (title, count, new application) and its cards in one frame */
   .cab-panel.cab-list { padding: 16px; margin-top: 12px; }
   .cab-list .cab-top { margin-bottom: 12px; }
+  /* inside the white frame: cards on the soft background, their status groups white */
+  .cab-list .cab-card, .cab-list .cab-det, .cab-list .cab-toggle { background: var(--card); }
+  .cab-list .cab-stat, .cab-list .cab-det-group { background: var(--bg); }
+  .cab-list .cab-group-empty { background: var(--card); }
