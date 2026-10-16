@@ -9,7 +9,7 @@ export interface Profile {
   UID: string;
   Role: 'sales' | 'back';
   DisplayName: string | null;
-  Organization: { ID: number; UID: string; NameKa: string; NameEn: string };
+  Organization: { ID: number; UID: string; NameKa: string; NameEn: string; Color: string | null; LogoPath: string | null };
 }
 export interface Me {
   User: { ID: number; UID: string; Email: string | null; Phone: string | null };

@@ -67,6 +67,25 @@ export async function api<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: st
   return json.Data;
 }
 
+/** A file upload (multipart, field "File") — same answer and errors as `api`. */
+export async function upload<T>(path: string, file: File): Promise<T> {
+  const fd = new FormData();
+  fd.append('File', file);
+  let res: Response;
+  try {
+    res = await fetch(path, { method: 'POST', credentials: 'same-origin', headers: { 'Accept-Language': 'ka' }, body: fd });
+  } catch {
+    throw new ApiError(0, 'NETWORK', 'სერვერთან კავშირი ვერ დამყარდა');
+  }
+  const json = (await res.json().catch(() => null)) as { IsSuccess: boolean; Data: T; Error: ApiErrorBody | null } | null;
+  if (!json || !json.IsSuccess) {
+    const e = json?.Error;
+    if (res.status === 401) onUnauthorized();
+    throw new ApiError(res.status, e?.Code ?? 'INTERNAL_ERROR', e?.Message ?? `შეცდომა (${res.status})`, e?.Details ?? [], res.headers.get('x-request-uid'));
+  }
+  return json.Data;
+}
+
 // Standard actions — /{gateway}/{module}/{action}
 const G = '/admin';
 export const crud = {

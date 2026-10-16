@@ -88,6 +88,7 @@ export interface Org {
   NameKa: string;
   Category: 'bank' | 'mfo' | 'leasing' | 'lender';
   Color: string | null;
+  LogoPath: string | null;
   IsPartner: boolean;
   Sort: number;
   ProductTypes: { ProductTypeID: number }[];
@@ -125,5 +126,22 @@ export const CATEGORIES: [Org['Category'], string][] = [
 ];
 const ORG_COLORS = ['#1e63b5', '#7b4fb5', '#0f9d8a', '#c0392b', '#b8860b', '#2e7d32'];
 export const orgColor = (o: { ID: number; Color?: string | null }) => o.Color || ORG_COLORS[o.ID % ORG_COLORS.length];
-/** Short logo text: the last word of the name ("ბანკი A" → "A"). */
-export const orgMark = (name: string) => name.split(' ').pop() ?? name;
+/** Short logo text: a short last word as it is ("ბანკი A" → "A"), otherwise the first letters ("საქართველოს ბანკი" → "სბ"). */
+export const orgMark = (name: string) => {
+  const w = name.trim().split(/\s+/).filter(Boolean);
+  const last = w.at(-1) ?? '';
+  return last.length <= 2 ? last : w.slice(0, 2).map((x) => x[0]).join('');
+};
+
+/** Organisation logo (uploaded in admin, served at /fs/…); without one — a coloured circle with the short name. */
+export function OrgLogo({ org }: { org: { ID: number; NameKa: string; Color?: string | null; LogoPath?: string | null } }) {
+  return org.LogoPath ? (
+    <span className="lg img">
+      <img src={`/fs/${org.LogoPath}`} alt="" />
+    </span>
+  ) : (
+    <span className="lg" style={{ ['--c' as string]: orgColor(org) }}>
+      {orgMark(org.NameKa)}
+    </span>
+  );
+}

@@ -17,6 +17,12 @@ import { useToast } from './ui/ui';
 // Sales see applications only; the back-office addresses send them back there.
 
 const ORG_COLORS = ['#1e63b5', '#7b4fb5', '#0f9d8a', '#c0392b', '#b8860b', '#2e7d32'];
+/** Short logo text: a short last word as it is ("ბანკი A" → "A"), otherwise the first letters ("საქართველოს ბანკი" → "სბ"). */
+const orgMark = (name: string) => {
+  const w = name.trim().split(/\s+/).filter(Boolean);
+  const last = w.at(-1) ?? '';
+  return last.length <= 2 ? last : w.slice(0, 2).map((x) => x[0]).join('');
+};
 
 function useTheme(): [boolean, () => void] {
   const [dark, setDark] = useState(() => {
@@ -63,7 +69,7 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p?.ID]);
   if (loading) return null;
-  const org = p?.Organization as (NonNullable<typeof p>['Organization'] & { Color?: string | null }) | undefined;
+  const org = p?.Organization;
 
   return (
     <>
@@ -78,9 +84,16 @@ export function App() {
           <span className="tag">პარტნიორი</span>
           {p && (
             <div className="who">
-              <span className="lg" style={{ background: org?.Color || ORG_COLORS[(org?.ID ?? 0) % ORG_COLORS.length] }}>
-                {org?.NameKa.split(' ').pop()}
-              </span>
+              {/* the organisation's logo (uploaded in admin), or a coloured circle with its short name */}
+              {org?.LogoPath ? (
+                <span className="lg img">
+                  <img src={`/fs/${org.LogoPath}`} alt="" />
+                </span>
+              ) : (
+                <span className="lg" style={{ background: org?.Color || ORG_COLORS[(org?.ID ?? 0) % ORG_COLORS.length] }}>
+                  {orgMark(org?.NameKa ?? '')}
+                </span>
+              )}
               <span>
                 <b>{org?.NameKa}</b>
                 <small>

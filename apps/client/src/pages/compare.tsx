@@ -3,7 +3,7 @@ import { calcOffer } from '@loans/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api, ApiError } from '../api';
-import { orgColor, orgMark } from '../session';
+import { OrgLogo } from '../session';
 import { money } from '../ui';
 import { App, AppOrg, MarkBar, MarkButtons, OfferRow, useOfferMarks, useStatus } from './cabinet';
 
@@ -149,9 +149,7 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
                   <th />
                   {cols.map(({ o, key }) => (
                     <th key={key} className={chosen(o) || undefined}>
-                      <span className="lg" style={{ ['--c' as string]: orgColor(o.Organization) }}>
-                        {orgMark(o.Organization.NameKa)}
-                      </span>
+                      <OrgLogo org={o.Organization} />
                       {n(o.Organization)}
                     </th>
                   ))}

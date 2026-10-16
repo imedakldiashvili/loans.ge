@@ -2,7 +2,7 @@ import { lang, n, t, up } from '../i18n';
 import { useQuery } from '@tanstack/react-query';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { api } from '../api';
-import { CATEGORIES, orgColor, orgMark, ProductType, useRefs } from '../session';
+import { CATEGORIES, OrgLogo, ProductType, useRefs } from '../session';
 import { fmt } from '../ui';
 
 // Home page (prototype hero, #how, .advsec), quick form, partners / terms / about pages.
@@ -263,9 +263,7 @@ export function PartnersPage() {
                 <ul>
                   {list.map((o) => (
                     <li key={o.ID}>
-                      <span className="lg" style={{ ['--c' as string]: orgColor(o) }}>
-                        {orgMark(o.NameKa)}
-                      </span>
+                      <OrgLogo org={o} />
                       {n(o)}
                     </li>
                   ))}

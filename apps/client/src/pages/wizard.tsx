@@ -2,7 +2,7 @@ import { n, t, up } from '../i18n';
 import { useEffect, useState } from 'react';
 import { api, ApiError, Ref } from '../api';
 import { OtpModal, useAskLogin } from '../auth';
-import { CATEGORIES, orgColor, orgMark, useRefs, useSession } from '../session';
+import { CATEGORIES, OrgLogo, useRefs, useSession } from '../session';
 import { Chevron, ErrorText, fmt, fmtPhone, money } from '../ui';
 import { Start } from './home';
 
@@ -285,9 +285,7 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
                               <label key={o.ID} className="org">
                                 <input type="checkbox" checked={orgs.includes(o.ID)} onChange={(e) => setOrgs(e.target.checked ? [...orgs, o.ID] : orgs.filter((x) => x !== o.ID))} />
                                 <i />
-                                <span className="lg" style={{ ['--c' as string]: orgColor(o) }}>
-                                  {orgMark(o.NameKa)}
-                                </span>
+                                <OrgLogo org={o} />
                                 {n(o)}
                               </label>
                             ))}

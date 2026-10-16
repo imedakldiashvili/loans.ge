@@ -756,3 +756,6 @@
   .cf-group li .terms ~ .terms { flex-basis: 100%; text-align: end; }
   /* answer summary: wider — organisation rows with their terms */
   .modal-box.modal-confirm-offers { max-width: 560px; }
+  /* an uploaded organisation logo in place of the coloured circle (any size the place gives it) */
+  .lg.img { background: #fff !important; border: 1px solid var(--line); overflow: hidden; padding: 2px; box-sizing: border-box; }
+  .lg.img img { width: 100%; height: 100%; object-fit: contain; display: block; }

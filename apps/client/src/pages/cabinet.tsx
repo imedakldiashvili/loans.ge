@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, ApiError, Page, Ref } from '../api';
 import { OtpModal } from '../auth';
-import { orgColor, orgMark, StatusRow, useRefs, useSession } from '../session';
+import { OrgLogo, StatusRow, useRefs, useSession } from '../session';
 import { Chevron, ErrorText, fmt, fmtCd, fmtDate, fmtDay, fmtPhone, Modal, money, useNow } from '../ui';
 
 // Customer cabinet (prototype #cabinet): active / closed applications, per-organisation statuses and offers,
@@ -28,7 +28,7 @@ export interface AppOrg {
   SentOn: string;
   OfferOn: string | null;
   ExpiresOn: string | null;
-  Organization: { ID: number; NameKa: string; Color: string | null };
+  Organization: { ID: number; NameKa: string; Color: string | null; LogoPath: string | null };
   Offers: OfferRow[];
   Next: string[];
 }
@@ -314,9 +314,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                       const can = answerable.includes(o);
                       return (
                       <div key={o.ID} className="cab-det-row">
-                        <span className="lg" style={{ ['--c' as string]: orgColor(o.Organization) }}>
-                          {orgMark(o.Organization.NameKa)}
-                        </span>
+                        <OrgLogo org={o.Organization} />
                         <span className="nm">{n(o.Organization)}</span>
                         <div className="cab-acts">
                           <Countdown o={o} />
@@ -581,9 +579,7 @@ export function ConfirmOffers({ accept, cancel, pending = [], busy, error, onYes
         <ul>
           {l.map((o) => (
             <li key={o.ID}>
-              <span className="lg" style={{ ['--c' as string]: orgColor(o.Organization) }}>
-                {orgMark(o.Organization.NameKa)}
-              </span>
+              <OrgLogo org={o.Organization} />
               <span className="nm">{n(o.Organization)}</span>
               {/* the offer's terms (one per offer); an organisation without an offer — none */}
               {o.Offers.map((of) => (

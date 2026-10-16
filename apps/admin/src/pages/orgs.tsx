@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ApiError, Base, crud } from '../api/client';
+import { api, ApiError, Base, crud, upload } from '../api/client';
 import { useAll, useFind, useInvalidate, useRowActions } from '../api/hooks';
 import { useAuth } from '../auth/auth';
 import { ArrowsCell, BiInput, BiView, RowActions, Switch } from '../ui/controls';
@@ -131,6 +131,27 @@ function OrgDialog({ row, links, onClose }: { row: Org | null; links: OrgPt[]; o
   const [isPartner, setIsPartner] = useState(row?.IsPartner ?? true);
   const [pts, setPts] = useState<number[]>(links.map((l) => l.ProductTypeID));
   const [errors, setErrors] = useState<FieldErrors>({});
+  // the logo is uploaded / removed at once (not with "save")
+  const [logo, setLogo] = useState<string | null>(row?.LogoPath ?? null);
+  const [logoBusy, setLogoBusy] = useState(false);
+  const [logoError, setLogoError] = useState('');
+  const changeLogo = async (file: File | null) => {
+    if (!row) return;
+    setLogoBusy(true);
+    setLogoError('');
+    try {
+      const r = file
+        ? await upload<{ LogoPath: string | null }>(`/admin/organization/uploadLogo/${row.ID}/${row.UID}`, file)
+        : await api<{ LogoPath: string | null }>('PUT', `/admin/organization/removeLogo/${row.ID}/${row.UID}`);
+      setLogo(r.LogoPath);
+      await invalidate('organization');
+      toast(file ? 'ლოგო აიტვირთა' : 'ლოგო წაიშალა');
+    } catch (e) {
+      setLogoError(e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : 'შეცდომა');
+    } finally {
+      setLogoBusy(false);
+    }
+  };
 
   const save = async () => {
     if (!name.ka.trim()) throw new ApiError(400, 'VALIDATION_ERROR', 'დასახელება სავალდებულოა');
@@ -164,9 +185,33 @@ function OrgDialog({ row, links, onClose }: { row: Org | null; links: OrgPt[]; o
       <div className="f">
         <label>ლოგო</label>
         <div className="logoup">
-          <OrgMark org={row} cls="lg" />
+          <OrgMark org={{ ...row, LogoPath: logo }} cls="lg" />
+          {row ? (
+            <>
+              <label className={`btn${logoBusy ? ' disabled' : ''}`}>
+                {logo ? 'შეცვლა' : 'ატვირთვა'}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  hidden
+                  disabled={logoBusy}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] ?? null;
+                    e.target.value = '';
+                    if (file) void changeLogo(file);
+                  }}
+                />
+              </label>
+              {logo && (
+                <button type="button" className="btn" disabled={logoBusy} onClick={() => void changeLogo(null)}>
+                  წაშლა
+                </button>
+              )}
+            </>
+          ) : null}
         </div>
-        <small>ლოგოს ატვირთვა დაემატება ფაილების საცავთან ერთად; მანამდე — loans.ge-ს ლოგო</small>
+        {logoError && <small style={{ color: 'var(--red)' }}>{logoError}</small>}
+        <small>{row ? 'PNG, JPG, WebP ან SVG, მაქსიმუმ 512 KB; ინახება მაშინვე. ლოგოს გარეშე — loans.ge-ს ლოგო' : 'ლოგოს ატვირთვა — ორგანიზაციის შენახვის შემდეგ'}</small>
       </div>
       <div className="f">
         <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

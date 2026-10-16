@@ -12,6 +12,6 @@ export default defineConfig({
   resolve: { alias: { '@loans/shared': fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url)) } },
   server: {
     port: 5173, strictPort: true,
-    proxy: { '/admin/': API, '/public/': API },
+    proxy: { '/admin/': API, '/public/': API, '/fs/': API },
   },
 });

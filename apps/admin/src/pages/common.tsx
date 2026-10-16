@@ -19,11 +19,14 @@ export interface OrgLite {
   LogoPath: string | null;
 }
 
-/** Organisation logo; until logos are uploaded — the loans.ge logo (prototype `orgMark`). */
+/** Uploaded files are served at /fs/{key}. */
+export const fsUrl = (key: string) => `/fs/${key}`;
+
+/** Organisation logo; without one — the loans.ge logo (prototype `orgMark`). */
 export const OrgMark = ({ org, cls = '' }: { org?: Partial<OrgLite> | null; cls?: string }) =>
   org?.LogoPath ? (
     <span className={`olg ${cls}`}>
-      <img src={org.LogoPath} alt="" />
+      <img src={fsUrl(org.LogoPath)} alt="" />
     </span>
   ) : (
     <span className={`olg tmp ${cls}`} title="დროებითი ლოგო (loans.ge)">
