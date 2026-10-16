@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { crud } from '../api/client';
-import { useAll, useFind } from '../api/hooks';
+import { useAll, useFind, useRoutedItem } from '../api/hooks';
 import { fmtDate } from '../ui/controls';
 import { Dialog } from '../ui/dialog';
 import { Icon } from '../ui/icons';
@@ -32,7 +32,8 @@ export function OffersPage() {
   const [search, setSearch] = useState('');
   const [scope, setScope] = useScope();
   const [open, setOpen] = useState<Set<number>>(new Set());
-  const [view, setView] = useState<OfferRow | null>(null);
+  // the offer view is in the address: /offers/{ID}/{UID}
+  const { item: view, open: setView, close: closeView } = useRoutedItem<OfferRow>('offer', '/offers');
   const { st, statuses, place } = useLookups();
   const orgs = useAll<OrgLite & { IsPartner: boolean }>('organization', { Sort: [{ Field: 'Sort', Dir: 'asc' }] });
 
@@ -142,7 +143,7 @@ export function OffersPage() {
           })
         )}
       </DataTable>
-      {view && <OfferDialog o={view} onClose={() => setView(null)} />}
+      {view && <OfferDialog o={view} onClose={closeView} />}
     </ListPage>
   );
 }

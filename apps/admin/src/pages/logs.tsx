@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { crud } from '../api/client';
-import { useFind } from '../api/hooks';
+import { useFind, useRoutedItem } from '../api/hooks';
 import { fmtDate } from '../ui/controls';
 import { Dialog } from '../ui/dialog';
 import { Icon } from '../ui/icons';
@@ -41,7 +41,7 @@ function ActionLogPage() {
   const [search, setSearch] = useState('');
   const [gateway, setGateway] = useState('');
   const [result, setResult] = useState('');
-  const [open, setOpen] = useState<Log | null>(null);
+  const { item: open, open: setOpen, close: closeOpen } = useRoutedItem<Log>('actionLog', '/logs/actions');
   useEffect(() => setPage(1), [search, gateway, result, size]);
   const uid = /^[0-9a-f-]{36}$/i.test(search.trim()) ? search.trim() : '';
   const filter = { ...(uid ? { Uid: uid } : search ? { Search: search } : {}), ...(gateway ? { Gateway: gateway } : {}), ...(result ? { IsSuccess: result === 'ok' } : {}) };
@@ -116,7 +116,7 @@ function ActionLogPage() {
           ))
         )}
       </DataTable>
-      {open && <LogDialog log={open} onClose={() => setOpen(null)} />}
+      {open && <LogDialog log={open} onClose={closeOpen} />}
     </ListPage>
   );
 }
@@ -176,13 +176,15 @@ interface JobRun {
   DurationMs: number | null;
   Checked: number;
   Changed: number;
-  Details: { ApplicationOrgID: number; From: string; To: string }[] | null;
+  /** expiry: { ApplicationOrgID, From, To }; webhooks: { WebhookDeliveryID, Result } */
+  Details: { ApplicationOrgID?: number; From?: string; To?: string; WebhookDeliveryID?: number; Result?: string }[] | null;
   Error: string | null;
   Instance: string | null;
 }
 
 const JOBS: Record<string, { label: string; desc: string }> = {
   expiry: { label: 'ვადების შემოწმება', desc: 'ვადაგასული სტატუსი → ვადის გასვლის სტატუსი' },
+  webhooks: { label: 'webhook-ების გაგზავნა', desc: 'ორგანიზაციების სისტემებში მოვლენების გაგზავნა, წარუმატებლის განმეორება' },
 };
 
 function JobLogPage() {
@@ -190,7 +192,7 @@ function JobLogPage() {
   const [page, setPage] = useState(1);
   const [job, setJob] = useState('');
   const [result, setResult] = useState('');
-  const [open, setOpen] = useState<JobRun | null>(null);
+  const { item: open, open: setOpen, close: closeOpen } = useRoutedItem<JobRun>('jobRun', '/logs/jobs');
   useEffect(() => setPage(1), [job, result, size]);
   const filter = { ...(job ? { Job: job } : {}), ...(result ? { Status: result } : {}) };
   const q = useFind<JobRun>('jobRun', page, size, { Filter: filter });
@@ -263,7 +265,7 @@ function JobLogPage() {
         )}
       </DataTable>
       {open && (
-        <Dialog title={`${JOBS[open.Job]?.label ?? open.Job} · ${fmtDate(open.StartedOn)}`} onClose={() => setOpen(null)} wide>
+        <Dialog title={`${JOBS[open.Job]?.label ?? open.Job} · ${fmtDate(open.StartedOn)}`} onClose={closeOpen} wide>
           <div className="kv">
             <span>UID</span>
             <b>
@@ -285,19 +287,35 @@ function JobLogPage() {
             <DataTable
               head={
                 <tr>
-                  <th>ჩანაწერი (application_org)</th>
-                  <th>იყო</th>
-                  <th>გახდა</th>
+                  {open.Job === 'webhooks' ? (
+                    <>
+                      <th>მიწოდება (webhook_delivery)</th>
+                      <th>შედეგი</th>
+                    </>
+                  ) : (
+                    <>
+                      <th>ჩანაწერი (application_org)</th>
+                      <th>იყო</th>
+                      <th>გახდა</th>
+                    </>
+                  )}
                 </tr>
               }
             >
-              {open.Details.map((d) => (
-                <tr key={d.ApplicationOrgID}>
-                  <td className="num">{d.ApplicationOrgID}</td>
-                  <td>{d.From}</td>
-                  <td>{d.To}</td>
-                </tr>
-              ))}
+              {open.Details.map((d, i) =>
+                d.WebhookDeliveryID !== undefined ? (
+                  <tr key={i}>
+                    <td className="num">{d.WebhookDeliveryID}</td>
+                    <td>{d.Result === 'ok' ? 'მიწოდებულია' : 'განმეორდება'}</td>
+                  </tr>
+                ) : (
+                  <tr key={i}>
+                    <td className="num">{d.ApplicationOrgID}</td>
+                    <td>{d.From}</td>
+                    <td>{d.To}</td>
+                  </tr>
+                ),
+              )}
             </DataTable>
           ) : (
             <p style={{ marginTop: 12 }}>ამ გაშვებაში არაფერი შეცვლილა.</p>

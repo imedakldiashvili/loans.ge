@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Injectable, Logger, OnApplicationBootstrap, OnApplicationShutdown, OnModuleInit, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Injectable, Logger, OnApplicationBootstrap, OnApplicationShutdown, OnModuleInit, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHmac, randomBytes } from 'crypto';
 import { hostname } from 'os';
@@ -142,6 +142,16 @@ export class WebhookService implements OnModuleInit {
       this.prisma.webhookDelivery.count({ where }),
     ]);
     return { items, pageNumber, pageSize, totalCount, totalPages: Math.ceil(totalCount / pageSize) };
+  }
+
+  /** One delivery with its endpoint (admin). */
+  async deliveryDetail(id: number, uid: string) {
+    const d = await this.prisma.webhookDelivery.findFirst({
+      where: { id: BigInt(id), uid },
+      include: { endpoint: { select: { id: true, url: true, organization: { select: { id: true, nameKa: true } } } } },
+    });
+    if (!d) throw notFound('მიწოდება');
+    return d;
   }
 
   /** Send a delivery again (e.g. after the receiver was fixed). */
@@ -311,5 +321,10 @@ export class AdminWebhookDeliveryController {
   @Post('find/:pageNumber/:pageSize')
   find(@Param('pageNumber', ParseIntPipe) p: number, @Param('pageSize', ParseIntPipe) s: number, @Body() body: unknown) {
     return this.svc.deliveries(p, s, body);
+  }
+
+  @Get('detail/:id/:uid')
+  detail(@Param('id', ParseIntPipe) id: number, @Param('uid') uid: string) {
+    return this.svc.deliveryDetail(id, uid);
   }
 }

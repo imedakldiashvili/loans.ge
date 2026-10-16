@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Fragment, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { crud } from '../api/client';
-import { useAll, useFind } from '../api/hooks';
+import { useAll, useFind, useRoutedItem } from '../api/hooks';
 import { fmt, fmtDate } from '../ui/controls';
 import { Dialog } from '../ui/dialog';
 import { Icon } from '../ui/icons';
@@ -51,7 +51,8 @@ export function AppsPage() {
   const [product, setProduct] = useState<number | ''>('');
   const [scope, setScope] = useScope();
   const [open, setOpen] = useState<Set<number>>(new Set());
-  const [view, setView] = useState<Application | null>(null);
+  // the application view is in the address: /apps/{ID}/{UID}
+  const { item: view, open: setView, close: closeView } = useRoutedItem<Application>('application', '/apps');
   const { st, place } = useLookups();
   const products = useAll<{ ID: number; NameKa: string }>('productType', { Sort: [{ Field: 'Sort', Dir: 'asc' }] });
   const filter = { ...scopeFilter(scope), ...(search ? { Search: search } : {}), ...(state ? { State: state } : {}), ...(product !== '' ? { ProductTypeID: product } : {}) };
@@ -154,7 +155,7 @@ export function AppsPage() {
           ))
         )}
       </DataTable>
-      {view && <AppDialog app={view} onClose={() => setView(null)} />}
+      {view && <AppDialog app={view} onClose={closeView} />}
     </ListPage>
   );
 }

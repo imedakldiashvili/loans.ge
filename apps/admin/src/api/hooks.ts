@@ -1,4 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRef } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { crud, findAll, Page, Ref } from './client';
 
 /** One page of a list (server paging, filter and sort go to POST …/find/{page}/{size}). */
@@ -31,5 +33,31 @@ export function useRowActions(module: string, extraInvalidate: string[] = []) {
     move: useMutation({ mutationFn: ({ r, dir }: { r: Ref; dir: 'up' | 'down' }) => crud.move(module, r, dir), onSettled: done }),
     remove: (r: Ref) => crud.remove(module, r).finally(done),
     save: (r: Ref | null, body: object) => (r ? crud.edit(module, r, body) : crud.add(module, body)).finally(done),
+  };
+}
+
+/**
+ * A record opened in a dialog, kept in the address — `${base}/{ID}/{UID}` (a link opens it; filters in `?…` stay).
+ * The data comes from `detail`; the row that was clicked is shown meanwhile.
+ */
+export function useRoutedItem<T extends Ref>(module: string, base: string) {
+  const { id, uid } = useParams();
+  const nav = useNavigate();
+  const { search } = useLocation();
+  const clicked = useRef<T | null>(null);
+  const ref = id && uid ? { ID: Number(id), UID: uid } : null;
+  const q = useQuery({
+    queryKey: [module, 'detail', ref?.ID],
+    queryFn: () => crud.detail<T>(module, ref!),
+    enabled: !!ref,
+  });
+  const shown = clicked.current && ref && clicked.current.ID === ref.ID ? clicked.current : null;
+  return {
+    item: ref ? (q.data ?? shown) : null,
+    open: (row: T) => {
+      clicked.current = row;
+      nav(`${base}/${row.ID}/${row.UID}${search}`);
+    },
+    close: () => nav(`${base}${search}`),
   };
 }

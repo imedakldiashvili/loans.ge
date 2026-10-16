@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useFind } from '../api/hooks';
+import { useFind, useRoutedItem } from '../api/hooks';
 import { fmtDate } from '../ui/controls';
 import { Dialog } from '../ui/dialog';
 import { Icon } from '../ui/icons';
@@ -103,7 +103,7 @@ function WebhookLogPage() {
   const [size, setSize] = usePageSize();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
-  const [open, setOpen] = useState<Delivery | null>(null);
+  const { item: open, open: setOpen, close: closeOpen } = useRoutedItem<Delivery>('webhookDelivery', '/integration/webhooks');
   useEffect(() => setPage(1), [status, size]);
   const q = useFind<Delivery>('webhookDelivery', page, size, { Filter: status ? { Status: status } : {} });
   const rows = q.data?.Items ?? [];
@@ -164,7 +164,7 @@ function WebhookLogPage() {
         )}
       </DataTable>
       {open && (
-        <Dialog title={`${open.Event} · ${fmtDate(open.CreatedOn)}`} onClose={() => setOpen(null)} wide>
+        <Dialog title={`${open.Event} · ${fmtDate(open.CreatedOn)}`} onClose={closeOpen} wide>
           <div className="kv">
             <span>UID</span>
             <b>

@@ -23,8 +23,10 @@ export function App() {
         <Route path="/" element={<Navigate to="/monitor" replace />} />
         <Route path="/monitor" element={<MonitorPage />} />
         <Route path="/apps" element={<AppsPage />} />
+        <Route path="/apps/:id/:uid" element={<AppsPage />} />
         <Route path="/apps/:id/:uid/compare" element={<ComparePage />} />
         <Route path="/offers" element={<OffersPage />} />
+        <Route path="/offers/:id/:uid" element={<OffersPage />} />
         <Route path="/orgs" element={<OrgsPage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:id/:uid" element={<ProductFieldsPage />} />
@@ -33,7 +35,9 @@ export function App() {
         <Route path="/settings/log" element={<Navigate to="/logs/actions" replace />} />
         <Route path="/settings/:key" element={<SettingsPage />} />
         <Route path="/logs/:key" element={<LogsPage />} />
+        <Route path="/logs/:key/:id/:uid" element={<LogsPage />} />
         <Route path="/integration/:key" element={<IntegrationPage />} />
+        <Route path="/integration/:key/:id/:uid" element={<IntegrationPage />} />
         <Route path="*" element={<Navigate to="/monitor" replace />} />
       </Routes>
     </Shell>
