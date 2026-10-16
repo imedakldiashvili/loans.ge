@@ -18,7 +18,7 @@ export class StatusConfigService {
     const config: StatusConfig = {
       statuses: statuses.map((s) => ({
         key: s.key, category: s.category as 'progress', ttlMinutes: s.ttlMinutes, sort: s.sort, isEnable: s.isEnable,
-        flags: { hidesPersonalData: s.hidesPersonalData, requiresOffer: s.requiresOffer, requiresIssued: s.requiresIssued, isExpiryTarget: s.isExpiryTarget },
+        flags: { hidesPersonalData: s.hidesPersonalData, requiresOffer: s.requiresOffer, requiresIssued: s.requiresIssued, isExpiryTarget: s.isExpiryTarget, revealsContacts: s.revealsContacts },
         labels: { customerKa: s.customerKa, customerEn: s.customerEn, partner: s.partnerLabel, chip: s.chipLabel },
       })),
       transitions: transitions.map((t) => ({ from: t.fromStatus.key, to: t.toStatus.key, by: t.actor as 'partner', reasonKind: t.reasonKind as 'reject' | null, isEnable: t.isEnable })),

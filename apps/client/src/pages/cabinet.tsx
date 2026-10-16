@@ -56,7 +56,7 @@ export interface App {
 type Found = Page<App> & { Counts: { Active: number; Done: number } };
 
 /** Order of the status groups in a card: what needs an answer first, closed ones last. */
-const GROUP_ORDER = ['offer', 'interested', 'sent', 'done', 'declined', 'cancelled', 'expired'];
+const GROUP_ORDER = ['offer', 'interested', 'sent', 'accepted', 'done', 'declined', 'cancelled', 'expired'];
 const OPEN_GROUPS = ['offer', 'interested'];const PAGE_SIZE = 5;
 /** CSS of the prototype has no class for "expired" — it looks like "cancelled". */
 export const stCls = (k: string) => (k === 'expired' ? 'cancelled' : k);
@@ -67,8 +67,9 @@ export const useStatus = () => {
   const st = (k: string): StatusRow | undefined => statuses.find((s) => s.Key === k);
   return {
     label: (k: string) => (lang() === 'en' ? st(k)?.CustomerEn : st(k)?.CustomerKa) ?? k,
-    /** the customer's cancel status for a record, if allowed now (transitions come from the API) */
+    /** next status of a record that cancels it / accepts it (allowed transitions come from the API) */
     cancelOf: (o: AppOrg) => o.Next.find((k) => st(k)?.Category === 'canceled'),
+    acceptOf: (o: AppOrg) => o.Next.find((k) => st(k)?.Category !== 'canceled'),
   };
 };
 
@@ -210,7 +211,7 @@ function Countdown({ o }: { o: AppOrg }) {
   if (!o.ExpiresOn || !['sent', 'offer'].includes(o.Status)) return null;
   const left = new Date(o.ExpiresOn).getTime() - now;
   return (
-    <span className={`cd${left <= 0 ? ' over' : ''}`} title={t(o.Status === 'offer' ? 'სესხის გაცემისთვის დარჩენილი დრო' : 'პასუხისთვის დარჩენილი დრო')}>
+    <span className={`cd${left <= 0 ? ' over' : ''}`} title={t(o.Status === 'offer' ? 'დასადასტურებლად დარჩენილი დრო' : 'პასუხისთვის დარჩენილი დრო')}>
       {fmtCd(left)}
     </span>
   );
@@ -226,8 +227,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
   const [offer, setOffer] = useState<AppOrg | null>(null);
   const [cancel, setCancel] = useState(false);
   const refresh = () => qc.invalidateQueries({ queryKey: ['apps'] });
-  const isClosed = a.Orgs.every((o) => !o.Next.length);
-  const declineOrg = async (o: AppOrg) => {
+  const isClosed = a.Orgs.every((o) => !o.Next.length);  const declineOrg = async (o: AppOrg) => {
     const to = s.cancelOf(o);
     if (!to) return;
     try {
@@ -430,6 +430,7 @@ export function OfferModal({ a, o, onClose, onChanged }: { a: App; o: AppOrg; on
   const s = useStatus();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const accept = s.acceptOf(o);
   const decline = s.cancelOf(o);
   const run = async (to: string) => {
     setBusy(true);
@@ -488,11 +489,15 @@ export function OfferModal({ a, o, onClose, onChanged }: { a: App; o: AppOrg; on
         })}
         {!o.Offers.length && <p style={{ textAlign: 'center' }}>{t('შეთავაზება ჯერ არ არის — გაგზავნილია')} {fmtDate(o.SentOn)}</p>}
       </div>
-      {/* no confirmation: the offer stands until the organisation issues the loan; the customer may cancel it */}
-      {decline && o.Offers.length > 0 && (
+      {accept && o.Offers.length > 0 && (
         <div className="cancel-actions" id="offerActions">
-          <button type="button" className="btn btn-red" disabled={busy} onClick={() => run(decline)}>
-            {t('შეთავაზების გაუქმება')}
+          {decline && (
+            <button type="button" className="btn btn-red" disabled={busy} onClick={() => run(decline)}>
+              {t('უარი')}
+            </button>
+          )}
+          <button type="button" className="btn btn-green" disabled={busy} onClick={() => run(accept)}>
+            {t('დადასტურება')}
           </button>
         </div>
       )}

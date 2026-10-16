@@ -14,8 +14,8 @@ const S = (
 export const DEFAULT_STATUSES: StatusDef[] = [
   S('sent', 1, 'progress', 60, { customerKa: 'განაცხადი გაგზავნილია', customerEn: 'Application sent', partner: 'შემოსული', chip: 'შემოსული' }, { hidesPersonalData: true }),
   S('interested', 2, 'progress', 60, { customerKa: 'განაცხადი განხილვაშია', customerEn: 'Application under review', partner: 'განხილვაში', chip: 'განხილვაში' }),
-  // the offer stands until the partner issues the loan (done) or cancels it; the customer may cancel (declined)
-  S('offer', 3, 'progress', 1440, { customerKa: 'განაცხადზე მიღებულია შეთავაზება', customerEn: 'Offer received', partner: 'შეთავაზება გაგზავნილია', chip: 'გაგზავნილი' }, { requiresOffer: true }),
+  S('offer', 3, 'progress', 60, { customerKa: 'განაცხადზე შეთავაზება დასადასტურებელია', customerEn: 'Offer awaiting confirmation', partner: 'შეთავაზება გაგზავნილია', chip: 'გაგზავნილი' }, { requiresOffer: true }),
+  S('accepted', 4, 'progress', 1440, { customerKa: 'განაცხადზე შეთავაზება დადასტურებულია', customerEn: 'Offer confirmed', partner: 'მომხმარებელმა დაადასტურა', chip: 'დადასტურებული' }, { revealsContacts: true }),
   S('done', 5, 'complete', null, { customerKa: 'განაცხადზე შეთავაზება დასრულდა', customerEn: 'Offer completed', partner: 'დასრულებული', chip: 'დასრულებული' }, { requiresIssued: true }),
   S('cancelled', 6, 'canceled', null, { customerKa: 'განაცხადზე შეთავაზება გაუქმებულია', customerEn: 'Offer cancelled', partner: 'გააუქმა პარტნიორმა', chip: 'გააუქმა პარტნიორმა' }),
   S('declined', 7, 'canceled', null, { customerKa: 'განაცხადზე შეთავაზება უარყოფილია', customerEn: 'Offer declined', partner: 'გააუქმა მომხმარებელმა', chip: 'გააუქმა მომხმარებელმა' }),
@@ -25,14 +25,15 @@ export const DEFAULT_STATUSES: StatusDef[] = [
 const T = (from: string[], to: string, by: Actor, reasonKind: ReasonKind | null = null): TransitionDef[] =>
   from.map((f) => ({ from: f, to, by, reasonKind, isEnable: true }));
 
-const IN_PROGRESS = ['sent', 'interested', 'offer'];
+const IN_PROGRESS = ['sent', 'interested', 'offer', 'accepted'];
 
 export const DEFAULT_TRANSITIONS: TransitionDef[] = [
   ...T(['sent'], 'interested', 'partner'),
   ...T(['interested'], 'offer', 'partner'),
-  ...T(['offer'], 'done', 'partner'),
+  ...T(['offer'], 'accepted', 'customer'),
+  ...T(['accepted'], 'done', 'partner'),
   ...T(['sent', 'interested'], 'cancelled', 'partner', 'reject'),
-  ...T(['offer'], 'cancelled', 'partner', 'cancel'),
+  ...T(['offer', 'accepted'], 'cancelled', 'partner', 'cancel'),
   ...T(IN_PROGRESS, 'declined', 'customer'),
   ...T(IN_PROGRESS, 'expired', 'system'),
 ];

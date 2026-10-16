@@ -227,11 +227,10 @@ function AppDialog({ app, onClose }: { app: Application; onClose: () => void }) 
 
 // ── compare page — same form as the customer site (#compare); status row at the bottom, view only
 
-// offers standing (until the partner issues the loan or someone cancels), issued, declined by the customer; cls — the prototype's colours
 const CMP_F = [
-  { key: 'offer', label: 'მიღებული', cls: 'offer', d: 'M12 7.5v5.5M12 16.5h.01' },
-  { key: 'done', label: 'გაცემული', cls: 'accepted', d: 'M8 12l3 3 5-6' },
-  { key: 'declined', label: 'უარყოფილი', cls: 'declined', d: 'M15 9l-6 6M9 9l6 6' },
+  { key: 'offer', label: 'დასადასტურებელი', d: 'M12 7.5v5.5M12 16.5h.01' },
+  { key: 'accepted', label: 'დადასტურებული', d: 'M8 12l3 3 5-6' },
+  { key: 'declined', label: 'უარყოფილი', d: 'M15 9l-6 6M9 9l6 6' },
 ];
 
 export function ComparePage() {
@@ -239,7 +238,7 @@ export function ComparePage() {
   const nav = useNavigate();
   const { st } = useLookups();
   const q = useAppDetail({ ID: Number(id), UID: uid });
-  const [filter, setFilter] = useState(['offer', 'done', 'declined']);
+  const [filter, setFilter] = useState(['offer', 'accepted', 'declined']);
   const a = q.data;
   const list = a ? CMP_F.flatMap((f) => (filter.includes(f.key) ? a.Orgs.filter((o) => o.Status === f.key) : [])) : [];
   const T = list.map((o) => {
@@ -287,7 +286,7 @@ export function ComparePage() {
               </p>
               <div className="cmp-filter">
                 {CMP_F.map((f) => (
-                  <button key={f.key} type="button" className={`cmp-f f-${f.cls} ${filter.includes(f.key) ? 'on' : ''}`} aria-pressed={filter.includes(f.key)} onClick={() => setFilter((x) => (x.includes(f.key) ? x.filter((k) => k !== f.key) : [...x, f.key]))}>
+                  <button key={f.key} type="button" className={`cmp-f f-${f.key} ${filter.includes(f.key) ? 'on' : ''}`} aria-pressed={filter.includes(f.key)} onClick={() => setFilter((x) => (x.includes(f.key) ? x.filter((k) => k !== f.key) : [...x, f.key]))}>
                     <span className="ico">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="9" />

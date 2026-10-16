@@ -52,6 +52,8 @@ interface Rec {
   ReasonIDs: number[];
   ReasonText: string | null;
   IsMasked: boolean;
+  /** phone / e-mail not open yet — the customer has not accepted the offer */
+  ContactsHidden: boolean;
   Application: Application;
   Offers: OfferRow[];
 }
@@ -77,7 +79,7 @@ const PAGE = 5;
 const TIMES = { '24h': 1, '7d': 7, '30d': 30 } as const;
 const TIMER_TITLE: Record<string, string> = {
   sent: 'პასუხისთვის დარჩენილი დრო', interested: 'შეთავაზების გაგზავნისთვის დარჩენილი დრო',
-  offer: 'სესხის გაცემისთვის დარჩენილი დრო',
+  offer: 'მომხმარებელს დადასტურებისთვის დარჩენილი დრო', accepted: 'სესხის გაცემისთვის დარჩენილი დრო',
 };
 const ACTOR: Record<string, string> = { customer: 'მომხმარებელი', partner: 'პარტნიორი', system: 'სისტემა', admin: 'ადმინი' };
 
@@ -289,8 +291,9 @@ function Countdown({ r, s }: { r: Rec; s?: StatusRow }) {
   const now = useNow();
   if (!r.ExpiresOn || s?.Category !== 'progress') return null;
   const left = new Date(r.ExpiresOn).getTime() - now;
+  const quiet = r.Status === 'offer'; // the customer's deadline — not a reason to hurry the partner
   return (
-    <span className={`cd${left <= 0 ? ' over' : ''}`} title={TIMER_TITLE[r.Status] ?? 'დარჩენილი დრო'}>
+    <span className={`cd${quiet ? ' quiet' : ''}${left <= 0 && !quiet ? ' over' : ''}`} title={TIMER_TITLE[r.Status] ?? 'დარჩენილი დრო'}>
       {fmtCd(left)}
     </span>
   );
@@ -455,14 +458,17 @@ function AppDetail({ d, st, bottom }: { d: Detail; st: (k: string) => StatusRow 
               <div className="lock">პერსონალური მონაცემები (სახელი, პირადი ნომერი, კონტაქტი) გაიხსნება განხილვაში აყვანის შემდეგ.</div>
             </>
           ) : (
-            kv([
-              ['სახელი, გვარი', `${a.FirstName} ${a.LastName}`],
-              ['პირადი ნომერი', a.Pid],
-              ['დაბადების თარიღი', a.BirthDate ? a.BirthDate.slice(0, 10).split('-').reverse().join('.') : ''],
-              ['მობილური', a.Phone ? `+995 ${a.Phone}` : ''],
-              ['ელ. ფოსტა', a.Email],
-              ['ლოკაცია', place],
-            ])
+            <>
+              {kv([
+                ['სახელი, გვარი', `${a.FirstName} ${a.LastName}`],
+                ['პირადი ნომერი', a.Pid],
+                ['დაბადების თარიღი', a.BirthDate ? a.BirthDate.slice(0, 10).split('-').reverse().join('.') : ''],
+                ['მობილური', d.ContactsHidden ? '🔒 დამალულია' : a.Phone ? `+995 ${a.Phone}` : ''],
+                ['ელ. ფოსტა', d.ContactsHidden ? '🔒 დამალულია' : a.Email],
+                ['ლოკაცია', place],
+              ])}
+              {d.ContactsHidden && <div className="lock">საკონტაქტო ინფორმაცია (მობილური, ელ.ფოსტა) გამოჩნდება, როცა მომხმარებელი შეთავაზებას დაადასტურებს.</div>}
+            </>
           ),
         )}
         {sec(

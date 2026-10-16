@@ -122,7 +122,7 @@ const configs: CrudConfig[] = [
       ttlMinutes: z.number().int().positive().nullable().default(null),
       sort,
       hidesPersonalData: z.boolean().default(false), requiresOffer: z.boolean().default(false),
-      requiresIssued: z.boolean().default(false), isExpiryTarget: z.boolean().default(false),
+      requiresIssued: z.boolean().default(false), isExpiryTarget: z.boolean().default(false), revealsContacts: z.boolean().default(false),
     }),
     searchFields: ['key', 'customerKa', 'partnerLabel'], filterFields: ['category'], defaultSort: [{ field: 'sort', dir: 'asc' }], moveGroup: [], unique: [['key']],
     validate: async (d, prisma, selfId) => {

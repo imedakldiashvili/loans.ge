@@ -214,6 +214,8 @@ export class ClientApplicationService {
   private async move(tx: Prisma.TransactionClient, o: { id: bigint; status: string }, to: string, now: Date, by: bigint) {
     const m = await this.statuses.machine();
     await tx.applicationOrg.update({ where: { id: o.id }, data: { status: to, statusOn: now, expiresOn: m.expiresAt(to, now), updatedBy: by, updatedOn: now } });
+    // e.g. the customer accepted the offer → the partner gets the phone / e-mail (once, for good)
+    if (m.revealsContacts(to)) await tx.applicationOrg.updateMany({ where: { id: o.id, contactsOpenedOn: null }, data: { contactsOpenedOn: now } });
     await tx.statusEvent.create({ data: { applicationOrgId: o.id, fromStatus: o.status, toStatus: to, actor: 'customer', createdBy: by, requestUid: currentContext()?.uid ?? null } });
   }
 

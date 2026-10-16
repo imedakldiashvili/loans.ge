@@ -10,7 +10,7 @@ import { PUSH_CONTROLLERS, PushService } from './push';
 
 // Notifications about applications — who learns what, and how:
 //   partner staff (their organisation, sales within their cities / products): a new application; the customer
-//     cancelled; a deadline passed;
+//     accepted / declined; a deadline passed;
 //   the customer: an organisation took the application into review, sent an offer, declined, issued the loan; a deadline passed.
 // Channels: the bell (notification table, live over the events stream), browser push, and e-mail / SMS as set in
 // admin → settings ("notify"). Nobody is notified about their own action.
@@ -35,7 +35,8 @@ const CUSTOMER_TEXT: Record<string, (org: string) => string> = {
   expired: (o) => `${o}: ვადა გავიდა`,
 };
 const STAFF_TEXT: Record<string, string> = {
-  declined: 'მომხმარებელმა განაცხადი გააუქმა',
+  accepted: 'მომხმარებელმა შეთავაზება დაადასტურა',
+  declined: 'მომხმარებელმა უარი თქვა',
   expired: 'განაცხადს ვადა გაუვიდა',
 };
 

@@ -68,14 +68,16 @@ const [o1, o2] = det.Orgs;
 await prisma.applicationOrg.update({ where: { id: BigInt(o1.ID) }, data: { status: 'offer', statusOn: new Date() } });
 await prisma.offer.create({ data: { applicationOrgId: BigInt(o1.ID), amount: 5000, currency: 'GEL', months: 24, rate: 14, fee: 50, insMonth: 15 } });
 const chg = (o, st) => call('PUT', `/client/applicationOrg/changeStatus/${o.ID}/${o.UID}`, { Status: st });
-// no confirmation by the customer: an offer stands until the organisation issues the loan; the customer may cancel it
-ok((await chg(o1, 'accepted')).status === 409, 'offers are not confirmed by the customer (409)');
+ok((await chg(o2, 'accepted')).status === 409, 'cannot accept without an offer (409)');
+const closedBefore = await prisma.applicationOrg.findUnique({ where: { id: BigInt(o1.ID) } });
+ok(closedBefore.contactsOpenedOn === null, 'before accepting: the partner has no contacts');
+ok((await chg(o1, 'accepted')).status === 200, 'accept the offer');
+const openedAfter = await prisma.applicationOrg.findUnique({ where: { id: BigInt(o1.ID) } });
+const other = await prisma.applicationOrg.findUnique({ where: { id: BigInt(o2.ID) } });
+ok(openedAfter.contactsOpenedOn !== null && other.contactsOpenedOn === null, 'accepting opens the contacts to that organisation only');
 const det2 = (await call('GET', `/client/application/detail/${app.ID}/${app.UID}`)).json.Data;
-const d1 = det2.Orgs.find((o) => o.ID === o1.ID);
-ok(d1.Status === 'offer' && d1.Offers.length === 1 && d1.Next.join() === 'declined', 'offer visible; the customer can only cancel it', d1.Next);
-ok((await chg(o1, 'declined')).status === 200, 'customer cancels the offer');
 const ev = await prisma.statusEvent.findFirst({ where: { applicationOrgId: BigInt(o1.ID) }, orderBy: { id: 'desc' } });
-ok(ev.toStatus === 'declined' && ev.actor === 'customer', 'history: cancelled by the customer');
+ok(det2.Orgs.find((o) => o.ID === o1.ID).Status === 'accepted' && det2.Orgs.find((o) => o.ID === o1.ID).Offers.length === 1 && ev.actor === 'customer', 'accepted, offer visible, history by the customer');
 
 // close the whole application: the rest moves to the customer's cancel status
 ok((await call('PUT', `/client/application/cancel/${app.ID}/${app.UID}`)).status === 200, 'close the application');

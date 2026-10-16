@@ -8,7 +8,7 @@ import { money } from '../ui';
 import { App, AppOrg, changeOrg, useStatus } from './cabinet';
 
 // Offers side by side (prototype #compare): one column per offer, best value highlighted,
-// filter by state (standing / issued / declined), ✕ to cancel a standing offer (no confirmation — the organisation issues the loan).
+// filter by state (to confirm / accepted / declined), ✓ / ✕ on offers still waiting for an answer.
 
 const ICONS = {
   offer: (
@@ -45,14 +45,13 @@ const FILLED = {
   ),
 };
 type Kind = keyof typeof ICONS;
-// kinds keep the prototype's CSS names: offer — standing offers, accepted — the loan issued (done), declined — closed
 const FILTERS: [Kind, string][] = [
-  ['offer', 'მიღებული'],
-  ['accepted', 'გაცემული'],
+  ['offer', 'დასადასტურებელი'],
+  ['accepted', 'დადასტურებული'],
   ['declined', 'უარყოფილი'],
 ];
-/** Which column of the filter a record belongs to. */
-const kindOf = (o: AppOrg): Kind => (o.Status === 'offer' ? 'offer' : o.Status === 'done' ? 'accepted' : 'declined');
+/** Which column of the filter a record belongs to: waiting for an answer / accepted (or issued) / everything closed. */
+const kindOf = (o: AppOrg): Kind => (o.Status === 'offer' ? 'offer' : ['accepted', 'done'].includes(o.Status) ? 'accepted' : 'declined');
 
 /** Opened at /cabinet/compare/{id}/{uid} — loads the application itself (a reload or a shared link works). */
 export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: () => void }) {
@@ -152,11 +151,14 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
                       <td key={of.ID}>
                         <div className="acts">
                           {k === 'offer' ? (
-                            s.cancelOf(o) && (
-                              <button type="button" className="cab-ico cmp-no" title={t('შეთავაზების გაუქმება')} aria-label={t('შეთავაზების გაუქმება')} onClick={() => run(o, s.cancelOf(o))}>
+                            <>
+                              <button type="button" className="cab-ico cmp-ok" title={t('დადასტურება')} aria-label={t('დადასტურება')} onClick={() => run(o, s.acceptOf(o))}>
+                                {ICONS.accepted}
+                              </button>
+                              <button type="button" className="cab-ico cmp-no" title={t('უარი')} aria-label={t('უარი')} onClick={() => run(o, s.cancelOf(o))}>
                                 {ICONS.declined}
                               </button>
-                            )
+                            </>
                           ) : (
                             <span className={`cmp-st ${k}`} title={s.label(o.Status)}>
                               {FILLED[k]}

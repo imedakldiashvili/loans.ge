@@ -37,7 +37,7 @@ function StatusesPage() {
   const [del, setDel] = useState<StatusRow | null>(null);
   const rows = q.data?.Items ?? [];
   const flags = (s: StatusRow) =>
-    [s.HidesPersonalData && 'მონაცემები დამალულია', s.RequiresOffer && 'სჭირდება შეთავაზება', s.RequiresIssued && 'სჭირდება გაცემა', s.IsExpiryTarget && 'ვადის გასვლის სტატუსი'].filter(Boolean) as string[];
+    [s.HidesPersonalData && 'მონაცემები დამალულია', s.RequiresOffer && 'სჭირდება შეთავაზება', s.RequiresIssued && 'სჭირდება გაცემა', s.IsExpiryTarget && 'ვადის გასვლის სტატუსი', s.RevealsContacts && 'კონტაქტები იხსნება'].filter(Boolean) as string[];
 
   return (
     <ListPage
@@ -139,7 +139,7 @@ function StatusDialog({ row, onSave, onClose }: { row: StatusRow | null; onSave:
   const [color, setColor] = useState(row?.Color ?? '');
   const [flags, setFlags] = useState({
     HidesPersonalData: row?.HidesPersonalData ?? false, RequiresOffer: row?.RequiresOffer ?? false,
-    RequiresIssued: row?.RequiresIssued ?? false, IsExpiryTarget: row?.IsExpiryTarget ?? false,
+    RequiresIssued: row?.RequiresIssued ?? false, IsExpiryTarget: row?.IsExpiryTarget ?? false, RevealsContacts: row?.RevealsContacts ?? false,
   });
   const [errors, setErrors] = useState<FieldErrors>({});
 
@@ -209,6 +209,7 @@ function StatusDialog({ row, onSave, onClose }: { row: StatusRow | null; onSave:
           {flag('RequiresOffer', 'გადასვლას სჭირდება მინიმუმ ერთი შეთავაზება', 'მაგ. შეთავაზება გაგზავნილია')}
           {flag('RequiresIssued', 'სჭირდება „სესხი გაცემულია"', 'მაგ. დასრულებული')}
           {flag('IsExpiryTarget', 'ვადის გასვლისას აქ გადადის (მხოლოდ ერთი)', 'მაგ. ვადაგასული')}
+          {flag('RevealsContacts', 'პარტნიორს ეხსნება განმცხადებლის ტელეფონი და ელ.ფოსტა (სამუდამოდ)', 'მაგ. მომხმარებელმა დაადასტურა')}
         </div>
         <FieldError errors={errors} field="IsExpiryTarget" />
       </div>

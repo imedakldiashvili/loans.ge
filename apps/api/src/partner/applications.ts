@@ -10,7 +10,8 @@ import { EventsService } from '../events/events';
 
 // Partner gateway — incoming applications (prototype partner.html): one record per application × this organisation.
 // Rules: only the caller's organisation; sales — only their cities / products; in statuses flagged "hides personal data"
-// (e.g. sent) the applicant is masked and never matched by search. Status changes go through the status machine (DB).
+// (e.g. sent) the applicant is masked and never matched by search; the phone / e-mail stay hidden until the contacts are
+// opened (a status flagged "reveals contacts" — the customer accepted the offer). Status changes go through the status machine (DB).
 
 const PAGE_MAX = 100;
 const ctx = () => {
@@ -68,12 +69,14 @@ export class PartnerApplicationService {
     };
   }
 
-  /** Applicant hidden in statuses flagged "hides personal data". */
-  private mask<T extends { status: string; uid: string; application: Record<string, unknown> }>(row: T, hidden: string[]) {
-    if (!hidden.includes(row.status)) return { ...row, isMasked: false };
+  /** Applicant hidden in statuses flagged "hides personal data"; contacts hidden until opened (contactsOpenedOn). */
+  private mask<T extends { status: string; uid: string; contactsOpenedOn: Date | null; application: Record<string, unknown> }>(row: T, hidden: string[]) {
     const a = row.application;
+    const contactsHidden = !row.contactsOpenedOn;
+    const contacts = contactsHidden ? { phone: null, email: null } : {};
+    if (!hidden.includes(row.status)) return { ...row, isMasked: false, contactsHidden, application: { ...a, ...contacts } };
     return {
-      ...row, isMasked: true,
+      ...row, isMasked: true, contactsHidden: true,
       application: { ...a, pid: null, firstName: 'განმცხადებელი', lastName: `№${row.uid.slice(-4).toUpperCase()}`, phone: null, email: null, birthDate: null, userId: null },
     };
   }
@@ -92,8 +95,16 @@ export class PartnerApplicationService {
         ...(f.from || f.to ? { createdOn: { ...(f.from ? { gte: f.from } : {}), ...(f.to ? { lte: f.to } : {}) } } : {}),
         ...(f.cityId ? { cityId: f.cityId } : {}),
         ...(f.districtId ? { districtId: f.districtId } : {}),
-        ...(f.search ? { OR: ['firstName', 'lastName', 'pid', 'phone'].map((k) => ({ [k]: { contains: f.search, mode: 'insensitive' } })) } : {}),
       },
+      // search: name / personal number; the phone only where the contacts are open (otherwise it would give the number away)
+      ...(f.search
+        ? {
+            OR: [
+              { application: { OR: ['firstName', 'lastName', 'pid'].map((k) => ({ [k]: { contains: f.search, mode: 'insensitive' as const } })) } },
+              { contactsOpenedOn: { not: null }, application: { phone: { contains: f.search } } },
+            ],
+          }
+        : {}),
       // a masked applicant can't be found by name / personal number
       ...(f.search ? { status: { notIn: hidden } } : {}),
     };
@@ -162,6 +173,7 @@ export class PartnerApplicationService {
           ...(offers.length ? { offerOn: row.offerOn ?? now } : {}),
           ...(reasonKind ? { reasonIds: d.reasonIds, reasonText: d.reasonText } : {}),
           ...(target.flags.requiresIssued ? { issued: true, issuedOn: now } : {}),
+          ...(target.flags.revealsContacts && !row.contactsOpenedOn ? { contactsOpenedOn: now } : {}),
         },
       });
       for (const o of offers) await tx.offer.create({ data: { ...o, applicationOrgId: row.id, createdBy: by } });

@@ -20,6 +20,8 @@ export interface StatusFlags {
   requiresIssued?: boolean;
   /** The worker moves expired records into this status (one per system). */
   isExpiryTarget?: boolean;
+  /** Entering this status opens the applicant's contacts (phone, e-mail) to the partner — for good (e.g. the customer accepted the offer). */
+  revealsContacts?: boolean;
 }
 
 /** Row of the `status` table. */
@@ -106,6 +108,10 @@ export class StatusMachine {
 
   hidesPersonalData(key: string): boolean {
     return !!this.byKey.get(key)?.flags.hidesPersonalData;
+  }
+
+  revealsContacts(key: string): boolean {
+    return !!this.byKey.get(key)?.flags.revealsContacts;
   }
 
   /** An application has only two states: active while at least one organisation is still in progress. */

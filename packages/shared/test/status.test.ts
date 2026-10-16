@@ -7,13 +7,12 @@ describe('status machine (default configuration)', () => {
   it('follows the main flow', () => {
     expect(m.canTransition('sent', 'interested', 'partner')).toBe(true);
     expect(m.canTransition('interested', 'offer', 'partner')).toBe(true);
-    // no confirmation by the customer: the partner completes the offer
-    expect(m.canTransition('offer', 'done', 'partner')).toBe(true);
+    expect(m.canTransition('offer', 'accepted', 'customer')).toBe(true);
+    expect(m.canTransition('accepted', 'done', 'partner')).toBe(true);
   });
 
   it('rejects transitions by the wrong actor or from the wrong status', () => {
-    expect(m.canTransition('offer', 'done', 'customer')).toBe(false);
-    expect(m.status('accepted')).toBeUndefined();
+    expect(m.canTransition('offer', 'accepted', 'partner')).toBe(false);
     expect(m.canTransition('sent', 'offer', 'partner')).toBe(false);
     expect(m.canTransition('done', 'cancelled', 'partner')).toBe(false);
     expect(m.canTransition('expired', 'interested', 'partner')).toBe(false);
@@ -28,13 +27,12 @@ describe('status machine (default configuration)', () => {
 
   it('asks for the right reason list', () => {
     expect(m.reasonKindFor('sent', 'cancelled', 'partner')).toBe('reject');
-    expect(m.reasonKindFor('offer', 'cancelled', 'partner')).toBe('cancel');
-    expect(m.reasonKindFor('offer', 'declined', 'customer')).toBeNull();
+    expect(m.reasonKindFor('accepted', 'cancelled', 'partner')).toBe('cancel');
+    expect(m.reasonKindFor('offer', 'accepted', 'customer')).toBeNull();
   });
 
   it('lists next statuses per actor in status order', () => {
-    expect(m.nextStatuses('offer', 'customer')).toEqual(['declined']);
-    expect(m.nextStatuses('offer', 'partner')).toEqual(['done', 'cancelled']);
+    expect(m.nextStatuses('offer', 'customer')).toEqual(['accepted', 'declined']);
     expect(m.nextStatuses('sent', 'partner')).toEqual(['interested', 'cancelled']);
     expect(m.nextStatuses('done', 'partner')).toEqual([]);
   });
@@ -42,7 +40,7 @@ describe('status machine (default configuration)', () => {
   it('computes expiry from the status time limit', () => {
     const at = new Date('2026-10-15T10:00:00Z');
     expect(m.expiresAt('sent', at)?.toISOString()).toBe('2026-10-15T11:00:00.000Z');
-    expect(m.expiresAt('offer', at)?.toISOString()).toBe('2026-10-16T10:00:00.000Z');
+    expect(m.expiresAt('accepted', at)?.toISOString()).toBe('2026-10-16T10:00:00.000Z');
     expect(m.expiresAt('done', at)).toBeNull();
     expect(m.expiryTarget()).toBe('expired');
   });

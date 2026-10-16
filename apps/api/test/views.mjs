@@ -38,7 +38,7 @@ ok(t.Total.Applications === 12 && t.Total.Offers === 33, 'monitor: totals 12 / 3
 ok(t.Progress.Applications + t.Complete.Applications + t.Canceled.Applications === 12, 'monitor: categories add up to the total (applications)');
 ok(t.Progress.Offers + t.Complete.Offers + t.Canceled.Offers === 33, 'monitor: categories add up to the total (offers)');
 const count = (list, st) => list.find((c) => c.Status === st)?.Count ?? 0;
-ok(count(m.Totals, 'sent') === 33 && m.Matrix.length > 0 && m.Statuses.length === 7, 'monitor: matrix of passed statuses ("sent" is the largest)');
+ok(count(m.Totals, 'sent') === 33 && m.Matrix.length > 0 && m.Statuses.length === 8, 'monitor: matrix of passed statuses ("sent" is the largest)');
 const bankA = m.Matrix.find((r) => r.Organization.NameKa === 'ბანკი A');
 const onlyA = (await call('POST', '/admin/monitor/summary', { Filter: { OrganizationID: bankA.Organization.ID } })).json.Data;
 ok(onlyA.Matrix.length === 1 && count(onlyA.Totals, 'sent') === count(bankA.Counts, 'sent'), 'monitor: organisation filter');

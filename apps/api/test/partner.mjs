@@ -30,12 +30,21 @@ ok((await find('product')).status === 200, 'sales: read products');
 ok((await call('POST', '/partner/product/add', { ProductTypeID: 1, Currencies: ['GEL'] })).status === 403, 'sales: cannot add products → 403');
 ok((await find('staff')).status === 403, 'sales: no staff list → 403');
 
-// ── status flow: sent → interested → offer → done / cancelled (the customer does not confirm offers)
+// ── status flow: sent → interested → offer → (customer only) accepted ✗ → cancelled
 const ch = (r, body) => call('PUT', `/partner/application/changeStatus/${r.ID}/${r.UID}`, body);
 ok((await ch(sent, { Status: 'offer' })).status === 409, 'sent → offer directly is not allowed (409)');
 const r1 = await ch(sent, { Status: 'interested' });
 const after1 = (await call('GET', `/partner/application/detail/${sent.ID}/${sent.UID}`)).json.Data;
 ok(r1.status === 200 && after1.Status === 'interested' && after1.IsMasked === false && after1.ExpiresOn && after1.Events.at(-1).ToStatus === 'interested' && after1.Events.at(-1).Actor === 'partner', 'review: status, unmasked, new deadline, history event');
+// contacts: hidden until the customer accepts the offer — and the phone does not find the record
+const rec = await prisma.applicationOrg.findUnique({ where: { id: BigInt(sent.ID) }, include: { application: true } });
+ok(after1.ContactsHidden === true && after1.Application.Phone === null && after1.Application.Email === null && after1.Application.Pid, 'review: name and personal number, but no phone / e-mail yet');
+ok((await find('application', { Filter: { Search: rec.application.phone } })).json.Data.Items.every((x) => x.ID !== sent.ID), 'phone search does not find a record with closed contacts');
+await prisma.applicationOrg.update({ where: { id: rec.id }, data: { contactsOpenedOn: new Date() } });
+const opened = (await call('GET', `/partner/application/detail/${sent.ID}/${sent.UID}`)).json.Data;
+ok(opened.ContactsHidden === false && opened.Application.Phone === rec.application.phone, 'contacts opened → phone visible');
+ok((await find('application', { Filter: { Search: rec.application.phone } })).json.Data.Items.some((x) => x.ID === sent.ID), 'and found by phone');
+await prisma.applicationOrg.update({ where: { id: rec.id }, data: { contactsOpenedOn: null } });
 
 ok((await ch(sent, { Status: 'offer' })).status === 400, 'offer needs at least one offer (400)');
 const cards = (await find('card')).json.Data.Items;
@@ -50,8 +59,7 @@ const amt = Number(after2.Application.Amount);
 ok(r2.status === 200 && after2.Status === 'offer' && of.Amount === Math.min(Math.max(amt, card.Values.MinAmt), card.Values.MaxAmt) && of.Rate === card.Values.Rate && of.Fee === Math.round((of.Amount * card.Values.FeePct) / 100), 'offer: terms from the card (amount within limits, rate, fee %)', of);
 ok(after2.OfferOn !== null, 'offer: first offer time set');
 
-ok((await ch(sent, { Status: 'accepted' })).status === 409, 'no "accepted" step any more (409)');
-ok(after2.Next.map((n) => n.Status).join() === 'done,cancelled' && after2.Next.find((n) => n.Status === 'done').RequiresIssued, 'offer: next is done (loan issued) or cancel', after2.Next);
+ok((await ch(sent, { Status: 'accepted' })).status === 409, 'partner cannot accept for the customer (409)');
 ok((await ch(sent, { Status: 'cancelled' })).status === 400, 'cancel needs a reason (400)');
 const reason = await prisma.referenceItem.findFirst({ where: { kind: 'cancel_reason' } });
 const rej = await prisma.referenceItem.findFirst({ where: { kind: 'reject_reason' } });

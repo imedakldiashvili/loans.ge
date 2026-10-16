@@ -45,6 +45,7 @@ export interface StatusRow {
   Sort: number;
   IsEnable: boolean;
   HidesPersonalData: boolean;
+  RevealsContacts: boolean;
   RequiresOffer: boolean;
   RequiresIssued: boolean;
   IsExpiryTarget: boolean;
@@ -58,7 +59,7 @@ export const STATUS_CATEGORIES = [
 
 /** Status colours from the prototype (CSS variables); a colour set on the status wins. */
 export const ST_COLOR: Record<string, string> = {
-  sent: 'var(--orange)', interested: 'var(--amber)', offer: 'var(--sky)', done: 'var(--green)',
+  sent: 'var(--orange)', interested: 'var(--amber)', offer: 'var(--sky)', accepted: 'var(--blue)', done: 'var(--green)',
   cancelled: 'var(--grey-status)', declined: 'var(--grey-status)', expired: 'var(--grey-status)',
 };
 export const statusColor = (s?: Pick<StatusRow, 'Key' | 'Color'> | null, key?: string) => s?.Color || ST_COLOR[s?.Key ?? key ?? ''] || 'var(--grey-status)';
