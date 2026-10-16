@@ -568,7 +568,7 @@ export function MarkBar({ m }: { m: OfferMarks }) {
           {t('გაუქმება')}
         </button>
         <button type="button" className="btn btn-green sm" title={canSend ? undefined : t('აირჩიე მინიმუმ ერთი შეთავაზება')} disabled={!canSend} onClick={() => (m.setError(''), m.setAsking('send'))}>
-          {t('გაგზავნა')}
+          {t('შედარების დასრულება')}
         </button>
       </span>
       {m.asking === 'send' && <ConfirmOffers accept={m.accepts} cancel={m.declines} busy={m.sending} error={m.error} onYes={m.send} onClose={() => m.setAsking(false)} />}
