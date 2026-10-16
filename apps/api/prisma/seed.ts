@@ -215,7 +215,9 @@ async function main() {
         creditHistory: a.credit, sector: a.sector, incomes: a.incomes ?? Prisma.JsonNull, banks: a.banks ?? Prisma.JsonNull,
       },
     });
-    for (const o of a.orgList) {
+    for (const o0 of a.orgList) {
+      // the prototype still had the customer confirming offers ("accepted"); now such an offer simply stands
+      const o = { ...o0, status: o0.status === 'accepted' ? 'offer' : o0.status };
       const oid = orgByName.get(o.name);
       if (!oid) continue;
       const ttl = DEFAULT_STATUS_CONFIG.statuses.find((s) => s.key === o.status)?.ttlMinutes;
@@ -233,7 +235,9 @@ async function main() {
         });
       }
       let prev: string | null = null;
-      for (const e of o.log ?? []) {
+      for (const e0 of o.log ?? []) {
+        const e = { ...e0, status: e0.status === 'accepted' ? 'offer' : e0.status };
+        if (e.status === prev) continue;
         const actor = /^მომხმარებელი/.test(e.by) ? 'customer' : e.by === 'სისტემა' ? 'system' : 'partner';
         await prisma.statusEvent.create({ data: { applicationOrgId: ao.id, fromStatus: prev, toStatus: e.status, actor, createdOn: at(e.at) } });
         prev = e.status;

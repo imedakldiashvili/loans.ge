@@ -77,7 +77,7 @@ const PAGE = 5;
 const TIMES = { '24h': 1, '7d': 7, '30d': 30 } as const;
 const TIMER_TITLE: Record<string, string> = {
   sent: 'პასუხისთვის დარჩენილი დრო', interested: 'შეთავაზების გაგზავნისთვის დარჩენილი დრო',
-  offer: 'მომხმარებელს დადასტურებისთვის დარჩენილი დრო', accepted: 'სესხის გაცემისთვის დარჩენილი დრო',
+  offer: 'სესხის გაცემისთვის დარჩენილი დრო',
 };
 const ACTOR: Record<string, string> = { customer: 'მომხმარებელი', partner: 'პარტნიორი', system: 'სისტემა', admin: 'ადმინი' };
 
@@ -289,9 +289,8 @@ function Countdown({ r, s }: { r: Rec; s?: StatusRow }) {
   const now = useNow();
   if (!r.ExpiresOn || s?.Category !== 'progress') return null;
   const left = new Date(r.ExpiresOn).getTime() - now;
-  const quiet = r.Status === 'offer'; // the customer's deadline — not a reason to hurry the partner
   return (
-    <span className={`cd${quiet ? ' quiet' : ''}${left <= 0 && !quiet ? ' over' : ''}`} title={TIMER_TITLE[r.Status] ?? 'დარჩენილი დრო'}>
+    <span className={`cd${left <= 0 ? ' over' : ''}`} title={TIMER_TITLE[r.Status] ?? 'დარჩენილი დრო'}>
       {fmtCd(left)}
     </span>
   );

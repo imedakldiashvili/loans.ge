@@ -261,5 +261,9 @@
  "🔔 ბრაუზერის შეტყობინებების ჩართვა": "🔔 Turn on browser notifications",
  "ახლახან": "just now",
  "წთ წინ": "min ago",
- "სთ წინ": "h ago"
+ "სთ წინ": "h ago",
+ "შეთავაზების გაუქმება": "Cancel the offer",
+ "მიღებული": "Received",
+ "გაცემული": "Issued",
+ "სესხის გაცემისთვის დარჩენილი დრო": "Time left to issue the loan"
 }

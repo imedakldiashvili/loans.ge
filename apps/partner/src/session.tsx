@@ -134,7 +134,7 @@ export function useRefs() {
 
 /** Status colours of the prototype (CSS variables); a colour set in the admin console wins. */
 const ST_COLOR: Record<string, string> = {
-  sent: 'var(--orange)', interested: 'var(--amber)', offer: 'var(--sky)', accepted: 'var(--blue)', done: 'var(--green)',
+  sent: 'var(--orange)', interested: 'var(--amber)', offer: 'var(--sky)', done: 'var(--green)',
   cancelled: 'var(--grey-status)', declined: 'var(--grey-status)', expired: 'var(--grey-status)',
 };
 export const statusColor = (s: StatusRow | undefined, key: string) => s?.Color || ST_COLOR[key] || 'var(--grey-status)';

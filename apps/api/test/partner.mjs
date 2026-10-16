@@ -30,7 +30,7 @@ ok((await find('product')).status === 200, 'sales: read products');
 ok((await call('POST', '/partner/product/add', { ProductTypeID: 1, Currencies: ['GEL'] })).status === 403, 'sales: cannot add products → 403');
 ok((await find('staff')).status === 403, 'sales: no staff list → 403');
 
-// ── status flow: sent → interested → offer → (customer only) accepted ✗ → cancelled
+// ── status flow: sent → interested → offer → done / cancelled (the customer does not confirm offers)
 const ch = (r, body) => call('PUT', `/partner/application/changeStatus/${r.ID}/${r.UID}`, body);
 ok((await ch(sent, { Status: 'offer' })).status === 409, 'sent → offer directly is not allowed (409)');
 const r1 = await ch(sent, { Status: 'interested' });
@@ -50,7 +50,8 @@ const amt = Number(after2.Application.Amount);
 ok(r2.status === 200 && after2.Status === 'offer' && of.Amount === Math.min(Math.max(amt, card.Values.MinAmt), card.Values.MaxAmt) && of.Rate === card.Values.Rate && of.Fee === Math.round((of.Amount * card.Values.FeePct) / 100), 'offer: terms from the card (amount within limits, rate, fee %)', of);
 ok(after2.OfferOn !== null, 'offer: first offer time set');
 
-ok((await ch(sent, { Status: 'accepted' })).status === 409, 'partner cannot accept for the customer (409)');
+ok((await ch(sent, { Status: 'accepted' })).status === 409, 'no "accepted" step any more (409)');
+ok(after2.Next.map((n) => n.Status).join() === 'done,cancelled' && after2.Next.find((n) => n.Status === 'done').RequiresIssued, 'offer: next is done (loan issued) or cancel', after2.Next);
 ok((await ch(sent, { Status: 'cancelled' })).status === 400, 'cancel needs a reason (400)');
 const reason = await prisma.referenceItem.findFirst({ where: { kind: 'cancel_reason' } });
 const rej = await prisma.referenceItem.findFirst({ where: { kind: 'reject_reason' } });
