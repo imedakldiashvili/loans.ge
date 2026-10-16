@@ -754,3 +754,5 @@
   .cf-group li .nm { font-weight: 600; color: var(--fg); }
   .cf-group li .terms { margin-inline-start: auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .cf-group li .terms ~ .terms { flex-basis: 100%; text-align: end; }
+  /* answer summary: wider — organisation rows with their terms */
+  .modal-box.modal-confirm-offers { max-width: 560px; }

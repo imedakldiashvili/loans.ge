@@ -605,7 +605,7 @@ export function ConfirmOffers({ accept, cancel, pending = [], busy, error, onYes
       </details>
     );
   return (
-    <Modal onClose={onClose} labelledBy="confirmOffersTitle">
+    <Modal onClose={onClose} labelledBy="confirmOffersTitle" className="modal-confirm-offers">
       <h3 id="confirmOffersTitle">{t('პასუხის გაგზავნა')}</h3>
       <div className="cf-groups">
         {group('ok', 'დადასტურდება', accept)}
