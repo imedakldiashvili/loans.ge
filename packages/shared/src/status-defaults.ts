@@ -14,7 +14,7 @@ const S = (
 export const DEFAULT_STATUSES: StatusDef[] = [
   S('sent', 1, 'progress', 60, { customerKa: 'განაცხადი გაგზავნილია', customerEn: 'Application sent', partner: 'შემოსული', chip: 'შემოსული' }, { hidesPersonalData: true }),
   S('interested', 2, 'progress', 60, { customerKa: 'განაცხადი განხილვაშია', customerEn: 'Application under review', partner: 'განხილვაში', chip: 'განხილვაში' }),
-  S('offer', 3, 'progress', 60, { customerKa: 'განაცხადზე შეთავაზება გამოგზავნილია', customerEn: 'Offer sent', partner: 'შეთავაზება გაგზავნილია', chip: 'გაგზავნილი' }, { requiresOffer: true }),
+  S('offer', 3, 'progress', 60, { customerKa: 'შეთავაზება გამოგზავნილია', customerEn: 'Offer sent', partner: 'შეთავაზება გაგზავნილია', chip: 'გაგზავნილი' }, { requiresOffer: true }),
   S('accepted', 4, 'progress', 1440, { customerKa: 'განაცხადზე შეთავაზება დადასტურებულია', customerEn: 'Offer confirmed', partner: 'მომხმარებელმა დაადასტურა', chip: 'დადასტურებული' }, { revealsContacts: true }),
   S('done', 5, 'complete', null, { customerKa: 'განაცხადზე შეთავაზება დასრულდა', customerEn: 'Offer completed', partner: 'დასრულებული', chip: 'დასრულებული' }, { requiresIssued: true }),
   S('cancelled', 6, 'canceled', null, { customerKa: 'განაცხადზე შეთავაზება გაუქმებულია', customerEn: 'Offer cancelled', partner: 'გააუქმა პარტნიორმა', chip: 'გააუქმა პარტნიორმა' }),
