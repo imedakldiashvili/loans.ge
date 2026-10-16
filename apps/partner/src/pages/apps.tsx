@@ -442,7 +442,7 @@ function AppDetail({ d, st, bottom }: { d: Detail; st: (k: string) => StatusRow 
             <OffersRO offers={d.Offers} />,
             d.OfferOn ? fmtDate(d.OfferOn) : undefined,
           )}
-        {d.Status === 'cancelled' &&
+        {['cancelled', 'rejected'].includes(d.Status) &&
           reasons.length > 0 &&
           sec(
             reasons.length > 1 ? 'გაუქმების მიზეზები' : 'გაუქმების მიზეზი',

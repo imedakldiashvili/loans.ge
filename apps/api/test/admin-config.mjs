@@ -36,7 +36,7 @@ await call('PUT', `/admin/city/move/${kob.ID}/${kob.UID}`, { Direction: 'down' }
 
 // ── status: list, one expiry target, delete protection
 const statuses = (await find('status')).json.Data.Items;
-ok(statuses.length === 8 && statuses[0].Key === 'sent' && statuses[0].HidesPersonalData === true, 'status: 8 seeded, flags');
+ok(statuses.length === 10 && statuses[0].Key === 'sent' && statuses[0].HidesPersonalData === true, 'status: 10 seeded, flags');
 const sKey = 's' + Date.now().toString(36);
 const twoTargets = await call('POST', '/admin/status/add', { Key: sKey, CustomerKa: 'ა', CustomerEn: 'A', PartnerLabel: 'ა', ChipLabel: 'ა', Category: 'canceled', IsExpiryTarget: true });
 ok(twoTargets.status === 400 && twoTargets.json.Error.Details[0].Field === 'IsExpiryTarget', 'status: only one expiry target');

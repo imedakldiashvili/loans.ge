@@ -56,10 +56,10 @@ const FILTERS: [Kind, string][] = [
   ['rejected', 'უარყოფილი'],
   ['waiting', 'ველოდებით'],
 ];
-/** Filter of a record: sent an offer (waiting for the answer, or already accepted / issued) / rejected by the partner /
+/** Filter of a record: sent an offer (waiting for the answer, or already accepted / issued) / rejected or cancelled by the partner /
  *  still working on it (no offer yet); the ones the customer declined or that expired are not compared. */
 const kindOf = (o: AppOrg): Kind | null =>
-  o.Status === 'cancelled' ? 'rejected' : o.Offers.length && ['offer', 'accepted', 'done'].includes(o.Status) ? 'offer' : ['sent', 'interested'].includes(o.Status) ? 'waiting' : null;
+  ['rejected', 'cancelled'].includes(o.Status) ? 'rejected' : o.Offers.length && ['offer', 'accepted', 'done'].includes(o.Status) ? 'offer' : ['sent', 'interested'].includes(o.Status) ? 'waiting' : null;
 
 /** Opened at /cabinet/compare/{id}/{uid} — loads the application itself (a reload or a shared link works). */
 export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: () => void }) {

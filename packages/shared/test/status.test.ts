@@ -21,19 +21,20 @@ describe('status machine (default configuration)', () => {
   it('keeps partner and customer cancellation apart', () => {
     expect(m.canTransition('offer', 'cancelled', 'partner')).toBe(true);
     expect(m.canTransition('offer', 'cancelled', 'customer')).toBe(false);
-    expect(m.canTransition('sent', 'declined', 'customer')).toBe(true);
-    expect(m.canTransition('sent', 'declined', 'partner')).toBe(false);
+    expect(m.canTransition('sent', 'withdrawn', 'customer')).toBe(true);
+    expect(m.canTransition('sent', 'declined', 'customer')).toBe(false);
+    expect(m.canTransition('sent', 'withdrawn', 'partner')).toBe(false);
   });
 
   it('asks for the right reason list', () => {
-    expect(m.reasonKindFor('sent', 'cancelled', 'partner')).toBe('reject');
+    expect(m.reasonKindFor('sent', 'rejected', 'partner')).toBe('reject');
     expect(m.reasonKindFor('accepted', 'cancelled', 'partner')).toBe('cancel');
     expect(m.reasonKindFor('offer', 'accepted', 'customer')).toBeNull();
   });
 
   it('lists next statuses per actor in status order', () => {
     expect(m.nextStatuses('offer', 'customer')).toEqual(['accepted', 'declined']);
-    expect(m.nextStatuses('sent', 'partner')).toEqual(['interested', 'cancelled']);
+    expect(m.nextStatuses('sent', 'partner')).toEqual(['interested', 'rejected']);
     expect(m.nextStatuses('done', 'partner')).toEqual([]);
   });
 
@@ -75,6 +76,6 @@ describe('status machine (edited configuration)', () => {
     cfg.statuses.find((s) => s.key === 'interested')!.isEnable = false;
     const e = new StatusMachine(cfg);
     expect(e.status('interested')).toBeUndefined();
-    expect(e.nextStatuses('sent', 'partner')).toEqual(['cancelled']);
+    expect(e.nextStatuses('sent', 'partner')).toEqual(['rejected']);
   });
 });

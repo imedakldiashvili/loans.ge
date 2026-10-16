@@ -23,7 +23,7 @@ ok(shown.IsMasked === false && shown.Application.Pid, 'other statuses show the a
 
 // detail → allowed next statuses
 const det = (await call('GET', `/partner/application/detail/${sent.ID}/${sent.UID}`)).json.Data;
-ok(det.Next.map((n) => n.Status).sort().join() === 'cancelled,interested' && det.Next.find((n) => n.Status === 'cancelled').ReasonKind === 'reject', 'detail: next statuses from the database (review / reject with reason)');
+ok(det.Next.map((n) => n.Status).sort().join() === 'interested,rejected' && det.Next.find((n) => n.Status === 'rejected').ReasonKind === 'reject', 'detail: next statuses from the database (review / reject with reason)');
 
 // sales may read products / cards, not change them; staff is back-office only
 ok((await find('product')).status === 200, 'sales: read products');

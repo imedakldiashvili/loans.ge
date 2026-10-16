@@ -31,13 +31,15 @@ const CUR: Record<string, string> = { GEL: '₾', USD: '$', EUR: '€' };
 const CUSTOMER_TEXT: Record<string, (org: string) => string> = {
   interested: (o) => `${o} განიხილავს შენს განაცხადს`,
   offer: (o) => `${o}-მ შეთავაზება გამოგიგზავნა`,
-  cancelled: (o) => `${o}-მ განაცხადზე უარი თქვა`,
+  rejected: (o) => `${o}-მ განაცხადი უარყო`,
+  cancelled: (o) => `${o}-მ შეთავაზება გააუქმა`,
   done: (o) => `${o}: სესხი გაცემულია`,
   expired: (o) => `${o}: ვადა გავიდა`,
 };
 const STAFF_TEXT: Record<string, string> = {
   accepted: 'მომხმარებელმა შეთავაზება დაადასტურა',
-  declined: 'მომხმარებელმა უარი თქვა',
+  declined: 'მომხმარებელმა შეთავაზება უარყო',
+  withdrawn: 'მომხმარებელმა უარი თქვა',
   expired: 'განაცხადს ვადა გაუვიდა',
 };
 

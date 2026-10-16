@@ -227,10 +227,11 @@ function AppDialog({ app, onClose }: { app: Application; onClose: () => void }) 
 
 // ── compare page — same form as the customer site (#compare); status row at the bottom, view only
 
+// sent an offer (waiting / accepted / issued) · rejected or cancelled by the partner · still without an offer
 const CMP_F = [
-  { key: 'offer', label: 'დასადასტურებელი', d: 'M12 7.5v5.5M12 16.5h.01' },
-  { key: 'accepted', label: 'დადასტურებული', d: 'M8 12l3 3 5-6' },
-  { key: 'declined', label: 'უარყოფილი', d: 'M15 9l-6 6M9 9l6 6' },
+  { key: 'offer', label: 'გამოგზავნილი', d: 'M12 7.5v5.5M12 16.5h.01', has: (o: { Status: string; Offers: unknown[] }) => o.Offers.length > 0 && ['offer', 'accepted', 'done'].includes(o.Status) },
+  { key: 'rejected', label: 'უარყოფილი', d: 'M15 9l-6 6M9 9l6 6', has: (o: { Status: string }) => ['rejected', 'cancelled'].includes(o.Status) },
+  { key: 'waiting', label: 'ველოდებით', d: 'M12 7v5l3 2', has: (o: { Status: string }) => ['sent', 'interested'].includes(o.Status) },
 ];
 
 export function ComparePage() {
@@ -238,9 +239,9 @@ export function ComparePage() {
   const nav = useNavigate();
   const { st } = useLookups();
   const q = useAppDetail({ ID: Number(id), UID: uid });
-  const [filter, setFilter] = useState(['offer', 'accepted', 'declined']);
+  const [filter, setFilter] = useState(['offer', 'rejected', 'waiting']);
   const a = q.data;
-  const list = a ? CMP_F.flatMap((f) => (filter.includes(f.key) ? a.Orgs.filter((o) => o.Status === f.key) : [])) : [];
+  const list = a ? CMP_F.flatMap((f) => (filter.includes(f.key) ? a.Orgs.filter((o) => f.has(o)) : [])) : [];
   const T = list.map((o) => {
     const t = o.Offers[0] ?? null;
     return { o, t, c: t ? calcOffer({ amount: t.Amount, months: t.Months, rate: t.Rate, fee: t.Fee, insMonth: t.InsMonth }) : null };
@@ -294,7 +295,7 @@ export function ComparePage() {
                       </svg>
                     </span>
                     <span>{f.label}</span>
-                    <span className="cnt">{a.Orgs.filter((o) => o.Status === f.key).length}</span>
+                    <span className="cnt">{a.Orgs.filter((o) => f.has(o)).length}</span>
                   </button>
                 ))}
               </div>

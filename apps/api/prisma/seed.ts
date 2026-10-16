@@ -221,13 +221,15 @@ async function main() {
     for (const o of a.orgList) {
       const oid = orgByName.get(o.name);
       if (!oid) continue;
-      const ttl = DEFAULT_STATUS_CONFIG.statuses.find((s) => s.key === o.status)?.ttlMinutes;
+      // closed before an offer: the prototype's "cancelled" / "declined" are "rejected" / "withdrawn" here
+      const status: string = !o.terms && o.status === 'cancelled' ? 'rejected' : !o.terms && o.status === 'declined' ? 'withdrawn' : o.status;
+      const ttl = DEFAULT_STATUS_CONFIG.statuses.find((s) => s.key === status)?.ttlMinutes;
       const city = cityId.get(a.city) ?? null;
       const worked = (o.log ?? []).some((e: { by: string; status: string }) => e.status !== 'sent' && !/^მომხმარებელი/.test(e.by) && e.by !== 'სისტემა');
       const taker = worked ? (salesOf.get(oid) ?? []).find((x) => !x.cities.length || (city !== null && x.cities.includes(city))) : undefined;
       const ao = await prisma.applicationOrg.create({
         data: {
-          applicationId: app.id, organizationId: oid, status: o.status, createdOn: at(o.sentAt), sentOn: at(o.sentAt),
+          applicationId: app.id, organizationId: oid, status, createdOn: at(o.sentAt), sentOn: at(o.sentAt),
           statusOn: at(o.statusAt), offerOn: o.offerAt ? at(o.offerAt) : null,
           expiresOn: ttl ? at(o.statusAt + ttl * 60_000) : null, reasonText: o.reason ?? null,
           issued: o.status === 'done', issuedOn: o.status === 'done' ? at(o.statusAt) : null,

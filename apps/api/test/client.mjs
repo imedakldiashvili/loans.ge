@@ -61,7 +61,7 @@ ok(active.TotalCount === 2 && active.Counts.Active === 2 && active.Counts.Done =
 const first = active.Items.find((a) => a.ID === app.ID);
 ok(first.Orgs.length === 2 && first.Orgs.every((o) => o.Status === 'sent' && o.ExpiresOn && o.Organization.NameKa), 'each organisation: sent, with a deadline');
 const det = (await call('GET', `/client/application/detail/${app.ID}/${app.UID}`)).json.Data;
-ok(det.Orgs.every((o) => o.Next.includes('declined') && !o.Next.includes('accepted')), 'detail: next steps for the customer (decline only while sent)');
+ok(det.Orgs.every((o) => o.Next.includes('withdrawn') && !o.Next.includes('accepted')), 'detail: next steps for the customer (decline only while sent — before an offer: withdrawn)');
 
 // partner makes an offer (directly in the database — the partner API has its own suite)
 const [o1, o2] = det.Orgs;
@@ -82,7 +82,8 @@ ok(det2.Orgs.find((o) => o.ID === o1.ID).Status === 'accepted' && det2.Orgs.find
 // close the whole application: the rest moves to the customer's cancel status
 ok((await call('PUT', `/client/application/cancel/${app.ID}/${app.UID}`)).status === 200, 'close the application');
 const det3 = (await call('GET', `/client/application/detail/${app.ID}/${app.UID}`)).json.Data;
-ok(det3.Orgs.every((o) => o.Status === 'declined'), 'every organisation in progress → declined', det3.Orgs.map((o) => o.Status));
+// an offer → declined; no offer yet → withdrawn
+ok(det3.Orgs.every((o) => o.Status === (o.Offers.length ? 'declined' : 'withdrawn')), 'every organisation in progress → declined / withdrawn', det3.Orgs.map((o) => o.Status));
 ok((await call('PUT', `/client/application/cancel/${app.ID}/${app.UID}`)).status === 409, 'closing again → 409');
 const counts = (await call('POST', '/client/application/find/1/10', { Filter: { State: 'done' } })).json.Data;
 ok(counts.Counts.Active === 1 && counts.Counts.Done === 1 && counts.Items[0].ID === app.ID, 'closed application moves to "done"', counts.Counts);
@@ -113,7 +114,7 @@ if (p3) ok(s3[p3.ID].status === 'sent', 'organisation without an offer yet is no
 ok((await respond({ DeclineIDs: [p2.ID, ...(p3 ? [p3.ID] : [])] })).status === 200, 'later: the rest cancelled together');
 s3 = await st3();
 ok(s3[p2.ID].status === 'declined' && !s3[p2.ID].contactsOpenedOn, '→ cancelled by the customer, contacts stay closed');
-if (p3) ok(s3[p3.ID].status === 'declined', 'an organisation that had not sent its offer yet is cancelled too');
+if (p3) ok(s3[p3.ID].status === 'withdrawn', 'an organisation that had not sent its offer yet is cancelled too (withdrawn)');
 
 // ── profile
 const edit = await call('PUT', `/client/profile/edit/${me.Profile.ID}/${me.Profile.UID}`, { UserName: 'tester', Pid: '01001012345', FirstName: 'ტესტი', LastName: 'კლიენტი', BirthDate: '1990-05-01', CityID: Number(city.id), DistrictID: null, Village: null });
