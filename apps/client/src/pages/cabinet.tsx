@@ -130,7 +130,7 @@ export function Cabinet({ onNew, onCompare }: { onNew: () => void; onCompare: (a
           {view === 'profile' ? (
             <Profile />
           ) : (
-            <div>
+            <div className="cab-panel cab-list">
               <div className="cab-top">
                 <h2 className="cab-title">{t(view === 'done' ? 'დასრულებული განაცხადები' : 'მიმდინარე განაცხადები')}</h2>
                 <span className="cab-count">

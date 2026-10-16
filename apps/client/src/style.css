@@ -647,3 +647,7 @@
   /* "+ ახალი განაცხადი" — in the list header, on the right of the title */
   .cab-top .cab-title { margin-inline-end: 0; }
   .cab-top .cab-new-btn { margin-inline-start: auto; height: 42px; padding: 0 16px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+
+  /* the list block: header (title, count, new application) and its cards in one frame */
+  .cab-panel.cab-list { padding: 16px; margin-top: 12px; }
+  .cab-list .cab-top { margin-bottom: 12px; }
