@@ -591,7 +591,9 @@
   @media (max-width: 900px) {
     .cab-layout { grid-template-columns: minmax(0, 1fr); }
     .cab-nav { flex-wrap: wrap; }
-    .cab-nav #cabNew { flex: 1 1 100%; order: 2; height: 40px; }
+    .cab-nav.cab-nav-sub { flex-wrap: nowrap; }
+    .cab-nav-sub .cab-radio { flex: 0 1 auto; padding: 0 8px; }
+    .cab-nav-sub .cab-new-btn { padding: 0 12px; }
     .cab-radio { flex: 1; justify-content: center; padding: 0 6px; font-size: 13px; }
     .cab-nav button { flex: 1; justify-content: center; padding-inline: 6px; font-size: 13px; gap: 6px; }
     .cab-nav button svg { display: none; }
@@ -606,6 +608,11 @@
     .foot-loans ul { grid-template-columns: 1fr 1fr; }
     .foot-bottom { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 14px; }
     .foot-links { flex-wrap: wrap; justify-content: center; gap: 12px 20px; }
+  }
+  /* phone: "+" only (the words are in the tooltip) */
+  @media (max-width: 560px) {
+    .cab-nav-sub .cab-new-btn { width: 42px; padding: 0; justify-content: center; font-size: 20px; }
+    .cab-nav-sub .cab-new-btn .txt { display: none; }
   }
   @media (max-width: 680px) {
     .cmp-head { grid-template-columns: auto 1fr; }
@@ -644,9 +651,10 @@
   /* current / closed + new application — on a white panel, like the cards */
   .cab-nav.cab-nav-sub { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
 
-  /* "+ ახალი განაცხადი" — in the list header, on the right of the title */
+  /* "+ ახალი განაცხადი" — in the filter row, after current / closed, on the right */
   .cab-top .cab-title { margin-inline-end: 0; }
-  .cab-top .cab-new-btn { margin-inline-start: auto; height: 42px; padding: 0 16px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+  .cab-nav-sub { align-items: center; }
+  .cab-nav-sub .cab-new-btn { margin-inline-start: auto; height: 42px; padding: 0 16px; border-radius: 6px; font-size: 13px; font-weight: 600; flex: none; gap: 6px; }
 
   /* the list block: header (title, count, new application) and its cards in one frame */
   .cab-panel.cab-list { padding: 16px; margin-top: 12px; }
