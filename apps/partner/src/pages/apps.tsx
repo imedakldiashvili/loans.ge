@@ -1,6 +1,7 @@
 import { calcOffer } from '@loans/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api, ApiError, crud, findAll, Page, Ref } from '../api';
 import { Named, StatusRow, statusColor, useRefs, useSession } from '../session';
 import { Chevron, curSym, ErrorLine, fmt, fmtCd, fmtDate, Modal, useNow, useToast } from '../ui/ui';
@@ -103,6 +104,7 @@ export function AppsPage() {
   const [page, setPage] = useState(1);
   const [sel, setSel] = useState<number | null>(null);
   const [ddOpen, setDdOpen] = useState(false);
+  const ddBtn = useRef<HTMLButtonElement>(null);
 
   // default view: everything except the cancelled categories
   const cancelKeys = refs.statuses.filter((s) => s.Category === 'canceled').map((s) => s.Key);
@@ -193,6 +195,7 @@ export function AppsPage() {
         })}
         <span className="chip-dd">
           <button
+            ref={ddBtn}
             type="button"
             className={`chip${selC ? ' on' : ''}`}
             aria-pressed={selC > 0}
@@ -207,7 +210,7 @@ export function AppsPage() {
               </svg>
             </span>
           </button>
-          {ddOpen && <CancelMenu keys={cancelKeys} st={st} counts={counts} shown={shown} toggle={toggle} onClose={() => setDdOpen(false)} />}
+          {ddOpen && ddBtn.current && <CancelMenu anchor={ddBtn.current} keys={cancelKeys} st={st} counts={counts} shown={shown} toggle={toggle} onClose={() => setDdOpen(false)} />}
         </span>
       </div>
       <div className="list">
@@ -236,16 +239,18 @@ export function AppsPage() {
   );
 }
 
-/** Dropdown of the cancelled statuses (one chip for all three). */
-function CancelMenu({ keys, st, counts, shown, toggle, onClose }: { keys: string[]; st: (k: string) => StatusRow | undefined; counts: (k: string) => number; shown: Set<string>; toggle: (k: string) => void; onClose: () => void }) {
+/** Dropdown of the cancelled statuses (one chip for all three) — right under the chip, aligned to its right edge (prototype openCancelDd). */
+function CancelMenu({ anchor, keys, st, counts, shown, toggle, onClose }: { anchor: HTMLElement; keys: string[]; st: (k: string) => StatusRow | undefined; counts: (k: string) => number; shown: Set<string>; toggle: (k: string) => void; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && onClose();
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
   }, [onClose]);
-  return (
-    <div className="menu dd" ref={ref} style={{ top: '100%', right: 0, marginTop: 4, minWidth: 280 }}>
+  const r = anchor.getBoundingClientRect();
+  const pos = { top: r.bottom + window.scrollY + 4, left: Math.max(8, r.right + window.scrollX - 280), minWidth: 280 };
+  return createPortal(
+    <div className="menu dd" ref={ref} style={pos} onClick={(e) => e.stopPropagation()}>
       {keys.map((k) => (
         <label key={k} className={`dd-row${shown.has(k) ? ' on' : ''}`}>
           <input type="checkbox" checked={shown.has(k)} onChange={() => toggle(k)} />
@@ -254,7 +259,8 @@ function CancelMenu({ keys, st, counts, shown, toggle, onClose }: { keys: string
           <b>{counts(k)}</b>
         </label>
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 }
 
