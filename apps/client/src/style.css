@@ -762,5 +762,5 @@
   /* a closed application where nothing was accepted */
   .cab-sum .right .app-cancelled { display: block; margin-top: 4px; font-style: normal; font-size: 12px; font-weight: 600; color: #d9534f; text-align: end; }
   /* card: an organisation's offer terms under its name */
-  .cab-det-row .nm-wrap { display: grid; gap: 2px; min-width: 0; }
-  .cab-det-row .of-terms { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cab-det-row .nm-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; min-width: 0; }
+  .cab-det-row .of-terms { margin-inline-start: auto; display: grid; justify-items: end; gap: 2px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }

@@ -321,12 +321,16 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                         <OrgLogo org={o.Organization} />
                         <span className="nm-wrap">
                           <span className="nm">{n(o.Organization)}</span>
-                          {/* its offer(s) — right in the row */}
-                          {o.Offers.map((of) => (
-                            <span key={of.ID} className="of-terms">
-                              {money(of.Amount, of.Currency)} · {t(`${of.Months} თვე`)} · {of.Rate}%
+                          {/* its offer(s) — on the right of the row */}
+                          {o.Offers.length > 0 && (
+                            <span className="of-terms">
+                              {o.Offers.map((of) => (
+                                <span key={of.ID}>
+                                  {money(of.Amount, of.Currency)} · {t(`${of.Months} თვე`)} · {of.Rate}%
+                                </span>
+                              ))}
                             </span>
-                          ))}
+                          )}
                         </span>
                         <div className="cab-acts">
                           <Countdown o={o} />
