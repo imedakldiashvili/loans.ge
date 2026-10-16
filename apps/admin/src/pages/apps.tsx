@@ -230,8 +230,8 @@ function AppDialog({ app, onClose }: { app: Application; onClose: () => void }) 
 // sent an offer (waiting / accepted / issued) · rejected or cancelled by the partner · still without an offer
 const CMP_F = [
   { key: 'offer', label: 'გამოგზავნილი', d: 'M12 7.5v5.5M12 16.5h.01', has: (o: { Status: string; Offers: unknown[] }) => o.Offers.length > 0 && ['offer', 'accepted', 'done'].includes(o.Status) },
-  { key: 'rejected', label: 'უარყოფილი', d: 'M15 9l-6 6M9 9l6 6', has: (o: { Status: string }) => ['rejected', 'cancelled'].includes(o.Status) },
   { key: 'waiting', label: 'ველოდებით', d: 'M12 7v5l3 2', has: (o: { Status: string }) => ['sent', 'interested'].includes(o.Status) },
+  { key: 'rejected', label: 'უარყოფილი', d: 'M15 9l-6 6M9 9l6 6', has: (o: { Status: string }) => ['rejected', 'cancelled'].includes(o.Status) },
 ];
 
 export function ComparePage() {

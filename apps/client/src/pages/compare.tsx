@@ -53,8 +53,8 @@ const FILLED = {
 type Kind = keyof typeof ICONS;
 const FILTERS: [Kind, string][] = [
   ['offer', 'გამოგზავნილი'],
-  ['rejected', 'უარყოფილი'],
   ['waiting', 'ველოდებით'],
+  ['rejected', 'უარყოფილი'],
 ];
 /** Filter of a record: sent an offer (waiting for the answer, or already accepted / issued) / rejected or cancelled by the partner /
  *  still working on it (no offer yet); the ones the customer declined or that expired are not compared. */
