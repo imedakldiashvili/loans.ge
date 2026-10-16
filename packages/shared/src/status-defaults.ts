@@ -18,9 +18,9 @@ export const DEFAULT_STATUSES: StatusDef[] = [
   S('accepted', 4, 'progress', 1440, { customerKa: 'განაცხადზე შეთავაზება დადასტურებულია', customerEn: 'Offer confirmed', partner: 'მომხმარებელმა დაადასტურა', chip: 'დადასტურებული' }, { revealsContacts: true }),
   S('done', 5, 'complete', null, { customerKa: 'შეთავაზება დასრულებული', customerEn: 'Offer completed', partner: 'დასრულებული', chip: 'დასრულებული' }, { requiresIssued: true }),
   // closed before an offer: rejected by the organisation / declined by the customer
-  S('rejected', 6, 'canceled', null, { customerKa: 'უარყოფილია ორგანიზაციის მიერ', customerEn: 'Rejected by the organisation', partner: 'უარყო პარტნიორმა', chip: 'უარყო პარტნიორმა' }),
+  S('rejected', 6, 'canceled', null, { customerKa: 'შეთავაზების გარეშე - უარყოფილია ორგანიზაციის მიერ', customerEn: 'No offer — rejected by the organisation', partner: 'უარყო პარტნიორმა', chip: 'უარყო პარტნიორმა' }),
   S('cancelled', 7, 'canceled', null, { customerKa: 'შეთავაზება გაუქმებულია ორგანიზაციის მიერ', customerEn: 'Offer cancelled by the organisation', partner: 'შეთავაზება გააუქმა პარტნიორმა', chip: 'გააუქმა პარტნიორმა' }),
-  S('withdrawn', 8, 'canceled', null, { customerKa: 'უარყოფილი მომხმარებლის მიერ', customerEn: 'Declined by the customer', partner: 'უარი თქვა მომხმარებელმა', chip: 'უარი თქვა მომხმარებელმა' }),
+  S('withdrawn', 8, 'canceled', null, { customerKa: 'შეთავაზების გარეშე - უარყოფილი მომხმარებლის მიერ', customerEn: 'No offer — declined by the customer', partner: 'უარი თქვა მომხმარებელმა', chip: 'უარი თქვა მომხმარებელმა' }),
   S('declined', 9, 'canceled', null, { customerKa: 'შეთავაზება უარყოფილი მომხმარებლის მიერ', customerEn: 'Offer declined by the customer', partner: 'შეთავაზება უარყო მომხმარებელმა', chip: 'გააუქმა მომხმარებელმა' }),
   S('expired', 10, 'canceled', null, { customerKa: 'განაცხადზე შეთავაზების ვადა გავიდა', customerEn: 'Offer expired', partner: 'ვადაგასული', chip: 'ვადაგასული' }, { isExpiryTarget: true }),
 ];
