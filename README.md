@@ -25,6 +25,7 @@ npm run db:seed -w @loans/api      # demo data from the prototypes
 npm run dev:api     # http://localhost:4000/public/system/health
 npm run dev:admin   # http://localhost:5173 — admin console (API must be running)
 npm run dev:otp     # http://localhost:5174 — OTP viewer (test environments only)
+npm run dev:partner # http://localhost:5175 — partner cabinet (demo: office@2.ge, sales1@2.ge)
 npm run test:api    # own database (loans_test): migrate + seed, start the API, run all API test suites
 ```
 
