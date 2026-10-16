@@ -60,9 +60,15 @@ export class ActionLogMiddleware implements NestMiddleware {
       return json(body);
     };
 
-    res.on('finish', () => {
+    // written once: when the response is sent, or when the connection closes first (a live events stream lasts until the page closes)
+    let written = false;
+    const done = () => {
+      if (written) return;
+      written = true;
       setImmediate(() => this.write(ctx, req, res, responseBody, p).catch((e) => this.log.error(`write failed for ${uid}: ${e?.message ?? e}`)));
-    });
+    };
+    res.on('finish', done);
+    res.on('close', done);
     requestContext.run(ctx, () => next());
   }
 

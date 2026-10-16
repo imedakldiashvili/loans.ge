@@ -128,7 +128,6 @@ export function AppsPage() {
     queryKey: ['apps', filter, page],
     queryFn: () => api<FindResult>('POST', `/partner/application/find/${page}/${PAGE}`, { Filter: filter }),
     enabled: refs.statuses.length > 0,
-    refetchInterval: 15_000, // new applications appear without reloading (live updates come later)
   });
   const counts = (k: string) => q.data?.StatusCounts.find((c) => c.Status === k)?.Count ?? 0;
   const st = (k: string) => refs.statuses.find((s) => s.Key === k);

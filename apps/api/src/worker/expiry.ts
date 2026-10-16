@@ -2,6 +2,7 @@ import { Injectable, Logger, Module, OnApplicationBootstrap, OnApplicationShutdo
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../core/prisma.service';
 import { StatusConfigService } from '../core/status-config';
+import { EventsService } from '../events/events';
 
 // Status deadlines: a record whose status has a time limit (status.ttl_minutes) and whose expires_on has passed
 // is moved by the system into the expiry status (status flagged is_expiry_target, e.g. "expired"), if that
@@ -19,6 +20,7 @@ export class ExpiryWorker implements OnApplicationBootstrap, OnApplicationShutdo
   constructor(
     private readonly prisma: PrismaService,
     private readonly statuses: StatusConfigService,
+    private readonly events: EventsService,
   ) {}
 
   onApplicationBootstrap() {
@@ -58,7 +60,7 @@ export class ExpiryWorker implements OnApplicationBootstrap, OnApplicationShutdo
     if (!target) return 0;
     const due = await this.prisma.applicationOrg.findMany({
       where: { isDeleted: false, expiresOn: { lte: new Date() } },
-      select: { id: true, status: true },
+      select: { id: true, status: true, organizationId: true, application: { select: { id: true, userId: true, cityId: true, productTypeId: true } } },
       take: 500,
     });
     let n = 0;
@@ -75,7 +77,10 @@ export class ExpiryWorker implements OnApplicationBootstrap, OnApplicationShutdo
         await tx.statusEvent.create({ data: { applicationOrgId: r.id, fromStatus: r.status, toStatus: target, actor: 'system' } });
         return true;
       });
-      if (done) n++;
+      if (!done) continue;
+      n++;
+      const a = r.application;
+      this.events.publish({ type: 'application.status', applicationId: a.id, applicationOrgId: r.id, organizationId: r.organizationId, userId: a.userId, cityId: a.cityId, productTypeId: a.productTypeId, status: target, actor: 'system' });
     }
     if (n) this.log.log(`expired ${n} record(s) → ${target}`);
     return n;

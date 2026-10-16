@@ -1,6 +1,7 @@
 import { n, t, useLang } from './i18n';
 import { useEffect, useState } from 'react';
 import { useAskLogin } from './auth';
+import { useLiveEvents } from './live';
 import logo from './logo.png';
 import { App as Application, Cabinet } from './pages/cabinet';
 import { Compare } from './pages/compare';
@@ -37,6 +38,8 @@ function useTheme(): [boolean, () => void] {
 
 export function App() {
   const { me, loading, logout } = useSession();
+  // partners' answers arrive live: the cabinet and the comparison reload when an event comes
+  useLiveEvents(me ? '/client/events/stream' : null, [['apps'], ['app']]);
   const askLogin = useAskLogin();
   const { toggle: toggleLang } = useLang(); // re-renders the whole site on a language change
   const { productTypes } = useRefs();

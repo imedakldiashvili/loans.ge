@@ -4,7 +4,9 @@ import logo from './logo.png';
 import { AppsPage } from './pages/apps';
 import { ProductsPage } from './pages/products';
 import { UsersPage } from './pages/users';
+import { useLiveEvents } from './live';
 import { ROLES, useSession } from './session';
+import { useToast } from './ui/ui';
 
 // Partner cabinet (prototype partner.html): login → workspace with tabs for the back office
 // (applications / products / users); sales see applications only.
@@ -37,6 +39,12 @@ export function App() {
   const [tab, setTab] = useState<'apps' | 'products' | 'users'>('apps');
   const p = me?.Profile;
   const back = p?.Role === 'back';
+  const toast = useToast();
+  // new applications and customers' answers arrive live
+  useLiveEvents(p ? `/partner/events/stream?p=${p.ID}` : null, [['apps'], ['app']], (e) => {
+    if (e.Type === 'application.created') toast('ახალი განაცხადი');
+    else if (e.Actor === 'customer') toast('მომხმარებელმა განაცხადი განაახლა');
+  });
   useEffect(() => {
     setTab('apps');
   }, [p?.ID]);

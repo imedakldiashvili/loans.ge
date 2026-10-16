@@ -6,6 +6,7 @@ import { conflict, notFound, validation } from '../core/errors';
 import { PrismaService } from '../core/prisma.service';
 import { currentContext, currentUserId } from '../core/request-context';
 import { StatusConfigService } from '../core/status-config';
+import { EventsService } from '../events/events';
 
 // Partner gateway — incoming applications (prototype partner.html): one record per application × this organisation.
 // Rules: only the caller's organisation; sales — only their cities / products; in statuses flagged "hides personal data"
@@ -50,6 +51,7 @@ export class PartnerApplicationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly statuses: StatusConfigService,
+    private readonly events: EventsService,
   ) {}
 
   /** Records this staff member may see. */
@@ -164,6 +166,9 @@ export class PartnerApplicationService {
         data: { applicationOrgId: row.id, fromStatus: row.status, toStatus: d.status, actor: 'partner', createdBy: by, requestUid: currentContext()?.uid ?? null },
       });
     });
+    // live update: the customer's cabinet and the organisation's other open cabinets
+    const a = row.application;
+    this.events.publish({ type: 'application.status', applicationId: a.id, applicationOrgId: row.id, organizationId: row.organizationId, userId: a.userId, cityId: a.cityId, productTypeId: a.productTypeId, status: d.status, actor: 'partner' });
     return { id: row.id, uid: row.uid };
   }
 

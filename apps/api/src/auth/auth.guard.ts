@@ -6,7 +6,7 @@ import { AuthedRequest, AuthGateway, isAuthGateway, sessionCookie } from './auth
 import { SessionService } from './session.service';
 
 /** Read-only actions every admin role may call. */
-const READ_ACTIONS = new Set(['find', 'detail', 'summary']);
+const READ_ACTIONS = new Set(['find', 'detail', 'summary', 'stream']);
 /** Modules an operator may change (super may change everything, analyst nothing). */
 const OPERATOR_WRITE = new Set(['organization', 'organizationProductType', 'staff', 'customer', 'user']);
 
@@ -49,7 +49,7 @@ export class AuthGuard implements CanActivate {
 
   /** Back office manages products, offer cards and staff; sales may only read products / cards (to make offers). */
   private checkPartnerRole(role: string | null, module: string | null, action: string | null) {
-    if (role === 'back' || module === 'auth' || module === 'application') return;
+    if (role === 'back' || module === 'auth' || module === 'application' || module === 'events') return;
     if ((module === 'product' || module === 'card') && action && READ_ACTIONS.has(action)) return;
     throw new AppError('FORBIDDEN', 'ამ მოქმედების უფლება არ გაქვს');
   }

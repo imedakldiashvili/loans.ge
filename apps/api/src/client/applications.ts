@@ -8,6 +8,7 @@ import { AppError, conflict, notFound, validation } from '../core/errors';
 import { PrismaService } from '../core/prisma.service';
 import { currentContext, currentUserId } from '../core/request-context';
 import { StatusConfigService } from '../core/status-config';
+import { EventsService } from '../events/events';
 
 // Client gateway — the customer's own applications (prototype loans-ge.html: wizard, cabinet, compare).
 // An application goes to several organisations; each organisation has its own record and status.
@@ -66,6 +67,7 @@ export class ClientApplicationService {
     private readonly prisma: PrismaService,
     private readonly statuses: StatusConfigService,
     private readonly otp: OtpService,
+    private readonly events: EventsService,
   ) {}
 
   private async progressKeys() {
@@ -118,6 +120,7 @@ export class ClientApplicationService {
     const initial = await this.initialStatus();
     const now = new Date();
     const ruid = currentContext()?.uid ?? null;
+    const created: { id: bigint; organizationId: bigint }[] = [];
     const app = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const a = await tx.application.create({
         data: {
@@ -132,6 +135,7 @@ export class ClientApplicationService {
           data: { applicationId: a.id, organizationId: o.id, status: initial, statusOn: now, sentOn: now, expiresOn: m.expiresAt(initial, now), createdBy: userId },
         });
         await tx.statusEvent.create({ data: { applicationOrgId: ao.id, fromStatus: null, toStatus: initial, actor: 'customer', createdBy: userId, requestUid: ruid } });
+        created.push({ id: ao.id, organizationId: o.id });
       }
       // the profile is filled from the first application (fields already set stay as they are)
       const profileId = currentContext()?.userProfileId;
@@ -147,6 +151,10 @@ export class ClientApplicationService {
       if (!user.phone && !(await tx.user.count({ where: { phone, isDeleted: false } }))) await tx.user.update({ where: { id: userId }, data: { phone } });
       return a;
     });
+    // live update: every chosen organisation gets the new application
+    for (const c of created) {
+      this.events.publish({ type: 'application.created', applicationId: app.id, applicationOrgId: c.id, organizationId: c.organizationId, userId, cityId: d.cityId, productTypeId: pt.id, status: initial, actor: 'customer' });
+    }
     return { id: app.id, uid: app.uid };
   }
 
@@ -199,6 +207,7 @@ export class ClientApplicationService {
     await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       for (const { o, to } of todo) await this.move(tx, o, to, now, by);
     });
+    for (const { o, to } of todo) this.announce(row, o, to);
     return { id: row.id, uid: row.uid };
   }
 
@@ -211,12 +220,21 @@ export class ClientApplicationService {
   /** One organisation's record: accept the offer, decline / cancel. Allowed transitions come from the database. */
   async changeStatus(id: number, uid: string, body: unknown) {
     const { status } = parse(changeBody, body);
-    const o = await this.prisma.applicationOrg.findFirst({ where: { id: BigInt(id), uid, isDeleted: false, application: { userId: me(), isDeleted: false } } });
+    const o = await this.prisma.applicationOrg.findFirst({
+      where: { id: BigInt(id), uid, isDeleted: false, application: { userId: me(), isDeleted: false } },
+      include: { application: { select: { id: true, userId: true, cityId: true, productTypeId: true } } },
+    });
     if (!o) throw notFound('განაცხადი');
     const m = await this.statuses.machine();
     if (!m.canTransition(o.status, status, 'customer')) throw conflict(`სტატუსის ცვლილება „${o.status}" → „${status}" დაუშვებელია`);
     await this.prisma.$transaction((tx: Prisma.TransactionClient) => this.move(tx, o, status, new Date(), me()));
+    this.announce(o.application, o, status);
     return { id: o.id, uid: o.uid };
+  }
+
+  /** Live update for the organisation (and the customer's other open tabs). */
+  private announce(a: { id: bigint; userId: bigint; cityId: bigint | null; productTypeId: bigint }, o: { id: bigint; organizationId: bigint }, status: string) {
+    this.events.publish({ type: 'application.status', applicationId: a.id, applicationOrgId: o.id, organizationId: o.organizationId, userId: a.userId, cityId: a.cityId, productTypeId: a.productTypeId, status, actor: 'customer' });
   }
 }
 

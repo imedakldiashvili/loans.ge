@@ -2,6 +2,7 @@ import { useQueries } from '@tanstack/react-query';
 import { ReactNode, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { crud } from '../api/client';
+import { useLiveEvents } from '../api/live';
 import { ADMIN_ROLES, useAuth } from '../auth/auth';
 import logo from '../assets/logo.png';
 import { Icon } from '../ui/icons';
@@ -61,6 +62,8 @@ export function Shell({ children }: { children: ReactNode }) {
   const active = groupOf(loc.pathname);
   const [open, setOpen] = useState<string | undefined>(active);
   const counts = useMenuCounts();
+  // applications, offers and the monitor follow partners' and customers' actions live
+  useLiveEvents(me ? '/admin/events/stream' : null, [['application'], ['offer'], ['monitor'], ['count', 'application'], ['count', 'offer']]);
 
   useEffect(() => setOpen(active), [active]);
   useEffect(() => store.set('adminSb', small ? '1' : '0'), [small]);

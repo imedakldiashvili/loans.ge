@@ -83,7 +83,6 @@ export function Cabinet({ onNew, onCompare }: { onNew: () => void; onCompare: (a
   const q = useQuery({
     queryKey: ['apps', state, page],
     queryFn: () => api<Found>('POST', `/client/application/find/${page}/${size}`, { Filter: { State: state } }),
-    refetchInterval: 15_000, // partners' answers appear without reloading (live updates come later)
   });
   const go = (v: typeof view) => {
     setView(v);
