@@ -11,12 +11,14 @@ import { EventsService } from '../events/events';
 // Partner gateway — incoming applications (prototype partner.html): one record per application × this organisation.
 // Rules: only the caller's organisation; sales — only their cities / products; in statuses flagged "hides personal data"
 // (e.g. sent) the applicant is masked and never matched by search; the phone / e-mail stay hidden until the contacts are
-// opened (a status flagged "reveals contacts" — the customer accepted the offer). Status changes go through the status machine (DB).
+// opened (a status flagged "reveals contacts" — the partner started the review). Status changes go through the status machine (DB).
+// Taking: an incoming application is seen by every staff member in scope; the first one to act on it takes it
+// (assignedTo) — from then on the other sales staff don't see it; back office sees everything (and who took it).
 
 const PAGE_MAX = 100;
 const ctx = () => {
   const c = currentContext();
-  return { org: c?.organizationId ?? BigInt(-1), cities: c?.scopeCities ?? [], products: c?.scopeProducts ?? [] };
+  return { org: c?.organizationId ?? BigInt(-1), cities: c?.scopeCities ?? [], products: c?.scopeProducts ?? [], me: c?.userProfileId ?? null, sales: c?.role === 'sales' };
 };
 
 export const findBody = z.preprocess(
@@ -48,6 +50,7 @@ export const changeBody = z.object({
 });
 
 const appInclude = { productType: { select: { id: true, nameKa: true, nameEn: true } } };
+const assigneeInclude = { assignedTo: { select: { id: true, displayName: true } } };
 
 @Injectable()
 export class PartnerApplicationService {
@@ -59,13 +62,15 @@ export class PartnerApplicationService {
 
   /** Records this staff member may see. */
   private async baseWhere(): Promise<Prisma.ApplicationOrgWhereInput> {
-    const { org, cities, products } = ctx();
+    const { org, cities, products, me, sales } = ctx();
     const productTypes = products.length
       ? (await this.prisma.partnerProduct.findMany({ where: { id: { in: products } }, select: { productTypeId: true } })).map((p) => p.productTypeId)
       : null;
     return {
       organizationId: org, isDeleted: false,
       application: { isDeleted: false, ...(cities.length ? { cityId: { in: cities } } : {}), ...(productTypes ? { productTypeId: { in: productTypes } } : {}) },
+      // sales: free ones and their own; taken by a colleague — gone
+      ...(sales ? { AND: [{ OR: [{ assignedToId: null }, { assignedToId: me ?? BigInt(-1) }] }] } : {}),
     };
   }
 
@@ -112,7 +117,7 @@ export class PartnerApplicationService {
     const [rows, totalCount, counts] = await Promise.all([
       this.prisma.applicationOrg.findMany({
         where, orderBy: { createdOn: 'desc' }, skip: (pageNumber - 1) * pageSize, take: pageSize,
-        include: { application: { include: appInclude }, offers: { where: { isDeleted: false } } },
+        include: { application: { include: appInclude }, offers: { where: { isDeleted: false } }, ...assigneeInclude },
       }),
       this.prisma.applicationOrg.count({ where }),
       // status chip counts over the same scope, without the status filter
@@ -127,7 +132,7 @@ export class PartnerApplicationService {
   private async load(id: number, uid: string) {
     const row = await this.prisma.applicationOrg.findFirst({
       where: { ...(await this.baseWhere()), id: BigInt(id), uid },
-      include: { application: { include: appInclude }, offers: { where: { isDeleted: false }, orderBy: { createdOn: 'asc' } }, events: { where: { isDeleted: false }, orderBy: { createdOn: 'asc' } } },
+      include: { ...assigneeInclude, application: { include: appInclude }, offers: { where: { isDeleted: false }, orderBy: { createdOn: 'asc' } }, events: { where: { isDeleted: false }, orderBy: { createdOn: 'asc' } } },
     });
     if (!row) throw notFound('განაცხადი');
     return row;
@@ -165,10 +170,14 @@ export class PartnerApplicationService {
 
     const now = new Date();
     const by = currentUserId();
+    const { me } = ctx();
+    // the first staff action takes the application (an API key acts for the organisation and takes nothing)
+    const take = !row.assignedToId && me ? { assignedToId: me, assignedOn: now } : {};
     await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      await tx.applicationOrg.update({
-        where: { id: row.id },
+      const upd = await tx.applicationOrg.updateMany({
+        where: { id: row.id, status: row.status, ...(take.assignedToId ? { assignedToId: null } : {}) },
         data: {
+          ...take,
           status: d.status, statusOn: now, expiresOn: m.expiresAt(d.status, now), updatedBy: by, updatedOn: now,
           ...(offers.length ? { offerOn: row.offerOn ?? now } : {}),
           ...(reasonKind ? { reasonIds: d.reasonIds, reasonText: d.reasonText } : {}),
@@ -176,6 +185,7 @@ export class PartnerApplicationService {
           ...(target.flags.revealsContacts && !row.contactsOpenedOn ? { contactsOpenedOn: now } : {}),
         },
       });
+      if (!upd.count) throw conflict('განაცხადი უკვე აიღო სხვა თანამშრომელმა ან შეიცვალა — განაახლე');
       for (const o of offers) await tx.offer.create({ data: { ...o, applicationOrgId: row.id, createdBy: by } });
       await tx.statusEvent.create({
         data: { applicationOrgId: row.id, fromStatus: row.status, toStatus: d.status, actor: 'partner', createdBy: by, requestUid: currentContext()?.uid ?? null },

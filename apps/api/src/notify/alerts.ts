@@ -75,7 +75,7 @@ export class AlertService implements OnModuleInit {
     // → partner staff
     const staffTitle = e.type === 'application.created' ? 'ახალი განაცხადი' : e.actor !== 'partner' ? STAFF_TEXT[e.status] : undefined;
     if (staffTitle) {
-      const staff = await this.staffFor(e);
+      const staff = await this.staffFor(e, ao.assignedToId);
       await this.deliver(staff.map((s) => s.id), { ...base, title: staffTitle, body: what }, '/');
       if (e.type === 'application.created') {
         const text = `loans.ge: ${staffTitle} — ${what}`;
@@ -104,8 +104,8 @@ export class AlertService implements OnModuleInit {
     }
   }
 
-  /** Enabled staff of the organisation for whom the application is in scope (sales: cities / products). */
-  private async staffFor(e: ApplicationEvent) {
+  /** Enabled staff of the organisation for whom the application is in scope (sales: cities / products; taken — only its taker). */
+  private async staffFor(e: ApplicationEvent, assignedToId: bigint | null) {
     const staff = await this.prisma.userProfile.findMany({
       where: { organizationId: e.organizationId, isDeleted: false, isEnable: true, profileType: { code: 'staff' }, user: { isDeleted: false, isEnable: true } },
       include: { user: { select: { email: true, phone: true } } },
@@ -114,6 +114,7 @@ export class AlertService implements OnModuleInit {
     const types = productIds.length ? await this.prisma.partnerProduct.findMany({ where: { id: { in: productIds } }, select: { id: true, productTypeId: true } }) : [];
     return staff.filter((s) => {
       if (s.role !== 'sales') return true;
+      if (assignedToId && s.id !== assignedToId) return false;
       if (s.scopeCities.length && (e.cityId === null || !s.scopeCities.includes(e.cityId))) return false;
       if (s.scopeProducts.length && !types.some((t) => s.scopeProducts.includes(t.id) && t.productTypeId === e.productTypeId)) return false;
       return true;

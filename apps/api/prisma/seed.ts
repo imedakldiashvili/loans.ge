@@ -225,8 +225,8 @@ async function main() {
           statusOn: at(o.statusAt), offerOn: o.offerAt ? at(o.offerAt) : null,
           expiresOn: ttl ? at(o.statusAt + ttl * 60_000) : null, reasonText: o.reason ?? null,
           issued: o.status === 'done', issuedOn: o.status === 'done' ? at(o.statusAt) : null,
-          // the customer confirmed the offer (accepted, then done) — the partner has the contacts
-          contactsOpenedOn: ['accepted', 'done'].includes(o.status) ? at(o.statusAt) : null,
+          // the partner started the review (interested and later) — it has the contacts
+          contactsOpenedOn: ['interested', 'offer', 'accepted', 'done'].includes(o.status) ? at(o.statusAt) : null,
         },
       });
       if (o.terms) {

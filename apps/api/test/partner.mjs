@@ -36,15 +36,16 @@ ok((await ch(sent, { Status: 'offer' })).status === 409, 'sent → offer directl
 const r1 = await ch(sent, { Status: 'interested' });
 const after1 = (await call('GET', `/partner/application/detail/${sent.ID}/${sent.UID}`)).json.Data;
 ok(r1.status === 200 && after1.Status === 'interested' && after1.IsMasked === false && after1.ExpiresOn && after1.Events.at(-1).ToStatus === 'interested' && after1.Events.at(-1).Actor === 'partner', 'review: status, unmasked, new deadline, history event');
-// contacts: hidden until the customer accepts the offer — and the phone does not find the record
-const rec = await prisma.applicationOrg.findUnique({ where: { id: BigInt(sent.ID) }, include: { application: true } });
-ok(after1.ContactsHidden === true && after1.Application.Phone === null && after1.Application.Email === null && after1.Application.Pid, 'review: name and personal number, but no phone / e-mail yet');
-ok((await find('application', { Filter: { Search: rec.application.phone } })).json.Data.Items.every((x) => x.ID !== sent.ID), 'phone search does not find a record with closed contacts');
-await prisma.applicationOrg.update({ where: { id: rec.id }, data: { contactsOpenedOn: new Date() } });
-const opened = (await call('GET', `/partner/application/detail/${sent.ID}/${sent.UID}`)).json.Data;
-ok(opened.ContactsHidden === false && opened.Application.Phone === rec.application.phone, 'contacts opened → phone visible');
-ok((await find('application', { Filter: { Search: rec.application.phone } })).json.Data.Items.some((x) => x.ID === sent.ID), 'and found by phone');
+// contacts: open as soon as the review starts; taking: the record is now this staff member's
+const rec = await prisma.applicationOrg.findUnique({ where: { id: BigInt(sent.ID) }, include: { application: true, assignedTo: true } });
+ok(after1.ContactsHidden === false && after1.Application.Phone === rec.application.phone && after1.Application.Pid && rec.contactsOpenedOn, 'review: name, personal number and phone / e-mail at once');
+ok(rec.assignedTo?.displayName && after1.AssignedTo?.DisplayName === rec.assignedTo.displayName && rec.assignedOn, 'review: the record is taken by the one who started it');
+ok((await find('application', { Filter: { Search: rec.application.phone } })).json.Data.Items.some((x) => x.ID === sent.ID), 'found by phone');
 await prisma.applicationOrg.update({ where: { id: rec.id }, data: { contactsOpenedOn: null } });
+const closed = (await call('GET', `/partner/application/detail/${sent.ID}/${sent.UID}`)).json.Data;
+ok(closed.ContactsHidden === true && closed.Application.Phone === null, 'contacts closed → no phone');
+ok((await find('application', { Filter: { Search: rec.application.phone } })).json.Data.Items.every((x) => x.ID !== sent.ID), 'phone search does not find a record with closed contacts');
+await prisma.applicationOrg.update({ where: { id: rec.id }, data: { contactsOpenedOn: rec.contactsOpenedOn } });
 
 ok((await ch(sent, { Status: 'offer' })).status === 400, 'offer needs at least one offer (400)');
 const cards = (await find('card')).json.Data.Items;
@@ -77,9 +78,28 @@ forget('partner');
 await login('partner', 'sales2@1.ge');
 const scoped = (await find('application')).json.Data;
 const cities = await prisma.city.findMany({ where: { nameKa: { in: ['თბილისი', 'რუსთავი'] } } });
-ok(scoped.TotalCount === 2 && scoped.Items.every((x) => cities.some((c) => Number(c.id) === x.Application.CityID)), 'sales scope: only their cities and products (2 of 4)', scoped.TotalCount);
+// 2 of 4 are in the scope; the one sales1 took above is no longer theirs
+const takenBySales1 = await prisma.applicationOrg.count({ where: { id: BigInt(sent.ID), application: { cityId: { in: cities.map((c) => c.id) } } } });
+ok(scoped.TotalCount === 2 - takenBySales1 && scoped.Items.every((x) => cities.some((c) => Number(c.id) === x.Application.CityID)), 'sales scope: only their cities and products, without the ones a colleague took', scoped.TotalCount);
 const myProducts = (await find('product')).json.Data.Items;
 ok(myProducts.length === 2, 'sales scope: only allowed products visible', myProducts.length);
+
+// ── taking: a free incoming application is seen by every sales in scope; the first action takes it
+// test data: one of sales2's records made a free incoming one
+const free = scoped.Items.length ? await prisma.applicationOrg.update({ where: { id: BigInt(scoped.Items[0].ID) }, data: { status: 'sent', assignedToId: null, assignedOn: null, contactsOpenedOn: null } }) : null;
+if (free) {
+  const fr = { ID: Number(free.id), UID: free.uid };
+  ok((await ch(fr, { Status: 'interested' })).status === 200, 'sales2 takes a free application (starts the review)');
+  ok((await prisma.applicationOrg.findUnique({ where: { id: free.id } })).assignedToId !== null, 'it is assigned to sales2');
+  forget('partner');
+  await login('partner', 'sales1@1.ge');
+  ok((await find('application')).json.Data.Items.every((x) => x.ID !== fr.ID), "taken by a colleague → gone from sales1's list");
+  ok((await call('GET', `/partner/application/detail/${fr.ID}/${fr.UID}`)).status === 404 && (await ch(fr, { Status: 'cancelled', ReasonIDs: [Number(rej.id)] })).status === 404, 'and sales1 cannot open or change it (404)');
+  forget('partner');
+  await login('partner', 'office@1.ge');
+  const seen = (await call('GET', `/partner/application/detail/${fr.ID}/${fr.UID}`)).json.Data;
+  ok(seen?.AssignedTo?.DisplayName, 'back office sees it and who took it');
+} else ok(false, 'test data: a free application in the sales2 scope');
 
 // ── back office: catalogue and staff
 forget('partner');

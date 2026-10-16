@@ -369,10 +369,11 @@ model UserProfile {
   scopeProducts  BigInt[]      @map("scope_products")
   scopeCities    BigInt[]      @map("scope_cities")
 
-  customer          CustomerDetail?
-  sessions          Session[]
-  notifications     Notification[]
-  pushSubscriptions PushSubscription[]
+  customer             CustomerDetail?
+  sessions             Session[]
+  notifications        Notification[]
+  pushSubscriptions    PushSubscription[]
+  assignedApplications ApplicationOrg[]   @relation("AssignedApplications")
 
   @@unique([userId, profileTypeId, organizationId])
   @@map("user_profile")
@@ -618,22 +619,26 @@ model ApplicationOrg {
   deletedBy BigInt?   @map("deleted_by")
   deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
 
-  applicationId  BigInt       @map("application_id")
-  application    Application  @relation(fields: [applicationId], references: [id])
-  organizationId BigInt       @map("organization_id")
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  status         String
-  statusOn       DateTime     @map("status_on") @db.Timestamptz(3)
-  expiresOn      DateTime?    @map("expires_on") @db.Timestamptz(3)
-  sentOn         DateTime     @map("sent_on") @db.Timestamptz(3)
-  offerOn        DateTime?    @map("offer_on") @db.Timestamptz(3)
+  applicationId    BigInt       @map("application_id")
+  application      Application  @relation(fields: [applicationId], references: [id])
+  organizationId   BigInt       @map("organization_id")
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  status           String
+  statusOn         DateTime     @map("status_on") @db.Timestamptz(3)
+  expiresOn        DateTime?    @map("expires_on") @db.Timestamptz(3)
+  sentOn           DateTime     @map("sent_on") @db.Timestamptz(3)
+  offerOn          DateTime?    @map("offer_on") @db.Timestamptz(3)
   /// reference_item ids (reject/cancel reasons) + free text for "other"
-  reasonIds      BigInt[]     @map("reason_ids")
-  reasonText     String?      @map("reason_text")
-  issued         Boolean      @default(false)
-  issuedOn       DateTime?    @map("issued_on") @db.Timestamptz(3)
+  reasonIds        BigInt[]     @map("reason_ids")
+  reasonText       String?      @map("reason_text")
+  issued           Boolean      @default(false)
+  issuedOn         DateTime?    @map("issued_on") @db.Timestamptz(3)
   /// when the partner got the applicant's contacts (a status with reveals_contacts was reached); null = hidden
-  contactsOpenedOn DateTime?  @map("contacts_opened_on") @db.Timestamptz(3)
+  contactsOpenedOn DateTime?    @map("contacts_opened_on") @db.Timestamptz(3)
+  /// the staff member who took it (first action on it); other sales stop seeing it. null = free
+  assignedToId     BigInt?      @map("assigned_to_id")
+  assignedTo       UserProfile? @relation("AssignedApplications", fields: [assignedToId], references: [id])
+  assignedOn       DateTime?    @map("assigned_on") @db.Timestamptz(3)
 
   offers Offer[]
   events StatusEvent[]
@@ -641,6 +646,7 @@ model ApplicationOrg {
   @@unique([applicationId, organizationId])
   @@index([organizationId, status])
   @@index([status, expiresOn])
+  @@index([assignedToId])
   @@map("application_org")
 }
 

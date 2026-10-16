@@ -100,8 +100,9 @@ One customer application goes to several organisations; you work with **your org
 While its status hides personal data (\`sent\`), the applicant is masked (\`IsMasked: true\`) until you take it into review.
 Allowed status changes come from the platform's status machine — \`detail\` returns \`Next\` with what you may do now.
 Typical flow: \`sent\` → \`interested\` (review) → \`offer\` (with offer cards) → customer accepts → \`accepted\` → \`done\` (\`Issued: true\`).
-The applicant's **phone and e-mail stay hidden** (\`null\`, \`ContactsHidden: true\`) until the customer accepts an offer;
+The applicant's **phone and e-mail stay hidden** (\`null\`, \`ContactsHidden: true\`) until you take the application into review (\`interested\`);
 from then on they are open for good (also after \`done\` / \`cancelled\`). Search by phone finds only records with open contacts.
+**Taking:** the first staff action on a record takes it (\`AssignedTo\`); other sales staff stop seeing it (\`409\` if a colleague was faster). Back office and API keys see all records.
 Each status may have a deadline (\`ExpiresOn\`); when it passes, the platform moves the record to \`expired\`.
 
 ### Webhooks

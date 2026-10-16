@@ -52,8 +52,10 @@ interface Rec {
   ReasonIDs: number[];
   ReasonText: string | null;
   IsMasked: boolean;
-  /** phone / e-mail not open yet — the customer has not accepted the offer */
+  /** phone / e-mail not open yet — the review has not started */
   ContactsHidden: boolean;
+  /** the staff member who took it (first action); null = free — every sales in scope sees it */
+  AssignedTo: { ID: number; DisplayName: string | null } | null;
   Application: Application;
   Offers: OfferRow[];
 }
@@ -305,6 +307,9 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
   const s = st(r.Status);
   const a = r.Application;
   const { cities } = useRefs();
+  const { me } = useSession();
+  // back office sees everyone's records — with who took them
+  const taker = me?.Profile?.Role === 'back' && r.AssignedTo ? (r.AssignedTo.ID === me.Profile.ID ? 'შენ' : r.AssignedTo.DisplayName) : null;
   const detail = useQuery({ queryKey: ['app', r.ID, r.Status], queryFn: () => crud('partner', 'application').detail<Detail>(r), enabled: open });
   const [action, setAction] = useState<Act | null>(null);
   const toast = useToast();
@@ -357,7 +362,10 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
         </span>
         <span className="info">
           <b>{a.ProductType.NameKa}</b>
-          <small>{applicantName(r)}</small>
+          <small>
+            {applicantName(r)}
+            {taker && <span className="taker" title="აიღო"> · 👤 {taker}</span>}
+          </small>
           <small>
             {cities.find((c) => c.ID === a.CityID)?.NameKa ?? '—'} · {fmtDate(a.CreatedOn)}
           </small>
@@ -467,7 +475,7 @@ function AppDetail({ d, st, bottom }: { d: Detail; st: (k: string) => StatusRow 
                 ['ელ. ფოსტა', d.ContactsHidden ? '🔒 დამალულია' : a.Email],
                 ['ლოკაცია', place],
               ])}
-              {d.ContactsHidden && <div className="lock">საკონტაქტო ინფორმაცია (მობილური, ელ.ფოსტა) გამოჩნდება, როცა მომხმარებელი შეთავაზებას დაადასტურებს.</div>}
+              {d.ContactsHidden && <div className="lock">საკონტაქტო ინფორმაცია (მობილური, ელ.ფოსტა) გამოჩნდება განხილვის დაწყებისას.</div>}
             </>
           ),
         )}
