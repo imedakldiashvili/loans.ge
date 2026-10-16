@@ -1,0 +1,3 @@
+Page switcher under a list of five cards per page: arrow, page numbers, arrow.
+
+Consumer provides: page count and current page. 34px squares, 6px radius, `line` border, 13px/600 tabular digits, 6px gap, centred, 18px above. Current page fills green with `on-accent` text and is not clickable; edge arrows disable at 40% opacity. Hidden when there is one page. Switching scrolls to the top of the list.

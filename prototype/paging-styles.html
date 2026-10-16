@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ka"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paging სტილები</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700&display=swap">
+<style>
+:root { --bg:#fff; --bg-soft:#f8fafd; --fg:#343c5c; --muted:#808080; --line:#e3e7f1; --green:#5ebb47; --green-soft:#e8f6e3; --orange:#f47429; --on:#fff; --font:"Noto Sans Georgian",Arial,sans-serif; }
+body { margin:0; padding:24px; background:var(--bg-soft); color:var(--fg); font:14px/1.6 var(--font); }
+h1 { font-size:20px; margin:0 0 4px; } p.lead { margin:0 0 20px; color:var(--muted); font-size:13px; }
+.opt { background:var(--bg); border:1px solid var(--line); border-radius:8px; margin-bottom:16px; overflow:hidden; }
+.opt h2 { font-size:14px; margin:0; padding:12px 16px; border-bottom:1px solid var(--line); display:flex; gap:10px; align-items:center; }
+.opt h2 .n { display:inline-grid; place-items:center; width:24px; height:24px; border-radius:50%; background:var(--green); color:#fff; font-size:12px; }
+.opt h2 small { color:var(--muted); font-weight:400; margin-inline-start:auto; }
+.demo { padding:10px 14px; background:var(--bg-soft); display:flex; align-items:center; justify-content:flex-end; gap:16px; font-size:12px; color:var(--muted); }
+select { font:inherit; font-size:13px; height:32px; padding:0 30px 0 10px; border:1px solid var(--line); border-radius:6px; background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23808080' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center/16px; color:var(--fg); appearance:none; }
+.pp { display:inline-flex; align-items:center; gap:8px; }
+svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+/* 1 — ამჟამინდელი: ყუთები */
+.p1 { display:flex; gap:4px; } .p1 button { min-width:32px; height:32px; padding:0 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); font:inherit; font-size:13px; font-weight:600; cursor:pointer; } .p1 .on { background:var(--green); border-color:var(--green); color:#fff; } .p1 button:disabled { opacity:.4; }
+/* 2 — ერთიანი ზოლი (segmented) */
+.p2 { display:inline-flex; border:1px solid var(--line); border-radius:6px; overflow:hidden; background:var(--bg); } .p2 button { min-width:34px; height:32px; padding:0 10px; border:0; border-inline-end:1px solid var(--line); background:none; color:var(--fg); font:inherit; font-size:13px; font-weight:600; cursor:pointer; } .p2 button:last-child { border:0; } .p2 .on { background:var(--green-soft); color:var(--green); } .p2 button:disabled { color:var(--muted); opacity:.5; }
+/* 3 — მინიმალური: მხოლოდ ისრები + "1 / 6" */
+.p3 { display:inline-flex; align-items:center; gap:10px; } .p3 button { width:32px; height:32px; border:1px solid var(--line); border-radius:50%; background:var(--bg); color:var(--fg); display:grid; place-items:center; cursor:pointer; } .p3 button:disabled { opacity:.4; } .p3 b { font-variant-numeric:tabular-nums; color:var(--fg); font-weight:600; min-width:54px; text-align:center; }
+/* 4 — წრეები, ისრები ტექსტით */
+.p4 { display:inline-flex; align-items:center; gap:6px; } .p4 .pg { width:30px; height:30px; border:0; border-radius:50%; background:transparent; color:var(--fg); font:inherit; font-size:13px; font-weight:600; cursor:pointer; } .p4 .pg:hover { background:var(--bg-soft); } .p4 .on { background:var(--green); color:#fff; } .p4 .nav { height:30px; padding:0 10px; border:0; background:none; color:var(--fg); font:inherit; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; } .p4 .nav:disabled { color:var(--muted); opacity:.6; }
+/* 5 — ინპუტით გადასვლა */
+.p5 { display:inline-flex; align-items:center; gap:8px; } .p5 button { width:32px; height:32px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); display:grid; place-items:center; cursor:pointer; } .p5 button:disabled { opacity:.4; } .p5 input { width:48px; height:32px; text-align:center; font:inherit; font-size:13px; font-weight:600; border:1px solid var(--line); border-radius:6px; color:var(--fg); } .p5 span { color:var(--muted); }
+</style></head><body>
+<h1>Paging — 5 ვარიანტი</h1>
+<p class="lead">ყველა იმავე ტოკენებზეა (მწვანე აქტიური, ნაცრისფერი ჩარჩოები). აირჩიე ნომერი — ადმინში ყველა სიაზე ერთნაირად დავაყენებ.</p>
+
+<div class="opt"><h2><span class="n">1</span> ყუთები (ამჟამინდელი) <small>ცალკე ღილაკები, აქტიური სავსე მწვანე</small></h2>
+<div class="demo"><span class="pp">გვერდზე <select><option>10</option></select></span><nav class="p1"><button disabled>‹</button><button class="on">1</button><button>2</button><button>3</button><button>4</button><button>›</button></nav><span>4 გვერდი</span></div></div>
+
+<div class="opt"><h2><span class="n">2</span> ერთიანი ზოლი <small>ერთი ჩარჩო, გამყოფები, აქტიური ღია მწვანე</small></h2>
+<div class="demo"><span class="pp">გვერდზე <select><option>10</option></select></span><nav class="p2"><button disabled>‹</button><button class="on">1</button><button>2</button><button>3</button><button>4</button><button>›</button></nav><span>4 გვერდი</span></div></div>
+
+<div class="opt"><h2><span class="n">3</span> მინიმალური <small>ისრები + „1 / 4", ნომრების გარეშე</small></h2>
+<div class="demo"><span class="pp">გვერდზე <select><option>10</option></select></span><nav class="p3"><button disabled><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><b>1 / 4</b><button><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button></nav></div></div>
+
+<div class="opt"><h2><span class="n">4</span> წრეები, ტექსტური ისრები <small>ჩარჩოების გარეშე, „წინა / შემდეგი"</small></h2>
+<div class="demo"><span class="pp">გვერდზე <select><option>10</option></select></span><nav class="p4"><button class="nav" disabled><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>წინა</button><button class="pg on">1</button><button class="pg">2</button><button class="pg">3</button><button class="pg">4</button><button class="nav">შემდეგი<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button></nav><span>4 გვერდი</span></div></div>
+
+<div class="opt"><h2><span class="n">5</span> გვერდის ინპუტი <small>ისრები + ველი „გვერდი [1] / 4" — ბევრ გვერდზე მოსახერხებელი</small></h2>
+<div class="demo"><span class="pp">გვერდზე <select><option>10</option></select></span><nav class="p5"><button disabled><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><span>გვერდი</span><input value="1"><span>/ 4</span><button><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button></nav></div></div>
+</body></html>

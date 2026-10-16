@@ -1,0 +1,3 @@
+Header language switch and the header control row: 36px tall, `line` border, 4px radius, two 11px/700 segments, the active one filled green.
+
+Consumer provides: the current language; clicking toggles ka/en and re-renders every text node without layout shift. Sits in the header with the theme button, login (110px wide) or user + logout icon buttons, 8px apart. Only in the header; the footer carries the copyright instead.

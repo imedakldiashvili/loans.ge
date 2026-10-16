@@ -1,0 +1,302 @@
+# loans.ge: ვებ-აპლიკაცია ბექით, ანალიზი და გეგმა
+
+> სტატუსი: დამტკიცებული მიმართულება (2026-10-15). გადაწყვეტილებები — §0
+> წყარო: `prototype/` ფოლდერის სამი პროტოტიპი (`loans-ge.html`, `partner.html`, `admin.html`) და `prototype/HANDOFF.md`
+
+---
+
+## 0. მიღებული გადაწყვეტილებები (2026-10-15)
+
+| საკითხი | გადაწყვეტილება |
+|---|---|
+| სტეკი | **TypeScript**: NestJS + PostgreSQL + Prisma + Redis/BullMQ, Next.js (საიტი), React + Vite (პარტნიორი, ადმინი) |
+| SMS / Email | ჯერ **console პროვაიდერი**: კოდი და შეტყობინება API-ის ლოგში იწერება. ინტერფეისი ისე იქნება, რომ რეალური პროვაიდერი მერე მარტო ადაპტერით დაემატოს |
+| ჰოსტინგი | ჯერ არ არის. ყველაფერი ლოკალურად **Docker Compose**-ით, მერე ნებისმიერ ღრუბელში |
+| ბანკების ინტეგრაცია | **საჭიროა**: ორგანიზაციებისთვის ცალკე Integration API + webhook-ები (§8.4) |
+| გაუქმება | **ორი ცალკე სტატუსი**: `cancelled` — პარტნიორმა გააუქმა, `declined` — მომხმარებელმა გააუქმა/უარყო (§6) |
+
+## 1. რას ვაკეთებთ
+
+loans.ge სესხების მარკეტპლეისია. მომხმარებელი ერთ განაცხადს ავსებს და ირჩევს რამდენიმე ორგანიზაციას (ბანკი, მისო, ლიზინგი, სესხის გამცემი). თითოეული ორგანიზაცია განაცხადს თავის კაბინეტში ხედავს, უგზავნის შეთავაზებას ან უარს ეუბნება. მომხმარებელი შეთავაზებებს ადარებს და ერთს ირჩევს. ადმინი მართავს ცნობარებს, ორგანიზაციებს, პარამეტრებს და პროცესს აკვირდება.
+
+**სამი ზედაპირი, ერთი ბექი:**
+
+| ზედაპირი | ვინ იყენებს | შესვლა |
+|---|---|---|
+| საჯარო საიტი და მომხმარებლის კაბინეტი | მსესხებელი | ელ.ფოსტა + OTP, Google, Facebook; განაცხადისას SMS OTP |
+| პარტნიორის კაბინეტი | ორგანიზაციის თანამშრომელი (sales / back) | ელ.ფოსტა ან მობილური + OTP |
+| ადმინის კონსოლი | loans.ge-ს გუნდი (super / operator / analyst) | ელ.ფოსტა ან მობილური + OTP |
+
+## 2. რა გვჭირდება ბექიდან
+
+პროტოტიპებში ყველაფერი ბრაუზერის localStorage-შია. რეალურ სისტემაში სერვერზე უნდა იყოს:
+
+1. **მონაცემები ერთ ბაზაში**: განაცხადები, შეთავაზებები, ორგანიზაციები, პროდუქტები, ცნობარები, მომხმარებლები, თანამშრომლები, ადმინები, პარამეტრები.
+2. **ავტორიზაცია სამი ტიპის ანგარიშისთვის**: OTP ელ.ფოსტით და SMS-ით, Google/Facebook OAuth, სესიები, როლები და უფლებები.
+3. **სტატუსების მანქანა**: ვის შეუძლია რომელი გადასვლა, რა ვადით, და ისტორია (ვინ, როდის).
+4. **ფონური პროცესები**:
+   - ვადის გასვლა სტატუსის TTL-ით, რაც ახლა მხოლოდ გახსნილ პარტნიორის ტაბში მუშაობს;
+   - OTP-ის და შეტყობინებების გაგზავნა.
+5. **ცოცხალი განახლება**: პარტნიორი ახალ განაცხადს და მომხმარებელი ახალ შეთავაზებას უნდა ხედავდეს გადატვირთვის გარეშე.
+6. **ფაილები**: ორგანიზაციების ლოგოები.
+7. **პერსონალური მონაცემების დაცვა**:
+   - `sent` სტატუსში პარტნიორი განმცხადებლის მონაცემებს ვერ ხედავს;
+   - ორგანიზაცია მხოლოდ იმ განაცხადებს ხედავს, რომლებიც მას გაეგზავნა;
+   - sales როლი მხოლოდ თავის ქალაქებსა და პროდუქტებს ხედავს.
+8. **ორენოვნება** (GE/EN): ცნობარების, სტატუსების, პროდუქტების და ველების სახელები.
+9. **შეთავაზების გათვლა ერთ ადგილას**: ანუიტეტი, ჯამები, ეფექტური განაკვეთი (IRR). ახლა სამ ფაილში სამნაირადაა დაწერილი.
+10. **აუდიტი**: ვინ რა შეცვალა ადმინსა და back-office-ში.
+
+## 3. არქიტექტურა
+
+```
+                ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+                │ საჯარო საიტი │  │  პარტნიორი   │  │    ადმინი    │
+                │  + კაბინეტი  │  │   კაბინეტი   │  │   კონსოლი    │
+                └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+                       │  HTTPS / JSON + SSE (ცოცხალი განახლება) │
+                       └──────────────┬─────────────┬───────────┘
+                                ┌─────▼─────────────▼─────┐
+                                │        API სერვერი       │
+                                │ auth · განაცხადები ·     │
+                                │ შეთავაზებები · ცნობარები │
+                                └──┬───────┬────────┬─────┘
+                       ┌───────────┘       │        └─────────────┐
+                ┌──────▼─────┐      ┌──────▼─────┐        ┌───────▼───────┐
+                │ PostgreSQL │      │   Redis    │        │ ფაილები (S3)  │
+                │   ბაზა     │      │ რიგი, OTP, │        │   ლოგოები     │
+                └────────────┘      │ rate-limit │        └───────────────┘
+                                    └──────┬─────┘
+                                    ┌──────▼─────┐   ┌────────────────────┐
+                                    │  Worker    │──►│ SMS / Email / OAuth │
+                                    │ ვადები,    │   │   გარე სერვისები    │
+                                    │ შეტყობინებ.│   └────────────────────┘
+                                    └────────────┘
+```
+
+- **ერთი API, სამი კლიენტი.** უფლებებს სერვერი ამოწმებს ანგარიშის ტიპით და როლით, კლიენტი არა.
+- **Worker ცალკე პროცესია**, იგივე კოდიდან. ის ასრულებს ვადებს, შეტყობინებებს და OTP-ის გაგზავნას.
+- **ცოცხალი განახლებისთვის SSE (Server-Sent Events)** საკმარისია: მოვლენები მხოლოდ სერვერიდან კლიენტისკენ მიდის. WebSocket არ გვჭირდება.
+
+## 4. ტექნოლოგიები (რეკომენდაცია)
+
+| ფენა | რეკომენდაცია | რატომ |
+|---|---|---|
+| ენა | **TypeScript** ყველგან | ერთი ენა ფრონტზე და ბექზე. ტიპები, ვალიდაცია და შეთავაზების გათვლა ერთ საერთო პაკეტში იქნება |
+| API | **NestJS** (ან Fastify) | მოდულები, guards (როლები), DI, OpenAPI დოკუმენტაცია |
+| ბაზა | **PostgreSQL 16** + **Prisma** (ან Drizzle) | ტრანზაქციები, JSONB შეთავაზების დინამიკური ველებისთვის, მიგრაციები |
+| რიგი / ტაიმერები | **Redis** + **BullMQ** | დაგვიანებული ამოცანები (ვადის გასვლა ზუსტ დროზე), retry, OTP rate-limit |
+| საჯარო საიტი | **Next.js** | SEO საჯარო გვერდებისთვის, იგივე React კომპონენტები |
+| პარტნიორი / ადმინი | **React + Vite** (SPA) | SEO არ სჭირდება, სწრაფი და მარტივი |
+| UI | დიზაინ სისტემის ტოკენები (`prototype/design-system`) CSS ცვლადებად | პროტოტიპის ვიზუალი ზუსტად გადმოვა |
+| ფაილები | S3-თავსებადი საცავი (AWS S3 / Cloudflare R2 / MinIO) | ლოგოები |
+| გაშვება | Docker Compose → ნებისმიერი ღრუბელი | ლოკალურად და სერვერზე ერთნაირად |
+
+**ალტერნატივა:** თუ გუნდი .NET-ზე მუშაობს, ASP.NET Core + EF Core + PostgreSQL + Hangfire იგივე არქიტექტურას იძლევა. ფრონტი React-ზე იგივე დარჩება.
+
+**რეპოზიტორიის სტრუქტურა (monorepo):**
+
+```
+D:\MM\
+├─ prototype\            ← დიზაინის პროტოტიპები (ეტალონი, არ იცვლება)
+├─ apps\
+│  ├─ api\               ← NestJS API + worker
+│  ├─ web\               ← საჯარო საიტი + მომხმარებლის კაბინეტი (Next.js)
+│  ├─ partner\           ← პარტნიორის კაბინეტი (React)
+│  └─ admin\             ← ადმინის კონსოლი (React)
+├─ packages\
+│  ├─ shared\            ← ტიპები, სტატუსების მანქანა, შეთავაზების გათვლა, ვალიდაცია (zod)
+│  └─ ui\                ← საერთო კომპონენტები და დიზაინ ტოკენები
+├─ docker-compose.yml    ← postgres, redis, minio, mailpit (ლოკალური ფოსტა)
+└─ BACKEND-PLAN.md
+```
+
+## 5. მონაცემთა მოდელი
+
+პროტოტიპში ორგანიზაცია, პროდუქტი და თანხა სახელებით ან ფორმატირებული ტექსტით არის დაკავშირებული, მაგალითად `"12 000 ₾"`. ბაზაში ყველაფერი ID-ებით და რიცხვებით იქნება.
+
+### ცნობარები (ადმინი მართავს)
+- `currency`: code (GEL/USD/EUR), symbol, sort, active
+- `region`, `city`, `district`: ka, en, code, sort (იერარქია)
+- `reference_item` (ერთი ცხრილი, `kind` ველით): offer_type, reject_reason, cancel_reason, sector, income_source, credit_history. ველები: ka, en, code, sort, active
+- `product_type`: ka, en, min/max თანხა, min/max ვადა, no_term, amount_ranges[], sort, active
+- `product_type_field`: შეთავაზების ველების სქემა. ველები: product_type_id, key, ka, en, kind (number/money/int/select/bool), default, step, options[], sort
+
+### ორგანიზაციები
+- `organization`:
+  - ka, en, category (bank/mfo/leasing/lender), color, logo_url, sort, active;
+  - **is_partner** (false = მხოლოდ ცნობარი, მაგ. ვიზარდის „ბანკის სერვისები");
+  - accepted_product_types[].
+- `partner_product`: org_id, product_type_id, description, active, currencies[]
+- `partner_offer_card`: product_id, offer_type_id, currency, active, **values JSONB**. ველები სქემით მოდის `product_type_field`-იდან და სერვერზე იმავე სქემით მოწმდება.
+
+### მომხმარებლები და პროფილები
+
+✅ **ერთი ცხრილი ყველა მომხმარებლისთვის** — `user`. ყოველ მომხმარებელს აქვს **მინიმუმ ერთი პროფილი** დასაშვები ტიპებიდან. ერთ ადამიანს შეიძლება ჰქონდეს რამდენიმე პროფილი (მაგ. ბანკის თანამშრომელიც არის და სესხსაც ითხოვს).
+
+- `user`: Email, Phone, UserName, IsVerified, LastLoginOn (+ BaseEntity). Email და Phone უნიკალურია; შესვლა ერთ-ერთით + OTP.
+- `profile_type` (ცნობარი, დასაშვები ტიპები): `customer` (მსესხებელი), `staff` (ორგანიზაციის თანამშრომელი), `admin` (loans.ge-ს გუნდი).
+- `user_profile`: UserID, ProfileTypeID, OrganizationID (მხოლოდ staff), Role (staff: sales/back; admin: super/operator/analyst), ScopeProducts[] და ScopeCities[] (staff sales; null = ყველა) (+ BaseEntity — `IsEnable`-ით პროფილი ცალკე ირთვება/ირთვება).
+  - უნიკალური: (UserID, ProfileTypeID, OrganizationID) — ერთ ორგანიზაციაში ერთი staff პროფილი.
+- `customer_detail`: UserProfileID, Pid, FirstName, LastName, BirthDate, CityID, DistrictID, Village (მსესხებლის პირადი მონაცემები).
+- `oauth_identity`: UserID, Provider (google/facebook), Subject.
+- `session`: UserID, UserProfileID (რომელი პროფილით შევიდა), refresh token-ის ჰეში, user-agent, ვადა.
+- `otp_challenge`: channel (sms/email), target, purpose, code ჰეშით, attempts, expires_at.
+
+**წესები:**
+- მომხმარებელი იქმნება მხოლოდ პროფილთან ერთად (ერთ ტრანზაქციაში); ბოლო პროფილის წაშლა არ შეიძლება.
+- gateway განსაზღვრავს საჭირო პროფილს: `admin` → admin, `partner` → staff (თუ რამდენიმე ორგანიზაციაშია — არჩევს), `client` → customer (პირველ შესვლაზე იქმნება ავტომატურად).
+- `CreatedBy` / `UpdatedBy` / `DeletedBy` ყველგან = `user.ID`.
+
+### განაცხადი და შეთავაზება
+- `application`:
+  - customer_id, product_type_id, **amount (რიცხვი)**, currency, created_at, source;
+  - **snapshot** იმ მომენტის მონაცემებით: credit_history, sector, incomes[], banks[], pid, name, dob, city, district, village, phone. ასე განაცხადი არ იცვლება, თუ პროფილი მერე შეიცვალა.
+- `application_org` (პროტოტიპში `orgList`-ის ჩანაწერი, ცენტრალური ცხრილი):
+  - application_id, org_id, **status**, status_at, sent_at, offer_at, expires_at;
+  - reasons[], reason_text, issued, issued_at.
+- `offer`: application_org_id, card_id, amount, months, rate, fee, ins_month, values JSONB, created_at. ერთ ორგანიზაციას რამდენიმე შეთავაზების გაგზავნა შეუძლია.
+- `status_event`: application_org_id, from, to, at, actor_type (customer/staff/system/admin), actor_id. ესაა ლოგი „სტატუსების ცვლილება" და დროები თითო სტატუსზე.
+
+### პარამეტრები და აუდიტი
+- `setting`:
+  - სტატუსების ტექსტები 4 ვარიანტად (მომხმარებლისთვის KA/EN, პარტნიორისთვის, ჩიპისთვის) და კატეგორია (progress/complete/canceled);
+  - TTL თითო სტატუსზე;
+  - OTP არხების პარამეტრები.
+- `audit_log`: ვინ, როდის, რა ობიექტი, რა შეიცვალა (diff). ადმინისა და back-office-ის ყველა ცვლილებაზე.
+
+## 6. სტატუსების მანქანა
+
+✅ **სტატუსები და გადასვლები ბაზაშია** და ადმინიდან იმართება — კოდის შეცვლის გარეშე ემატება/ირთვება სტატუსი ან გადასვლა.
+
+- `status` (+ BaseEntity): Key, ტექსტები (მომხმარებელი KA/EN, პარტნიორი, ჩიპი), Category (progress/complete/canceled), Color, TtlMinutes (null = ვადის გარეშე), Sort, **ქცევის მონიშვნები**:
+  - HidesPersonalData — პარტნიორი ვერ ხედავს განმცხადებლის მონაცემებს;
+  - RequiresOffer — გადასვლას სჭირდება მინიმუმ ერთი შეთავაზება;
+  - RequiresIssued — სჭირდება „სესხი გაცემულია";
+  - IsExpiryTarget — ვადის გასვლისას worker ამ სტატუსში გადაიყვანს.
+- `status_transition` (+ BaseEntity): FromStatusID, ToStatusID, Actor (customer/partner/system/admin), ReasonKind (reject/cancel/null).
+- კოდი სტატუსის სახელებს არ იცნობს — მხოლოდ მონიშვნებს კითხულობს. წესების ძრავა: `StatusMachine` (`packages/shared`), კონფიგურაცია ბაზიდან (ქეშით, ცვლილებისას განახლდება).
+- საწყისი მნიშვნელობები (ქვემოთ) seed-ით იწერება: `DEFAULT_STATUSES`, `DEFAULT_TRANSITIONS`.
+
+**საწყისი გადასვლები:**
+
+| გადასვლა | ვინ | პირობა |
+|---|---|---|
+| → `sent` | სისტემა, განაცხადის გაგზავნისას | ყოველ არჩეულ ორგანიზაციაზე ცალკე ჩანაწერი |
+| `sent` → `interested` | პარტნიორი („განხილვა") | |
+| `interested` → `offer` | პარტნიორი | მინიმუმ ერთი შეთავაზება, ბარათის დიაპაზონში |
+| `offer` → `accepted` / `declined` | მომხმარებელი | |
+| `accepted` → `done` | პარტნიორი | „სესხი გაცემულია" აუცილებელია |
+| `sent` / `interested` → `cancelled` | პარტნიორი | უარის მიზეზი ცნობარიდან |
+| `offer` / `accepted` → `cancelled` | პარტნიორი | გაუქმების მიზეზი ცნობარიდან |
+| ნებისმიერი დაუსრულებელი → `declined` | მომხმარებელი | ერთ ორგანიზაციაზე ან მთელ განაცხადზე |
+| `sent` / `interested` / `offer` / `accepted` → `expired` | სისტემა (worker) | `status_at + TTL` გავიდა |
+
+- **ერთ ადგილას:** მანქანა `packages/shared`-ში იქნება. სერვერი ყოველ მოთხოვნაზე ამოწმებს და კლიენტი იმავე კოდით აჩვენებს ღილაკებს.
+- **ვადა:**
+  - ყოველ გადასვლაზე ითვლება `expires_at` და worker-ში იდება დაგვიანებული ამოცანა;
+  - ამოცანა იმავე ტრანზაქციაში ამოწმებს, ჯერ კიდევ იგივე სტატუსია თუ არა.
+- **გასასწორებელი პროტოტიპის ხარვეზები:**
+  - პროტოტიპში მომხმარებლის გაუქმება (⊗ / მთელი განაცხადი) `cancelled`-ს წერს, რაც პარტნიორის გაუქმებაა. სწორია `declined`.
+  - მომხმარებლის მოქმედებები (accept/decline) ლოგში არ იწერება.
+- **გაუქმების ორი სტატუსი** (ორივე canceled კატეგორიაშია):
+  - `cancelled` — „გააუქმა პარტნიორმა": უარი ან გაუქმება, მიზეზით ცნობარიდან;
+  - `declined` — „გააუქმა მომხმარებელმა": შეთავაზების უარყოფა ან განაცხადის გაუქმება;
+  - `expired` — ვადაგასული, სისტემა.
+- **განაცხადის სტატუსი** მხოლოდ ორია, მიმდინარე და დასრულებული. ის ითვლება, არ ინახება: მიმდინარეა, თუ ერთი ორგანიზაცია მაინც progress-შია.
+
+## 7. ავტორიზაცია და უფლებები
+
+- **OTP:**
+  - კოდი ბაზაში ჰეშით ინახება;
+  - სიგრძე, ვადა, მცდელობები, ხელახლა გაგზავნის ინტერვალი და შაბლონი ადმინის პარამეტრებიდან მოდის;
+  - rate-limit ნომერზე და IP-ზე Redis-ში.
+- **სესიები:** მოკლე access token + httpOnly cookie-ში refresh token. სესია მიბმულია მომხმარებელზე **და პროფილზე**; სამ ზედაპირს ცალ-ცალკე cookie და audience აქვს.
+- **Google / Facebook:** OAuth 2.0 / OIDC. ელ.ფოსტით არსებულ მომხმარებელზე ვაკავშირებთ.
+- **უფლებები სერვერზე:**
+
+| როლი | შეუძლია |
+|---|---|
+| მომხმარებელი | მხოლოდ საკუთარი განაცხადები და პროფილი |
+| პარტნიორი sales | საკუთარი ორგანიზაციის განაცხადები **თავისი ქალაქებით**; შეთავაზება **თავისი პროდუქტებით** |
+| პარტნიორი back | ორგანიზაციის ყველაფერი + პროდუქტები, ბარათები, თანამშრომლები |
+| ადმინი analyst | მხოლოდ ნახვა: მონიტორინგი, სიები |
+| ადმინი operator | ნახვა + ორგანიზაციები, თანამშრომლები, მომხმარებლების ჩართვა/გამორთვა |
+| ადმინი super | ყველაფერი, მათ შორის ცნობარები, პარამეტრები და ადმინები |
+
+- **PII:** `sent` სტატუსში API პარტნიორს სახელს, პირად ნომერს და ტელეფონს **არ უგზავნის**, ნიღბიანად აჩვენებს („განმცხადებელი №XXXX"). ეს წესი სერვერზე უნდა მუშაობდეს, არა UI-ში.
+
+## 8. API (ძირითადი)
+
+> ✅ ფორმატი და სახელები [STANDARDS.md](STANDARDS.md)-ის მიხედვით: `/{gateway}/{module}/{action}`, gateway-ები `public` / `client` / `partner` / `admin`. ქვემოთ — რა ფუნქციები სჭირდება თითო gateway-ს (ძველი ჩანაწერი; implementation-ში სტანდარტის URL-ები).
+
+**ღია / მომხმარებელი** (`/api/public`, `/api/me`)
+- `GET /refs`: ცნობარები ენის მიხედვით (ქეშირებადი)
+- `GET /organizations?product=`: ვიზარდის მე-5 ნაბიჯისთვის
+- `POST /auth/otp/send`, `POST /auth/otp/verify`, `GET /auth/google`, `GET /auth/facebook`, `POST /auth/logout`
+- `GET/PATCH /me`: პროფილი, ცვლილება OTP-ით
+- `POST /applications`: SMS OTP-ის ტოკენით
+- `GET /applications?state=active|closed`, `GET /applications/:id`, `GET /applications/:id/compare`
+- `POST /applications/:id/orgs/:org/accept|decline|cancel`, `POST /applications/:id/cancel`
+
+**პარტნიორი** (`/api/partner`)
+- `GET /applications?time=&status=&city=&q=&page=`: scope-ით და PII ნიღბით
+- `POST /applications/:id/review` (interested), `POST .../offers`, `POST .../reject`, `POST .../cancel`, `POST .../done`
+- `CRUD /products`, `/products/:id/cards`, `/staff` (მხოლოდ back)
+- `GET /stream`: SSE, ახალი განაცხადები და სტატუსის ცვლილებები
+
+**ადმინი** (`/api/admin`)
+- `GET /monitor?from=&to=&org=&city=&district=`: ფილები და ორგანიზაციები × სტატუსები მატრიცა (SQL-ში დათვლილი)
+- `GET /applications`, `GET /offers` (ფილტრები, paging)
+- `CRUD /orgs` (+ `POST /orgs/:id/logo`), `/product-types` (+ ველების სქემა), `/refs/:kind`, `/staff`, `/customers`, `/admins`
+- `GET/PUT /settings/statuses`, `/settings/otp`
+- `GET /audit`
+
+### 8.4 ინტეგრაცია ბანკებისთვის (= `partner` gateway)
+
+✅ ცალკე Integration API არ არის: ბანკის სისტემა **იგივე `partner` API-ს** იძახებს, რასაც კაბინეტი — იგივე endpoint-ები, წესები და პასუხის ფორმატი (STANDARDS.md). განსხვავება მხოლოდ ავტორიზაციაშია.
+
+- **ავტორიზაცია:** API გასაღები ორგანიზაციაზე. ადმინი ან back-office ქმნის, ბაზაში ჰეშით ინახება, scope-ებით (read, offers, status), ჩართვა/გაუქმება, ბოლო გამოყენების დრო.
+- **endpoint-ები:** `partner` gateway-ის ყველა endpoint (STANDARDS.md ფორმატით), მაგ. `POST /partner/application/find/1/50`, `PUT /partner/application/review/{id}/{uid}`; scope-ები ზღუდავს, რომელს შეუძლია გასაღებს.
+- **webhook-ები** (ორგანიზაცია უთითებს URL-ს):
+  - მოვლენები: `application.received`, `application.accepted`, `application.declined`, `application.expired`;
+  - ხელმოწერა HMAC-SHA256 სათაურში, timestamp, retry exponential backoff-ით (worker), მიწოდების ლოგი ადმინში.
+- **სანდოობა:** `Idempotency-Key` POST-ებზე, rate-limit გასაღებზე, OpenAPI დოკუმენტაცია და sandbox (დემო მონაცემები).
+- **მონაცემთა მოდელი:** `api_key` (org_id, prefix, hash, scopes[], active, last_used_at), `webhook_endpoint` (org_id, url, secret, events[], active), `webhook_delivery` (event, payload, status, attempts, next_retry_at, response_code).
+
+## 9. ეტაპები
+
+| # | ეტაპი | შედეგი |
+|---|---|---|
+| 0 | **საფუძველი** | monorepo (npm workspaces), Docker Compose (postgres/redis/minio), console SMS/Email, ლინტერი, `packages/shared` (ტიპები, სტატუსების მანქანა, გათვლა + ტესტები) |
+| 1 | **ბაზა და ცნობარები** | Prisma სქემა, მიგრაციები, seed პროტოტიპის დემო მონაცემებიდან; ადმინის ცნობარების API |
+| 2 | **ავტორიზაცია** | OTP (ელ.ფოსტა/SMS — console პროვაიდერი), სესიები, სამი ანგარიშის ტიპი, როლები |
+| 3 | **ადმინის კონსოლი** | `admin.html` → React; ორგანიზაციები (ლოგო S3-ში), პროდუქტების სქემა, ცნობარები, თანამშრომლები, პარამეტრები |
+| 4 | **პარტნიორის კაბინეტი** | `partner.html` → React; პროდუქტები და ბარათები, განაცხადების სია scope-ით, შეთავაზების გაგზავნა, სტატუსები |
+| 5 | **მომხმარებლის საიტი** | `loans-ge.html` → Next.js; ვიზარდი, განაცხადის გაგზავნა, კაბინეტი, შედარება, accept/decline |
+| 6 | **worker და ცოცხალი განახლება** | ვადების გასვლა, SSE სამივე კლიენტში, შეტყობინებები (ახალი შეთავაზება და ა.შ.) |
+| 6b | **ინტეგრაცია** | API გასაღებით ავტორიზაცია `partner` gateway-ზე, webhook-ები ხელმოწერით და retry-ით, OpenAPI, sandbox |
+| 7 | **მონიტორინგი და აუდიტი** | ადმინის მონიტორინგი SQL აგრეგაციით, აუდიტის ლოგი, ექსპორტი |
+| 8 | **გაშვება** (როცა ჰოსტინგი გადაწყდება) | staging, რეალური SMS/Email პროვაიდერები, OAuth, HTTPS, ბექაპები, მონიტორინგი (Sentry), უსაფრთხოების შემოწმება |
+
+1–2 ეტაპების შემდეგ 3, 4 და 5 შეიძლება პარალელურად მიმდინარეობდეს.
+
+**პროგრესი:**
+- **ეტაპი 0** (2026-10-15) — npm workspaces monorepo, `docker-compose.yml` (postgres 16 პორტზე **5433** — 5432 უკვე დაკავებულია ლოკალური PostgreSQL-ით; redis 7; MinIO-ს image აღარ ქვეყნდება — ფაილები ჯერ `./storage`-ში), `packages/shared` (სტატუსების ძრავა + გათვლა, 14 ტესტი), console SMS/Email. დარჩა: ლინტერი, CI, git.
+- **ეტაპი 1** (2026-10-15/16) — მზადაა. Prisma სქემა სტანდარტებით, მიგრაციები `init` + `soft_delete_unique` (ბიზნეს-გასაღებები უნიკალურია მხოლოდ არაწაშლილებს შორის — `CrudConfig.unique`), seed პროტოტიპიდან; API სტანდარტების ფენა (X-Request-Uid, actionLog ×3, `{IsSuccess, Data, Error}`, PascalCase, საერთო CRUD + `move` ↑↓). ადმინის მოდულები: currency, region, city, district, offerType, rejectReason, cancelReason, sector, incomeSource, creditHistory, productType, **productTypeField**, organization, **organizationProductType**, **status**, **statusTransition**, **setting** (otp, contacts).
+- **ეტაპი 2** (2026-10-16) — მზადაა. `POST /public/auth/sendOtp` → `POST /public/auth/verifyOtp` (კოდი ჰეშით, ვადა/მცდელობები/ხელახლა გაგზავნა პარამეტრებიდან, console SMS/Email), სესია gateway-ზე და პროფილზე (httpOnly cookie `lg_{gateway}` ან Bearer), `{gw}/auth/me | logout | switchProfile`; client-ის პირველ შესვლაზე იქმნება user + customer პროფილი; global AuthGuard; ადმინის როლები: analyst — მხოლოდ ნახვა, operator — + ორგანიზაციები/თანამშრომლები/მომხმარებლები, super — ყველაფერი; CreatedBy/UpdatedBy და actionLog.createdBy = რეალური მომხმარებელი.
+- **მომხმარებლები** (2026-10-16) — მზადაა: `admin/user` (ერთიანი სია, კონტაქტები, ჩართვა/გამორთვა), `admin/admin`, `admin/staff` (ორგანიზაცია, როლი, scope), `admin/customer`; წესები: მომხმარებელი იქმნება პროფილთან ერთად, ბოლო პროფილი არ იშლება, საკუთარ ანგარიშს ვერ გამორთავ.
+- **ადმინის ხედები** (2026-10-16) — მზადაა: `admin/application` (find/detail, მდგომარეობა active/done), `admin/offer` (განაცხადი × ორგანიზაცია, Passed ფილტრი), `admin/monitor/summary` (ფილები + ორგანიზაცია × გავლილი სტატუსები), `admin/actionLog` (find/detail მოთხოვნით და პასუხით).
+- **ტესტები:** `npm run test:api` — reseed, API-ის გაშვება, 5 სუიტა (auth, smoke, admin-config, users, views), ყველა გადის.
+- **შემდეგი:** ეტაპი 3 (ადმინის კონსოლი React-ზე) ან API-ში `partner` gateway (ეტაპი 4-ის ბექი).
+
+## 10. ღია საკითხები
+
+1. **პერსონალური მონაცემები:**
+   - მომხმარებლის თანხმობის ტექსტი მონაცემების ორგანიზაციებისთვის გადაცემაზე;
+   - შენახვის ვადა;
+   - პერსონალურ მონაცემთა დაცვის კანონის მოთხოვნები.
+2. **ვერიფიკაცია:** „ვერიფიცირებული" ახლა SMS-ით ხდება. საჭიროა თუ არა პირადობის რეალური შემოწმება?
+3. **შეთავაზების ველების სქემა:** ადმინსა და პარტნიორში განსხვავდება (`effRate`, `earlyFee`, `minMonthly` და ა.შ.). seed-ში ავიღებ ადმინის სქემას, რადგან ის მართავს; ადმინიდანვე შეიცვლება.
+4. **შეტყობინებები:** ვის, რაზე და რა არხით (SMS / email / push)?
+5. **ჰოსტინგი და რეალური SMS/Email პროვაიდერები** — მე-8 ეტაპამდე.

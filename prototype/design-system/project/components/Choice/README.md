@@ -1,0 +1,3 @@
+Radio and checkbox rows: a 20px ring or square with a green fill, inside an outlined row (`opt-row`) or inline (`cab-radio`).
+
+Consumer provides: the option label, `name`, checked state. Row form: 12px 16px padding, `bg` ground, `line` border, 6px radius, border turns green when checked; radios show a 10px green dot, checkboxes fill green with a white tick. Inline form (cabinet tabs): no ground, 42px row, label turns green and 600 when selected, optional count in parentheses in `muted`. Focus: 2px orange outline on the ring. Don't: mix radio and checkbox in one list; hide the native control without keeping it focusable.

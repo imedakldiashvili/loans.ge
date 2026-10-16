@@ -1,0 +1,3 @@
+Text inputs, selects and the phone field: 4px radius, `line` border, 15px text, 11px 14px padding, green focus ring.
+
+Consumer provides: a 13px/500 label above (6px gap), placeholder in `muted`, validation state. Phone: a `+995` prefix cell on `bg-soft` joined to the input, 9 digits, `tabular-nums`. Disabled: `bg-soft` ground, `muted` text, `not-allowed` cursor. Selects hide the native arrow and draw a chevron at the right (44px right padding). One-time code: the same field, centred digits, with the timer inside the field at the right. Don't: use rounded (pill) inputs; put labels inside the field.

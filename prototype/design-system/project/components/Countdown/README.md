@@ -1,0 +1,3 @@
+A one-hour countdown pill shown before the action icons of a pending offer or a sent application.
+
+Consumer provides: the start timestamp; the pill renders `mm:ss` of `start + 60 min − now`, ticking every second, stopping at `00:00`. 28px high, 9px side padding, 999px radius, `orange-soft` ground, `orange` 1px border and 13px/700 tabular digits; at zero it turns `red` / `red-soft`. Title: "დასადასტურებლად დარჩენილი დრო" (offers) or "პასუხისთვის დარჩენილი დრო" (sent). Don't: show hours; show it on accepted or declined rows.

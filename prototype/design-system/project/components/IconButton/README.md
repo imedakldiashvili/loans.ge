@@ -1,0 +1,3 @@
+Square 34px outlined buttons for row and card actions: view, cancel, offers, close.
+
+Consumer provides: a 19px stroke icon, `title` and `aria-label` (the same Georgian verb), and a role class: default (hover green), `danger` (hover red), `good` (hover green, for offers). Ground `bg`, border `line`, radius 6px, icon colour `muted` at rest. Several sit in a row with 8px gap, right-aligned in their row. Don't: use text inside; use for primary actions.

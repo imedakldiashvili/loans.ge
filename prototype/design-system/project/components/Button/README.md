@@ -1,0 +1,3 @@
+Buttons carry the one action of a view; green is primary, orange is the hero call-to-action, ghost is secondary, red outline is decline.
+
+Consumer provides: the label (13px/600, Georgian with English twin), the variant, optional leading icon (16px), `disabled`. Height 40px (10px vertical padding), 22px horizontal padding, 4px radius, no border on filled variants. `full` stretches to the container width (used in the quick form and dialogs, 12px vertical padding, 14px text). Do: one green button per view; red outline only for declining an offer; ghost for "უკან". Don't: put two filled buttons side by side; use orange outside the hero/quick form.

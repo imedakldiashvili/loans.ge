@@ -1,0 +1,3 @@
+Multi-select status filters above the offers table; each chip carries an icon, a label and a count.
+
+Consumer provides: the status set, counts, selected set. 8px 14px padding, 6px radius, 13px/600, 16px icon before the label, count in a 20px box after it. Rest: white ground, coloured text and border in the status colour (orange pending, green accepted, red declined). Selected: filled with that colour, text `on-accent`, count box at 22% white. Right-aligned, 8px gap. Several may be on at once; none on shows the empty message.

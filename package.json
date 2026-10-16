@@ -1,0 +1,19 @@
+{
+  "name": "loans-ge",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @loans/shared && npm run build -w @loans/api",
+    "test": "npm run test -w @loans/shared",
+    "dev:api": "npm run dev -w @loans/api",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "test:api": "npm run build && npm run test:api -w @loans/api"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

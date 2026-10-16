@@ -1,0 +1,1 @@
+logo.png — the loans.ge mark (orange arrows, green banknotes) on a transparent ground, 36px high in the header and footer, always beside the wordmark. Two-colour raster: it needs no ink note. Do not recolour, stretch or place on orange/green fills.

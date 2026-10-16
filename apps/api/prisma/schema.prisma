@@ -1,0 +1,744 @@
+// loans.ge database schema — standards: STANDARDS.md
+// Every table (except the action log) carries the BaseEntity columns:
+//   id, uid, is_enable, created_by, created_on, updated_by, updated_on, is_deleted, deleted_by, deleted_on
+// created_by / updated_by / deleted_by = user.id.
+// Business keys (codes, keys) are unique among non-deleted rows — checked in the CRUD layer (CrudConfig.unique),
+// because soft-deleted rows must not block re-adding the same code. Tables and columns are snake_case; the API maps them to PascalCase.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────── Reference data (managed by admin) ─────────────────────────
+
+model Currency {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  code   String @db.VarChar(3)
+  symbol String @db.VarChar(4)
+  sort   Int    @default(0)
+
+  @@index([code])
+  @@map("currency")
+}
+
+model Region {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  code   String
+  nameKa String @map("name_ka")
+  nameEn String @map("name_en")
+  sort   Int    @default(0)
+  cities City[]
+
+  @@index([code])
+  @@map("region")
+}
+
+model City {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  regionId  BigInt     @map("region_id")
+  region    Region     @relation(fields: [regionId], references: [id])
+  code      String
+  nameKa    String     @map("name_ka")
+  nameEn    String     @map("name_en")
+  sort      Int        @default(0)
+  districts District[]
+
+  @@index([code])
+  @@map("city")
+}
+
+model District {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  cityId BigInt @map("city_id")
+  city   City   @relation(fields: [cityId], references: [id])
+  code   String
+  nameKa String @map("name_ka")
+  nameEn String @map("name_en")
+  sort   Int    @default(0)
+
+  @@index([cityId, code])
+  @@map("district")
+}
+
+/// Simple lists in one table, by kind: offer_type, reject_reason, cancel_reason, sector, income_source, credit_history.
+model ReferenceItem {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  kind   String
+  code   String
+  nameKa String @map("name_ka")
+  nameEn String @map("name_en")
+  sort   Int    @default(0)
+
+  @@index([kind, code])
+  @@index([kind, sort])
+  @@map("reference_item")
+}
+
+model ProductType {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  code         String
+  nameKa       String  @map("name_ka")
+  nameEn       String  @map("name_en")
+  minAmount    Decimal @map("min_amount") @db.Decimal(14, 2)
+  maxAmount    Decimal @map("max_amount") @db.Decimal(14, 2)
+  minMonths    Int?    @map("min_months")
+  maxMonths    Int?    @map("max_months")
+  noTerm       Boolean @default(false) @map("no_term")
+  amountRanges Int[]   @map("amount_ranges")
+  sort         Int     @default(0)
+
+  fields        ProductTypeField[]
+  organizations OrganizationProductType[]
+  products      PartnerProduct[]
+  applications  Application[]
+
+  @@index([code])
+  @@map("product_type")
+}
+
+/// Offer form schema per product type — what a partner fills in an offer card.
+model ProductTypeField {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  productTypeId BigInt      @map("product_type_id")
+  productType   ProductType @relation(fields: [productTypeId], references: [id])
+  key           String
+  labelKa       String      @map("label_ka")
+  labelEn       String      @map("label_en")
+  /// number | money | int | select | bool
+  kind          String
+  defaultValue  Json?       @map("default_value")
+  step          Decimal?    @db.Decimal(10, 4)
+  options       Json?
+  sort          Int         @default(0)
+
+  @@index([productTypeId, key])
+  @@map("product_type_field")
+}
+
+// ───────────────────────── Organisations and their products ─────────────────────────
+
+model Organization {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  nameKa    String  @map("name_ka")
+  nameEn    String  @map("name_en")
+  /// bank | mfo | leasing | lender
+  category  String
+  color     String? @db.VarChar(9)
+  logoPath  String? @map("logo_path")
+  /// false = reference only (e.g. a bank listed in the wizard), does not receive applications
+  isPartner Boolean @default(true) @map("is_partner")
+  sort      Int     @default(0)
+
+  productTypes     OrganizationProductType[]
+  products         PartnerProduct[]
+  profiles         UserProfile[]
+  applicationOrgs  ApplicationOrg[]
+
+  @@map("organization")
+}
+
+model OrganizationProductType {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  organizationId BigInt       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  productTypeId  BigInt       @map("product_type_id")
+  productType    ProductType  @relation(fields: [productTypeId], references: [id])
+
+  @@index([organizationId, productTypeId])
+  @@map("organization_product_type")
+}
+
+model PartnerProduct {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  organizationId BigInt       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  productTypeId  BigInt       @map("product_type_id")
+  productType    ProductType  @relation(fields: [productTypeId], references: [id])
+  description    String?
+  /// currency codes enabled for this product
+  currencies     String[]
+  cards          PartnerOfferCard[]
+
+  @@map("partner_product")
+}
+
+/// "Offer type" card: terms for one currency; values follow the product type field schema.
+model PartnerOfferCard {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  productId   BigInt         @map("product_id")
+  product     PartnerProduct @relation(fields: [productId], references: [id])
+  /// reference_item of kind offer_type
+  offerTypeId BigInt         @map("offer_type_id")
+  currency    String         @db.VarChar(3)
+  values      Json
+  offers      Offer[]
+
+  @@map("partner_offer_card")
+}
+
+// ───────────────────────── Users and profiles ─────────────────────────
+
+/// Every person in the system — one table. Each user has at least one profile.
+model User {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  email       String?   @unique
+  phone       String?   @unique
+  userName    String?   @map("user_name")
+  isVerified  Boolean   @default(false) @map("is_verified")
+  lastLoginOn DateTime? @map("last_login_on") @db.Timestamptz(3)
+
+  profiles UserProfile[]
+  oauth    OauthIdentity[]
+  sessions Session[]
+
+  @@map("user")
+}
+
+/// Allowed profile types: customer, staff, admin.
+model ProfileType {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  code     String
+  nameKa   String        @map("name_ka")
+  nameEn   String        @map("name_en")
+  profiles UserProfile[]
+
+  @@index([code])
+  @@map("profile_type")
+}
+
+model UserProfile {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  userId         BigInt        @map("user_id")
+  user           User          @relation(fields: [userId], references: [id])
+  profileTypeId  BigInt        @map("profile_type_id")
+  profileType    ProfileType   @relation(fields: [profileTypeId], references: [id])
+  /// staff only
+  organizationId BigInt?       @map("organization_id")
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  /// staff: sales | back; admin: super | operator | analyst; customer: null
+  role           String?
+  displayName    String?       @map("display_name")
+  /// staff sales scope — partner_product ids / city ids; null = all
+  scopeProducts  BigInt[]      @map("scope_products")
+  scopeCities    BigInt[]      @map("scope_cities")
+
+  customer CustomerDetail?
+  sessions Session[]
+
+  @@unique([userId, profileTypeId, organizationId])
+  @@map("user_profile")
+}
+
+/// Borrower's personal data (customer profile).
+model CustomerDetail {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  userProfileId BigInt      @unique @map("user_profile_id")
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id])
+  pid           String?     @db.VarChar(11)
+  firstName     String?     @map("first_name")
+  lastName      String?     @map("last_name")
+  birthDate     DateTime?   @map("birth_date") @db.Date
+  cityId        BigInt?     @map("city_id")
+  districtId    BigInt?     @map("district_id")
+  village       String?
+
+  @@map("customer_detail")
+}
+
+model OauthIdentity {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  userId   BigInt @map("user_id")
+  user     User   @relation(fields: [userId], references: [id])
+  /// google | facebook
+  provider String
+  subject  String
+
+  @@unique([provider, subject])
+  @@map("oauth_identity")
+}
+
+model Session {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  userId        BigInt      @map("user_id")
+  user          User        @relation(fields: [userId], references: [id])
+  userProfileId BigInt      @map("user_profile_id")
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id])
+  /// admin | partner | client
+  gateway       String
+  tokenHash     String      @unique @map("token_hash")
+  userAgent     String?     @map("user_agent")
+  ip            String?
+  expiresOn     DateTime    @map("expires_on") @db.Timestamptz(3)
+
+  @@map("session")
+}
+
+model OtpChallenge {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  /// sms | email
+  channel    String
+  target     String
+  /// login | apply | change | verify
+  purpose    String
+  codeHash   String    @map("code_hash")
+  attempts   Int       @default(0)
+  expiresOn  DateTime  @map("expires_on") @db.Timestamptz(3)
+  consumedOn DateTime? @map("consumed_on") @db.Timestamptz(3)
+
+  @@index([target, purpose])
+  @@map("otp_challenge")
+}
+
+// ───────────────────────── Statuses and settings ─────────────────────────
+
+model Status {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  key               String
+  customerKa        String  @map("customer_ka")
+  customerEn        String  @map("customer_en")
+  partnerLabel      String  @map("partner_label")
+  chipLabel         String  @map("chip_label")
+  /// progress | complete | canceled
+  category          String
+  color             String? @db.VarChar(9)
+  /// null = no time limit
+  ttlMinutes        Int?    @map("ttl_minutes")
+  sort              Int     @default(0)
+  hidesPersonalData Boolean @default(false) @map("hides_personal_data")
+  requiresOffer     Boolean @default(false) @map("requires_offer")
+  requiresIssued    Boolean @default(false) @map("requires_issued")
+  isExpiryTarget    Boolean @default(false) @map("is_expiry_target")
+
+  transitionsFrom StatusTransition[] @relation("from")
+  transitionsTo   StatusTransition[] @relation("to")
+
+  @@index([key])
+  @@map("status")
+}
+
+model StatusTransition {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  fromStatusId BigInt  @map("from_status_id")
+  fromStatus   Status  @relation("from", fields: [fromStatusId], references: [id])
+  toStatusId   BigInt  @map("to_status_id")
+  toStatus     Status  @relation("to", fields: [toStatusId], references: [id])
+  /// customer | partner | system | admin
+  actor        String
+  /// reject | cancel | null
+  reasonKind   String? @map("reason_kind")
+
+  @@index([fromStatusId, toStatusId, actor])
+  @@map("status_transition")
+}
+
+/// Key/value settings (OTP channels, contacts, …).
+model Setting {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  key   String
+  value Json
+
+  @@index([key])
+  @@map("setting")
+}
+
+// ───────────────────────── Applications and offers ─────────────────────────
+
+model Application {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  /// customer's user id
+  userId        BigInt      @map("user_id")
+  productTypeId BigInt      @map("product_type_id")
+  productType   ProductType @relation(fields: [productTypeId], references: [id])
+  amount        Decimal     @db.Decimal(14, 2)
+  currency      String      @db.VarChar(3)
+  source        String?
+  /// Snapshot of what the customer submitted — does not change when the profile changes.
+  pid           String      @db.VarChar(11)
+  firstName     String      @map("first_name")
+  lastName      String      @map("last_name")
+  birthDate     DateTime?   @map("birth_date") @db.Date
+  phone         String
+  email         String?
+  cityId        BigInt?     @map("city_id")
+  districtId    BigInt?     @map("district_id")
+  village       String?
+  creditHistory String?     @map("credit_history")
+  sector        String?
+  incomes       Json?
+  banks         Json?
+
+  orgs ApplicationOrg[]
+
+  @@index([userId])
+  @@index([createdOn])
+  @@map("application")
+}
+
+/// One record per application × organisation — carries the status.
+model ApplicationOrg {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  applicationId  BigInt       @map("application_id")
+  application    Application  @relation(fields: [applicationId], references: [id])
+  organizationId BigInt       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  status         String
+  statusOn       DateTime     @map("status_on") @db.Timestamptz(3)
+  expiresOn      DateTime?    @map("expires_on") @db.Timestamptz(3)
+  sentOn         DateTime     @map("sent_on") @db.Timestamptz(3)
+  offerOn        DateTime?    @map("offer_on") @db.Timestamptz(3)
+  /// reference_item ids (reject/cancel reasons) + free text for "other"
+  reasonIds      BigInt[]     @map("reason_ids")
+  reasonText     String?      @map("reason_text")
+  issued         Boolean      @default(false)
+  issuedOn       DateTime?    @map("issued_on") @db.Timestamptz(3)
+
+  offers Offer[]
+  events StatusEvent[]
+
+  @@unique([applicationId, organizationId])
+  @@index([organizationId, status])
+  @@index([status, expiresOn])
+  @@map("application_org")
+}
+
+model Offer {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  applicationOrgId BigInt            @map("application_org_id")
+  applicationOrg   ApplicationOrg    @relation(fields: [applicationOrgId], references: [id])
+  cardId           BigInt?           @map("card_id")
+  card             PartnerOfferCard? @relation(fields: [cardId], references: [id])
+  amount           Decimal           @db.Decimal(14, 2)
+  currency         String            @db.VarChar(3)
+  months           Int
+  rate             Decimal           @db.Decimal(6, 3)
+  fee              Decimal           @default(0) @db.Decimal(14, 2)
+  insMonth         Decimal           @default(0) @map("ins_month") @db.Decimal(14, 2)
+  /// other card field values at the moment of sending
+  values           Json?
+
+  @@map("offer")
+}
+
+/// Status change history ("სტატუსების ცვლილება").
+model StatusEvent {
+  id        BigInt    @id @default(autoincrement())
+  uid       String    @unique @default(uuid()) @db.Uuid
+  isEnable  Boolean   @default(true) @map("is_enable")
+  createdBy BigInt?   @map("created_by")
+  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
+  updatedBy BigInt?   @map("updated_by")
+  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedBy BigInt?   @map("deleted_by")
+  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
+
+  applicationOrgId BigInt         @map("application_org_id")
+  applicationOrg   ApplicationOrg @relation(fields: [applicationOrgId], references: [id])
+  fromStatus       String?        @map("from_status")
+  toStatus         String         @map("to_status")
+  /// customer | partner | system | admin
+  actor            String
+  /// request uid from the action log
+  requestUid       String?        @map("request_uid") @db.Uuid
+
+  @@index([applicationOrgId, createdOn])
+  @@map("status_event")
+}
+
+// ───────────────────────── Action log (no BaseEntity, kept forever) ─────────────────────────
+
+model ActionLog {
+  id            BigInt    @id @default(autoincrement())
+  uid           String    @unique @db.Uuid
+  url           String
+  method        String    @db.VarChar(8)
+  gateway       String?
+  module        String?
+  action        String?
+  itemId        BigInt?   @map("item_id")
+  itemUid       String?   @map("item_uid") @db.Uuid
+  createdBy     BigInt?   @map("created_by")
+  userProfileId BigInt?   @map("user_profile_id")
+  /// user | integration | system
+  actorType     String?   @map("actor_type")
+  createdOn     DateTime  @map("created_on") @db.Timestamptz(3)
+  completedOn   DateTime? @map("completed_on") @db.Timestamptz(3)
+  durationMs    Int?      @map("duration_ms")
+  responseCode  Int?      @map("response_code")
+  isSuccess     Boolean?  @map("is_success")
+  errorCode     String?   @map("error_code")
+  errorMessage  String?   @map("error_message")
+  ip            String?
+  userAgent     String?   @map("user_agent")
+
+  @@index([createdOn])
+  @@index([createdBy])
+  @@index([module, itemId])
+  @@map("action_log")
+}
+
+model ActionLogRequest {
+  id        BigInt   @id @default(autoincrement())
+  uid       String   @unique @db.Uuid
+  headers   Json?
+  query     Json?
+  body      Json?
+  createdOn DateTime @map("created_on") @db.Timestamptz(3)
+
+  @@map("action_log_request")
+}
+
+model ActionLogResponse {
+  id           BigInt   @id @default(autoincrement())
+  uid          String   @unique @db.Uuid
+  responseCode Int      @map("response_code")
+  body         Json?
+  createdOn    DateTime @map("created_on") @db.Timestamptz(3)
+
+  @@map("action_log_response")
+}

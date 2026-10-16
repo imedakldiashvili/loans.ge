@@ -1,0 +1,3 @@
+Centred dialog over a blurred navy overlay: 400px max, 10px radius, 4px green top border, 28px padding, centred text.
+
+Consumer provides: a title (`panel-title`), one line of text, the body (inputs, buttons) and the close ×. Close button: 32px, top-right, `muted`, hover `bg-soft`. The primary button is full-width green; a secondary ghost sits beside or below. Closes on ×, overlay click and Escape. Variants in the site: authorisation (social buttons, "ან", email), one-time code, offer details (title = organisation, status pill, two tables), confirmation ("დიახ, დავასრულო" in red fill).
