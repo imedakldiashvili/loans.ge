@@ -4,6 +4,7 @@ import logo from './logo.png';
 import { AppsPage } from './pages/apps';
 import { ProductsPage } from './pages/products';
 import { UsersPage } from './pages/users';
+import { chime, useTitleCounter } from './attention';
 import { useLiveEvents } from './live';
 import { ROLES, useSession } from './session';
 import { useToast } from './ui/ui';
@@ -40,9 +41,14 @@ export function App() {
   const p = me?.Profile;
   const back = p?.Role === 'back';
   const toast = useToast();
+  const unseen = useTitleCounter();
   // new applications and customers' answers arrive live
   useLiveEvents(p ? `/partner/events/stream?p=${p.ID}` : null, [['apps'], ['app']], (e) => {
-    if (e.Type === 'application.created') toast('ახალი განაცხადი');
+    if (e.Type === 'application.created') {
+      toast('ახალი განაცხადი');
+      chime();
+      unseen();
+    }
     else if (e.Actor === 'customer') toast('მომხმარებელმა განაცხადი განაახლა');
   });
   useEffect(() => {
