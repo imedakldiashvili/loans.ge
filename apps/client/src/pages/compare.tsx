@@ -77,6 +77,8 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
     void qc.invalidateQueries({ queryKey: ['apps'] });
   });
   const answerable = marks.answerable;
+  // a chosen offer's whole column is green
+  const chosen = (o: AppOrg) => (marks.marks.get(o.ID) === 'accept' ? 'chosen' : '');
   const row = (label: string, vals: number[], f: (v: number) => string, best = false, cls = '') => {
     const min = Math.min(...vals);
     const mark = best && vals.filter((v) => v === min).length < vals.length;
@@ -84,7 +86,7 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
       <tr className={cls}>
         <td>{t(label)}</td>
         {vals.map((v, i) => (
-          <td key={i} className={mark && v === min ? 'best' : undefined}>
+          <td key={i} className={[mark && v === min ? 'best' : '', chosen(cols[i].o)].filter(Boolean).join(' ') || undefined}>
             {f(v)}
           </td>
         ))}
@@ -128,7 +130,7 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
                 <tr>
                   <th />
                   {cols.map(({ o, of }) => (
-                    <th key={of.ID}>
+                    <th key={of.ID} className={chosen(o) || undefined}>
                       <span className="lg" style={{ ['--c' as string]: orgColor(o.Organization) }}>
                         {orgMark(o.Organization.NameKa)}
                       </span>
@@ -153,7 +155,7 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
                   {cols.map(({ o, of }) => {
                     const k = kindOf(o);
                     return (
-                      <td key={of.ID}>
+                      <td key={of.ID} className={chosen(o) || undefined}>
                         <div className="acts">
                           {k === 'offer' && answerable.includes(o) ? (
                             <MarkButtons o={o} m={marks} />
