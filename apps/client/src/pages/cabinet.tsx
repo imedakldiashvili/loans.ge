@@ -57,6 +57,8 @@ type Found = Page<App> & { Counts: { Active: number; Done: number } };
 /** Order of the status groups in a card: what needs an answer first, closed ones last. */
 const GROUP_ORDER = ['offer', 'interested', 'sent', 'accepted', 'done', 'declined', 'cancelled', 'expired'];
 const OPEN_GROUPS = ['offer', 'interested'];
+/** Which organisation's status speaks for the whole application: the furthest along first. */
+const LEAD_ORDER = ['done', 'accepted', 'offer', 'interested', 'sent', 'cancelled', 'declined', 'expired'];
 const PAGE_SIZE = 5;
 /** CSS of the prototype has no class for "expired" — it looks like "cancelled". */
 export const stCls = (k: string) => (k === 'expired' ? 'cancelled' : k);
@@ -220,6 +222,9 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
   const [cancel, setCancel] = useState(false);
   const refresh = () => qc.invalidateQueries({ queryKey: ['apps'] });
   const isClosed = a.Orgs.every((o) => !o.Next.length);
+  // the application's status = the furthest one among the organisations (prototype appStatus); its nearest deadline
+  const leadKey = LEAD_ORDER.find((k) => a.Orgs.some((o) => o.Status === k));
+  const lead = a.Orgs.filter((o) => o.Status === leadKey).sort((x, y) => (x.ExpiresOn ?? '9').localeCompare(y.ExpiresOn ?? '9'))[0];
   const declineOrg = async (o: AppOrg) => {
     const to = s.cancelOf(o);
     if (!to) return;
@@ -245,10 +250,16 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             <span className="who">
               {a.FirstName} {a.LastName}
             </span>
+            <small className="when">{fmtDate(a.CreatedOn)}</small>
           </span>
           <span className="right">
             <i className="amt">{money(a.Amount, a.Currency)}</i>
-            <small>{fmtDate(a.CreatedOn)}</small>
+            {lead && (
+              <span className="amt-line">
+                <Countdown o={lead} />
+                <span className={`st-text ${stCls(lead.Status)}`}>{s.label(lead.Status)}</span>
+              </span>
+            )}
           </span>
         </button>
         <div className="cab-acts">

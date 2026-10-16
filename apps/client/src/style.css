@@ -678,3 +678,22 @@
   .bell-item b { font-size: 13px; font-weight: 500; }
   .bell-item small { font-size: 12px; color: var(--muted); }
   .bell-item em { font-style: normal; font-size: 11px; color: var(--muted); }
+
+  /* application card: product · name · date on the left; amount, then timer + status (text) on the right */
+  .cab-card .info .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cab-card .right .amt-line { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+  .cab-card .right .amt-line .cd { height: 22px; font-size: 12px; padding: 0 7px; }
+  .cab-card .st-text { font-size: 12px; font-weight: 700; text-align: right; }
+  .cab-card .st-text.sent { color: var(--muted); }
+  .cab-card .st-text.interested { color: #1e63b5; }
+  .cab-card .st-text.offer { color: var(--orange); }
+  .cab-card .st-text.accepted { color: var(--green); }
+  .cab-card .st-text.done { color: var(--fg); }
+  .cab-card .st-text.declined, .cab-card .st-text.rejected { color: #d9534f; }
+  .cab-card .st-text.cancelled { color: #8a8f9f; }
+  :root[data-theme="dark"] .cab-card .st-text.interested { color: #6ea3e6; }
+  /* long customer statuses wrap inside the right column instead of running over the name */
+  .cab-card .cab-sum { grid-template-columns: auto minmax(0, 1fr) minmax(0, 46%); }
+  .cab-card .right { min-width: 0; }
+  .cab-card .right .amt-line { flex-wrap: wrap; }
+  .cab-card .st-text { white-space: normal; line-height: 1.3; }
