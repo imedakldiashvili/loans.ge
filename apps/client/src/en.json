@@ -164,7 +164,7 @@
  "განაცხადი უარყოფილია": "Application declined",
  "განაცხადზე შეთავაზება დადასტურებულია": "Offer on application accepted",
  "დასრულდა": "Completed",
- "გაუქმება": "Cancelled",
+ "გაუქმება": "Cancel",
  "შენახვა": "Save",
  "შენახულია": "Saved",
  "მობილური": "Mobile",
@@ -278,5 +278,7 @@
  "გამოგზავნილი": "Sent",
  "პასუხის გაგზავნა": "Send your answer",
  "ამ მოქმედების გაუქმება ვერ მოხერხდება.": "This cannot be undone.",
- "არჩეულ ორგანიზაციებს გაეგზავნება თანხმობა პროცესის გაგრძელებაზე. ამ მოქმედების გაუქმება ვერ მოხერხდება.": "The chosen organisations will receive your consent to continue the process. This cannot be undone."
+ "არჩეულ ორგანიზაციებს გაეგზავნება თანხმობა პროცესის გაგრძელებაზე. ამ მოქმედების გაუქმება ვერ მოხერხდება.": "The chosen organisations will receive your consent to continue the process. This cannot be undone.",
+ "ყველა შეთავაზების გაუქმება": "Cancel all offers",
+ "აირჩიე მინიმუმ ერთი შეთავაზება": "Choose at least one offer"
 }
