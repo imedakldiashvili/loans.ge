@@ -591,7 +591,7 @@ export function ConfirmOffers({ accept, cancel, busy, error, onYes, onClose }: {
           {names(cancel)}
         </p>
       )}
-      <p>{t('ამ მოქმედების გაუქმება ვერ მოხერხდება.')}</p>
+      <p>{t(accept.length ? 'არჩეულ ორგანიზაციებს გაეგზავნება თანხმობა პროცესის გაგრძელებაზე. ამ მოქმედების გაუქმება ვერ მოხერხდება.' : 'ამ მოქმედების გაუქმება ვერ მოხერხდება.')}</p>
       <div className="cancel-actions">
         <button type="button" className="btn btn-ghost" onClick={onClose}>
           {t('დახურვა')}
