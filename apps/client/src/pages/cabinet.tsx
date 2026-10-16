@@ -600,7 +600,7 @@ export function ConfirmOffers({ accept, cancel, pending = [], busy, error, onYes
         {group('no', 'გაუქმდება - შეთავაზება', cancel, true)}
         {group('no', 'გაუქმდება - შეთავაზება მიუღებელი', pending, true)}
       </div>
-      <p>{t(accept.length ? 'არჩეულ ორგანიზაციებს გაეგზავნება თანხმობა პროცესის გაგრძელებაზე. ამ მოქმედების გაუქმება ვერ მოხერხდება.' : 'ამ მოქმედების გაუქმება ვერ მოხერხდება.')}</p>
+      {accept.length > 0 && <p>{t('არჩეულ ორგანიზაციებს გაეგზავნება თანხმობა პროცესის გაგრძელებაზე.')}</p>}
       <div className="cancel-actions">
         <button type="button" className="btn btn-ghost" onClick={onClose}>
           {t('დახურვა')}
