@@ -719,8 +719,6 @@
   /* comparison: the chosen offer's column */
   .cmp th.chosen, .cmp td.chosen { background: color-mix(in srgb, var(--green) 12%, transparent); }
   .cmp thead th.chosen { color: var(--green); }
-  .mark.no:hover, .mark.no.on { color: #d9534f; border-color: #d9534f; }
-  .mark.no.on { background: #d9534f; color: #fff; }
   .cab-det-row.marked-accept .nm { font-weight: 700; color: var(--green); }
   .cab-det-row.marked-decline .nm { text-decoration: line-through; color: var(--muted); }
 
