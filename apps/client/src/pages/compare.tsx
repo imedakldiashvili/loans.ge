@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { api, ApiError } from '../api';
 import { orgColor, orgMark } from '../session';
 import { money } from '../ui';
-import { App, AppOrg, ConfirmOffers, useStatus } from './cabinet';
+import { App, AppOrg, MarkBar, MarkButtons, useOfferMarks, useStatus } from './cabinet';
 
 // Offers side by side (prototype #compare): one column per offer, best value highlighted,
 // filter by state (to confirm / accepted / declined); the ticked offers are accepted, the other waiting offers cancelled.
@@ -46,7 +46,7 @@ const FILLED = {
 };
 type Kind = keyof typeof ICONS;
 const FILTERS: [Kind, string][] = [
-  ['offer', 'დასადასტურებელი'],
+  ['offer', 'გამოგზავნილი'],
   ['accepted', 'დადასტურებული'],
   ['declined', 'უარყოფილი'],
 ];
@@ -59,10 +59,6 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
   const s = useStatus();
   const q = useQuery({ queryKey: ['app', id], queryFn: () => api<App>('GET', `/client/application/detail/${id}/${uid}`) });
   const [filter, setFilter] = useState<Kind[]>(['offer', 'accepted', 'declined']);
-  const [picked, setPicked] = useState<Set<number>>(new Set());
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [asking, setAsking] = useState(false);
   const a = q.data;
   if (!a) return <section className="partners compare"><div className="wrap"><p className="cmp-empty">{t(q.isError ? 'შეცდომა' : 'იტვირთება…')}</p></div></section>;
   // only organisations that sent an offer can be compared; one column per offer
@@ -71,30 +67,12 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
     o.Offers.map((of) => ({ o, of, c: calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth })! })),
   );
   const dense = cols.length >= 5;
-  // the ticked organisations (an organisation may have several offer columns — it is answered once)
-  const answerable = a.Orgs.filter((o) => s.acceptOf(o) && o.Offers.length);
-  const chosen = answerable.filter((o) => picked.has(o.ID));
-  const pick = (id: number) => setPicked((p) => {
-    const n = new Set(p);
-    if (n.has(id)) n.delete(id);
-    else n.add(id);
-    return n;
+  // marks: choose / cancel per organisation (several offer columns of one organisation share it), sent together
+  const marks = useOfferMarks(a, () => {
+    void q.refetch();
+    void qc.invalidateQueries({ queryKey: ['apps'] });
   });
-  const answer = async () => {
-    setBusy(true);
-    setError('');
-    try {
-      await api('PUT', `/client/application/respond/${a.ID}/${a.UID}`, { ApplicationOrgIDs: chosen.map((o) => o.ID) });
-      setPicked(new Set());
-      setAsking(false);
-      await q.refetch();
-      qc.invalidateQueries({ queryKey: ['apps'] });
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : t('შეცდომა'));
-    } finally {
-      setBusy(false);
-    }
-  };
+  const answerable = marks.answerable;
   const row = (label: string, vals: number[], f: (v: number) => string, best = false, cls = '') => {
     const min = Math.min(...vals);
     const mark = best && vals.filter((v) => v === min).length < vals.length;
@@ -138,29 +116,7 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
             );
           })}
         </div>
-        {answerable.length > 0 && (
-          <div className="pick-bar cmp-pick">
-            <label className="pick pick-all">
-              <input
-                type="checkbox"
-                checked={chosen.length === answerable.length}
-                ref={(el) => {
-                  if (el) el.indeterminate = chosen.length > 0 && chosen.length < answerable.length;
-                }}
-                onChange={(e) => setPicked(new Set(e.target.checked ? answerable.map((o) => o.ID) : []))}
-              />
-              <i />
-              {t('ყველა')}
-            </label>
-            <span className="pick-n">{chosen.length ? `${t('მონიშნულია')} ${chosen.length}` : t('მონიშნე შეთავაზებები')}</span>
-            <span className="pick-acts">
-              <button type="button" className="btn btn-green sm" disabled={!chosen.length || busy} onClick={() => (setError(''), setAsking(true))}>
-                {t('დადასტურება')} {chosen.length ? `(${chosen.length})` : ''}
-              </button>
-            </span>
-          </div>
-        )}
-        {asking && <ConfirmOffers accept={chosen} cancel={answerable.filter((o) => !picked.has(o.ID))} busy={busy} error={error} onYes={answer} onClose={() => setAsking(false)} />}
+        {answerable.length > 0 && <MarkBar m={marks} />}
         {cols.length ? (
           <div className="cmp-wrap">
             <table className={`cmp${dense ? ' dense' : ''}`} style={{ minWidth: (dense ? 227 : 252) + cols.length * (dense ? 130 : 160) }}>
@@ -196,10 +152,7 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
                       <td key={of.ID}>
                         <div className="acts">
                           {k === 'offer' && answerable.includes(o) ? (
-                            <label className="pick" title={t('მონიშვნა')}>
-                              <input type="checkbox" checked={picked.has(o.ID)} onChange={() => pick(o.ID)} aria-label={`${t('მონიშვნა')}: ${n(o.Organization)}`} />
-                              <i />
-                            </label>
+                            <MarkButtons o={o} m={marks} />
                           ) : (
                             <span className={`cmp-st ${k}`} title={s.label(o.Status)}>
                               {k === 'offer' ? ICONS.offer : FILLED[k]}

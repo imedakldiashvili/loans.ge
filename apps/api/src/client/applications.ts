@@ -50,7 +50,7 @@ const addSchema = z.object({
 
 const findBody = z.preprocess((v) => v ?? {}, z.object({ filter: z.preprocess((v) => v ?? {}, z.object({ state: z.enum(['active', 'done']).default('active') })) }));
 const changeBody = z.object({ status: z.string().min(1) });
-const respondBody = z.object({ applicationOrgIds: z.array(z.coerce.bigint()).min(1, 'აირჩიე მინიმუმ ერთი შეთავაზება') });
+const respondBody = z.object({ acceptIds: z.array(z.coerce.bigint()).default([]), declineIds: z.array(z.coerce.bigint()).default([]) });
 
 const orgSelect = { select: { id: true, uid: true, nameKa: true, nameEn: true, category: true, color: true, logoPath: true } };
 const include = {
@@ -236,8 +236,8 @@ export class ClientApplicationService {
   }
 
   /**
-   * The customer's answer to the offers: the ticked organisations are accepted, every other offer still waiting for
-   * the customer's answer is cancelled — in one go (all or none). Organisations without an offer yet are not touched.
+   * The customer's answer to the offers, sent at once: the offers marked "choose" are accepted, those marked "cancel"
+   * are cancelled — all or none. Offers left unmarked, and organisations without an offer yet, are not touched.
    */
   async respond(id: number, uid: string, body: unknown) {
     const d = parse(respondBody, body);
@@ -247,12 +247,22 @@ export class ClientApplicationService {
     const acceptOf = (o: { status: string }) => m.nextStatuses(o.status, 'customer').find((k) => m.categoryOf(k) !== 'canceled');
     const cancelOf = (o: { status: string }) => m.nextStatuses(o.status, 'customer').find((k) => m.categoryOf(k) === 'canceled');
     const waiting = row.orgs.filter((o) => o.offers.length && acceptOf(o));
-    const ids = [...new Set(d.applicationOrgIds.map(String))];
-    const picked = row.orgs.filter((o) => ids.includes(String(o.id)));
-    if (picked.length !== ids.length) throw validation([{ field: 'ApplicationOrgIDs', message: 'ორგანიზაცია ამ განაცხადს არ ეკუთვნის' }]);
-    const bad = picked.filter((o) => !waiting.includes(o));
-    if (bad.length) throw conflict(`ეს შეთავაზება ვერ დადასტურდება: ${bad.map((o) => o.organization.nameKa).join(', ')}`);
-    const moves = waiting.map((o) => ({ o, to: picked.includes(o) ? acceptOf(o) : cancelOf(o) })).filter((x): x is { o: (typeof waiting)[number]; to: string } => !!x.to);
+    const accept = [...new Set(d.acceptIds.map(String))];
+    const decline = [...new Set(d.declineIds.map(String))];
+    if (!accept.length && !decline.length) throw validation([{ field: 'AcceptIDs', message: 'მონიშნე მინიმუმ ერთი შეთავაზება' }]);
+    if (accept.some((x) => decline.includes(x))) throw validation([{ field: 'DeclineIDs', message: 'ერთი შეთავაზება ორივე სიაშია' }]);
+    const find = (ids: string[], field: string) => {
+      const rows = row.orgs.filter((o) => ids.includes(String(o.id)));
+      if (rows.length !== ids.length) throw validation([{ field, message: 'ორგანიზაცია ამ განაცხადს არ ეკუთვნის' }]);
+      return rows;
+    };
+    const toAccept = find(accept, 'AcceptIDs');
+    const toDecline = find(decline, 'DeclineIDs');
+    const bad = [...toAccept, ...toDecline].filter((o) => !waiting.includes(o));
+    if (bad.length) throw conflict(`ამ შეთავაზებაზე პასუხი ახლა შეუძლებელია: ${bad.map((o) => o.organization.nameKa).join(', ')}`);
+    const moves = [...toAccept.map((o) => ({ o, to: acceptOf(o) })), ...toDecline.map((o) => ({ o, to: cancelOf(o) }))].filter(
+      (x): x is { o: (typeof waiting)[number]; to: string } => !!x.to,
+    );
     const now = new Date();
     const by = me();
     await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -297,7 +307,7 @@ export class ClientApplicationController {
     return this.svc.cancel(id, uid);
   }
 
-  /** Answer the offers: { ApplicationOrgIDs: [...] } are accepted, the other waiting offers cancelled. */
+  /** Send the answers to the offers: { AcceptIDs: [...], DeclineIDs: [...] } (application_org ids); the rest stay. */
   @Put('respond/:id/:uid')
   respond(@Param('id', ParseIntPipe) id: number, @Param('uid') uid: string, @Body() body: unknown) {
     return this.svc.respond(id, uid, body);

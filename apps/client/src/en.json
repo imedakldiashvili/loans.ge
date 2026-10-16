@@ -102,7 +102,7 @@
  "შეიყვანე OTP კოდი": "Enter the OTP code",
  "კოდი გაიგზავნა ნომერზე": "The code was sent to",
  "თავიდან": "Send",
- "გაგზავნა": "again",
+ "გაგზავნა": "Send",
  "დადასტურება": "Accept",
  "განაცხადი გაიგზავნა": "Application sent",
  "კაბინეტში გადასვლა": "Go to my account",
@@ -271,5 +271,12 @@
  "დადასტურდება": "Will be confirmed",
  "გაუქმდება": "Will be cancelled",
  "დადასტურებულ ორგანიზაციებს გაეგზავნება შენი საკონტაქტო ინფორმაცია. ამ მოქმედების გაუქმება ვერ მოხერხდება.": "The confirmed organisations will receive your contact details. This cannot be undone.",
- "დახურვა": "Close"
+ "დახურვა": "Close",
+ "არჩევა": "Choose",
+ "არჩეული": "Chosen",
+ "გასაუქმებელი": "To cancel",
+ "მონიშნე: არჩევა ან გაუქმება": "Mark: choose or cancel",
+ "გამოგზავნილი": "Sent",
+ "პასუხის გაგზავნა": "Send your answer",
+ "ამ მოქმედების გაუქმება ვერ მოხერხდება.": "This cannot be undone."
 }
