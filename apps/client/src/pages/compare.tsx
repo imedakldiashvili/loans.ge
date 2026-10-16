@@ -2,13 +2,13 @@ import { n, t, up } from '../i18n';
 import { calcOffer } from '@loans/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { api } from '../api';
+import { api, ApiError } from '../api';
 import { orgColor, orgMark } from '../session';
 import { money } from '../ui';
-import { App, AppOrg, changeOrg, useStatus } from './cabinet';
+import { App, AppOrg, useStatus } from './cabinet';
 
 // Offers side by side (prototype #compare): one column per offer, best value highlighted,
-// filter by state (to confirm / accepted / declined), ✓ / ✕ on offers still waiting for an answer.
+// filter by state (to confirm / accepted / declined); offers waiting for an answer are ticked and accepted / cancelled together.
 
 const ICONS = {
   offer: (
@@ -59,6 +59,9 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
   const s = useStatus();
   const q = useQuery({ queryKey: ['app', id], queryFn: () => api<App>('GET', `/client/application/detail/${id}/${uid}`) });
   const [filter, setFilter] = useState<Kind[]>(['offer', 'accepted', 'declined']);
+  const [picked, setPicked] = useState<Set<number>>(new Set());
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
   const a = q.data;
   if (!a) return <section className="partners compare"><div className="wrap"><p className="cmp-empty">{t(q.isError ? 'შეცდომა' : 'იტვირთება…')}</p></div></section>;
   // only organisations that sent an offer can be compared; one column per offer
@@ -67,11 +70,30 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
     o.Offers.map((of) => ({ o, of, c: calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth })! })),
   );
   const dense = cols.length >= 5;
-  const run = async (o: AppOrg, to: string | undefined) => {
+  // the ticked organisations (an organisation may have several offer columns — it is answered once)
+  const answerable = a.Orgs.filter((o) => s.acceptOf(o) && o.Offers.length);
+  const chosen = answerable.filter((o) => picked.has(o.ID));
+  const pick = (id: number) => setPicked((p) => {
+    const n = new Set(p);
+    if (n.has(id)) n.delete(id);
+    else n.add(id);
+    return n;
+  });
+  const answer = async (kind: 'accept' | 'cancel') => {
+    const to = kind === 'accept' ? s.acceptOf(chosen[0]) : s.cancelOf(chosen[0]);
     if (!to) return;
-    await changeOrg(o, to).catch(() => undefined);
-    await q.refetch();
-    qc.invalidateQueries({ queryKey: ['apps'] });
+    setBusy(true);
+    setError('');
+    try {
+      await api('PUT', `/client/application/respond/${a.ID}/${a.UID}`, { Status: to, ApplicationOrgIDs: chosen.map((o) => o.ID) });
+      setPicked(new Set());
+      await q.refetch();
+      qc.invalidateQueries({ queryKey: ['apps'] });
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : t('შეცდომა'));
+    } finally {
+      setBusy(false);
+    }
   };
   const row = (label: string, vals: number[], f: (v: number) => string, best = false, cls = '') => {
     const min = Math.min(...vals);
@@ -116,6 +138,32 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
             );
           })}
         </div>
+        {answerable.length > 0 && (
+          <div className="pick-bar cmp-pick">
+            <label className="pick pick-all">
+              <input
+                type="checkbox"
+                checked={chosen.length === answerable.length}
+                ref={(el) => {
+                  if (el) el.indeterminate = chosen.length > 0 && chosen.length < answerable.length;
+                }}
+                onChange={(e) => setPicked(new Set(e.target.checked ? answerable.map((o) => o.ID) : []))}
+              />
+              <i />
+              {t('ყველა')}
+            </label>
+            <span className="pick-n">{chosen.length ? `${t('მონიშნულია')} ${chosen.length}` : t('მონიშნე შეთავაზებები')}</span>
+            <span className="pick-acts">
+              <button type="button" className="btn btn-red sm" disabled={!chosen.length || busy} onClick={() => answer('cancel')}>
+                {t('გაუქმება')} {chosen.length ? `(${chosen.length})` : ''}
+              </button>
+              <button type="button" className="btn btn-green sm" disabled={!chosen.length || busy} onClick={() => answer('accept')}>
+                {t('დადასტურება')} {chosen.length ? `(${chosen.length})` : ''}
+              </button>
+            </span>
+            {error && <p className="form-err" style={{ color: 'var(--orange)', margin: 0 }}>{error}</p>}
+          </div>
+        )}
         {cols.length ? (
           <div className="cmp-wrap">
             <table className={`cmp${dense ? ' dense' : ''}`} style={{ minWidth: (dense ? 227 : 252) + cols.length * (dense ? 130 : 160) }}>
@@ -150,18 +198,14 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
                     return (
                       <td key={of.ID}>
                         <div className="acts">
-                          {k === 'offer' ? (
-                            <>
-                              <button type="button" className="cab-ico cmp-ok" title={t('დადასტურება')} aria-label={t('დადასტურება')} onClick={() => run(o, s.acceptOf(o))}>
-                                {ICONS.accepted}
-                              </button>
-                              <button type="button" className="cab-ico cmp-no" title={t('უარი')} aria-label={t('უარი')} onClick={() => run(o, s.cancelOf(o))}>
-                                {ICONS.declined}
-                              </button>
-                            </>
+                          {k === 'offer' && answerable.includes(o) ? (
+                            <label className="pick" title={t('მონიშვნა')}>
+                              <input type="checkbox" checked={picked.has(o.ID)} onChange={() => pick(o.ID)} aria-label={`${t('მონიშვნა')}: ${n(o.Organization)}`} />
+                              <i />
+                            </label>
                           ) : (
                             <span className={`cmp-st ${k}`} title={s.label(o.Status)}>
-                              {FILLED[k]}
+                              {k === 'offer' ? ICONS.offer : FILLED[k]}
                             </span>
                           )}
                         </div>

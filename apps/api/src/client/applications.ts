@@ -50,6 +50,7 @@ const addSchema = z.object({
 
 const findBody = z.preprocess((v) => v ?? {}, z.object({ filter: z.preprocess((v) => v ?? {}, z.object({ state: z.enum(['active', 'done']).default('active') })) }));
 const changeBody = z.object({ status: z.string().min(1) });
+const respondBody = z.object({ status: z.string().min(1), applicationOrgIds: z.array(z.coerce.bigint()).min(1, 'აირჩიე მინიმუმ ერთი შეთავაზება') });
 
 const orgSelect = { select: { id: true, uid: true, nameKa: true, nameEn: true, category: true, color: true, logoPath: true } };
 const include = {
@@ -234,6 +235,28 @@ export class ClientApplicationService {
     return { id: o.id, uid: o.uid };
   }
 
+  /**
+   * The customer's answer to several offers at once: the ticked organisations' records move to one status
+   * (accept / decline) together — all or none (every transition must be allowed).
+   */
+  async respond(id: number, uid: string, body: unknown) {
+    const d = parse(respondBody, body);
+    const row = await this.load(id, uid);
+    const ids = [...new Set(d.applicationOrgIds.map(String))];
+    const picked = row.orgs.filter((o) => ids.includes(String(o.id)));
+    if (picked.length !== ids.length) throw validation([{ field: 'ApplicationOrgIDs', message: 'ორგანიზაცია ამ განაცხადს არ ეკუთვნის' }]);
+    const m = await this.statuses.machine();
+    const bad = picked.filter((o) => !m.canTransition(o.status, d.status, 'customer'));
+    if (bad.length) throw conflict(`ამ სტატუსზე გადასვლა დაუშვებელია: ${bad.map((o) => o.organization.nameKa).join(', ')}`);
+    const now = new Date();
+    const by = me();
+    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      for (const o of picked) await this.move(tx, o, d.status, now, by);
+    });
+    for (const o of picked) this.announce(row, o, d.status);
+    return { id: row.id, uid: row.uid };
+  }
+
   /** Live update for the organisation (and the customer's other open tabs). */
   private announce(a: { id: bigint; userId: bigint; cityId: bigint | null; productTypeId: bigint }, o: { id: bigint; organizationId: bigint }, status: string) {
     this.events.publish({ type: 'application.status', applicationId: a.id, applicationOrgId: o.id, organizationId: o.organizationId, userId: a.userId, cityId: a.cityId, productTypeId: a.productTypeId, status, actor: 'customer' });
@@ -267,6 +290,12 @@ export class ClientApplicationController {
   @Put('cancel/:id/:uid')
   cancel(@Param('id', ParseIntPipe) id: number, @Param('uid') uid: string) {
     return this.svc.cancel(id, uid);
+  }
+
+  /** Answer several offers together: { Status: accepted | declined, ApplicationOrgIDs: [...] }. */
+  @Put('respond/:id/:uid')
+  respond(@Param('id', ParseIntPipe) id: number, @Param('uid') uid: string, @Body() body: unknown) {
+    return this.svc.respond(id, uid, body);
   }
 }
 

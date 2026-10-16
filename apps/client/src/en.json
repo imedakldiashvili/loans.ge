@@ -261,5 +261,10 @@
  "🔔 ბრაუზერის შეტყობინებების ჩართვა": "🔔 Turn on browser notifications",
  "ახლახან": "just now",
  "წთ წინ": "min ago",
- "სთ წინ": "h ago"
+ "სთ წინ": "h ago",
+ "მონიშვნა": "Select",
+ "მონიშვნის მოხსნა": "Unselect",
+ "ყველა": "All",
+ "მონიშნულია": "Selected:",
+ "მონიშნე შეთავაზებები": "Select offers"
 }

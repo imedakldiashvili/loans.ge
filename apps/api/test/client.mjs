@@ -87,6 +87,21 @@ ok((await call('PUT', `/client/application/cancel/${app.ID}/${app.UID}`)).status
 const counts = (await call('POST', '/client/application/find/1/10', { Filter: { State: 'done' } })).json.Data;
 ok(counts.Counts.Active === 1 && counts.Counts.Done === 1 && counts.Items[0].ID === app.ID, 'closed application moves to "done"', counts.Counts);
 
+// ── several offers answered together (the customer ticks them, then accepts / cancels all at once)
+const add3 = await call('POST', '/client/application/add', { ...body, Amount: 8000 });
+const app3 = (await call('GET', `/client/application/detail/${add3.json.Data.ID}/${add3.json.Data.UID}`)).json.Data;
+const [p1, p2] = app3.Orgs;
+await prisma.applicationOrg.update({ where: { id: BigInt(p1.ID) }, data: { status: 'offer' } });
+const respond = (b) => call('PUT', `/client/application/respond/${app3.ID}/${app3.UID}`, b);
+ok((await respond({ Status: 'accepted', ApplicationOrgIDs: [p1.ID, p2.ID] })).status === 409, 'one of them has no offer → 409, nothing changes');
+ok((await prisma.applicationOrg.findUnique({ where: { id: BigInt(p1.ID) } })).status === 'offer', 'all or none: the valid one did not move either');
+ok((await respond({ Status: 'accepted', ApplicationOrgIDs: [] })).status === 400, 'nothing ticked → 400');
+ok((await respond({ Status: 'accepted', ApplicationOrgIDs: [o1.ID] })).status === 400, "another application's record → 400");
+await prisma.applicationOrg.update({ where: { id: BigInt(p2.ID) }, data: { status: 'offer' } });
+const both = await respond({ Status: 'accepted', ApplicationOrgIDs: [p1.ID, p2.ID] });
+const after3 = await prisma.applicationOrg.findMany({ where: { id: { in: [BigInt(p1.ID), BigInt(p2.ID)] } } });
+ok(both.status === 200 && after3.every((x) => x.status === 'accepted' && x.contactsOpenedOn), 'both accepted together, contacts opened for both', both.json);
+
 // ── profile
 const edit = await call('PUT', `/client/profile/edit/${me.Profile.ID}/${me.Profile.UID}`, { UserName: 'tester', Pid: '01001012345', FirstName: 'ტესტი', LastName: 'კლიენტი', BirthDate: '1990-05-01', CityID: Number(city.id), DistrictID: null, Village: null });
 const prof2 = (await call('GET', `/client/profile/detail/${me.Profile.ID}/${me.Profile.UID}`)).json.Data;

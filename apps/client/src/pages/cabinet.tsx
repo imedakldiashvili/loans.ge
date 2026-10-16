@@ -227,7 +227,35 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
   const [offer, setOffer] = useState<AppOrg | null>(null);
   const [cancel, setCancel] = useState(false);
   const refresh = () => qc.invalidateQueries({ queryKey: ['apps'] });
-  const isClosed = a.Orgs.every((o) => !o.Next.length);  const declineOrg = async (o: AppOrg) => {
+  const isClosed = a.Orgs.every((o) => !o.Next.length);
+  // offers waiting for the customer's answer: tick them, then accept / cancel the ticked ones together
+  const answerable = a.Orgs.filter((o) => s.acceptOf(o) && o.Offers.length);
+  const [picked, setPicked] = useState<Set<number>>(new Set());
+  const [answering, setAnswering] = useState(false);
+  const [answerError, setAnswerError] = useState('');
+  const pick = (id: number) => setPicked((p) => {
+    const n = new Set(p);
+    if (n.has(id)) n.delete(id);
+    else n.add(id);
+    return n;
+  });
+  const chosen = answerable.filter((o) => picked.has(o.ID));
+  const answer = async (kind: 'accept' | 'cancel') => {
+    const to = kind === 'accept' ? s.acceptOf(chosen[0]) : s.cancelOf(chosen[0]);
+    if (!to || !chosen.length) return;
+    setAnswering(true);
+    setAnswerError('');
+    try {
+      await api('PUT', `/client/application/respond/${a.ID}/${a.UID}`, { Status: to, ApplicationOrgIDs: chosen.map((o) => o.ID) });
+      setPicked(new Set());
+      refresh();
+    } catch (e) {
+      setAnswerError(errText(e));
+    } finally {
+      setAnswering(false);
+    }
+  };
+  const declineOrg = async (o: AppOrg) => {
     const to = s.cancelOf(o);
     if (!to) return;
     try {
@@ -302,8 +330,16 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                 </div>
                 {isOpen && (
                   <div className="cab-stat-list">
-                    {list.map((o) => (
-                      <div key={o.ID} className="cab-det-row">
+                    {list.map((o) => {
+                      const can = answerable.includes(o);
+                      return (
+                      <div key={o.ID} className={`cab-det-row${can ? ' pickable' : ''}${picked.has(o.ID) ? ' picked' : ''}`}>
+                        {can && (
+                          <label className="pick" title={t('მონიშვნა')}>
+                            <input type="checkbox" checked={picked.has(o.ID)} onChange={() => pick(o.ID)} aria-label={`${t('მონიშვნა')}: ${n(o.Organization)}`} />
+                            <i />
+                          </label>
+                        )}
                         <span className="lg" style={{ ['--c' as string]: orgColor(o.Organization) }}>
                           {orgMark(o.Organization.NameKa)}
                         </span>
@@ -313,14 +349,41 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                           <button type="button" className="cab-ico o-ico" title={t('ნახვა')} aria-label={t('ნახვა')} onClick={() => setOffer(o)}>
                             {I.eye}
                           </button>
-                          {s.cancelOf(o) && (
+                          {!can && s.cancelOf(o) && (
                             <button type="button" className="cab-ico o-ico danger" title={t('გაუქმება')} aria-label={t('გაუქმება')} onClick={() => declineOrg(o)}>
                               {I.x}
                             </button>
                           )}
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
+                    {list.some((o) => answerable.includes(o)) && (
+                      <div className="pick-bar">
+                        <label className="pick pick-all">
+                          <input
+                            type="checkbox"
+                            checked={chosen.length === answerable.length}
+                            ref={(el) => {
+                              if (el) el.indeterminate = chosen.length > 0 && chosen.length < answerable.length;
+                            }}
+                            onChange={(e) => setPicked(new Set(e.target.checked ? answerable.map((o) => o.ID) : []))}
+                          />
+                          <i />
+                          {t('ყველა')}
+                        </label>
+                        <span className="pick-n">{chosen.length ? `${t('მონიშნულია')} ${chosen.length}` : t('მონიშნე შეთავაზებები')}</span>
+                        <span className="pick-acts">
+                          <button type="button" className="btn btn-red sm" disabled={!chosen.length || answering} onClick={() => answer('cancel')}>
+                            {t('გაუქმება')} {chosen.length ? `(${chosen.length})` : ''}
+                          </button>
+                          <button type="button" className="btn btn-green sm" disabled={!chosen.length || answering} onClick={() => answer('accept')}>
+                            {t('დადასტურება')} {chosen.length ? `(${chosen.length})` : ''}
+                          </button>
+                        </span>
+                        <ErrorText error={answerError} />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -329,7 +392,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
         </div>
       )}
       {view && <ViewModal a={a} onClose={() => setView(false)} />}
-      {offer && <OfferModal a={a} o={offer} onClose={() => setOffer(null)} onChanged={() => (setOffer(null), refresh())} />}
+      {offer && <OfferModal a={a} o={offer} picked={picked.has(offer.ID)} onPick={answerable.includes(offer) ? () => pick(offer.ID) : undefined} onClose={() => setOffer(null)} onChanged={() => (setOffer(null), refresh())} />}
       {cancel && (
         <CancelModal
           a={a}
@@ -426,7 +489,8 @@ function ViewModal({ a, onClose }: { a: App; onClose: () => void }) {
 }
 
 /** One organisation's answer: offer terms, accept / decline (prototype offerModal). */
-export function OfferModal({ a, o, onClose, onChanged }: { a: App; o: AppOrg; onClose: () => void; onChanged: () => void }) {
+/** One organisation's answer: offer terms; while it waits for the customer — tick it (answered together with the others in the card). */
+export function OfferModal({ a, o, picked, onPick, onClose, onChanged }: { a: App; o: AppOrg; picked?: boolean; onPick?: () => void; onClose: () => void; onChanged: () => void }) {
   const s = useStatus();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -489,17 +553,25 @@ export function OfferModal({ a, o, onClose, onChanged }: { a: App; o: AppOrg; on
         })}
         {!o.Offers.length && <p style={{ textAlign: 'center' }}>{t('შეთავაზება ჯერ არ არის — გაგზავნილია')} {fmtDate(o.SentOn)}</p>}
       </div>
-      {accept && o.Offers.length > 0 && (
+      {onPick ? (
         <div className="cancel-actions" id="offerActions">
-          {decline && (
-            <button type="button" className="btn btn-red" disabled={busy} onClick={() => run(decline)}>
-              {t('უარი')}
-            </button>
-          )}
-          <button type="button" className="btn btn-green" disabled={busy} onClick={() => run(accept)}>
-            {t('დადასტურება')}
+          <button type="button" className={`btn ${picked ? 'btn-ghost' : 'btn-green'}`} onClick={() => (onPick(), onClose())}>
+            {t(picked ? 'მონიშვნის მოხსნა' : 'მონიშვნა')}
           </button>
         </div>
+      ) : (
+        accept && o.Offers.length > 0 && (
+          <div className="cancel-actions" id="offerActions">
+            {decline && (
+              <button type="button" className="btn btn-red" disabled={busy} onClick={() => run(decline)}>
+                {t('უარი')}
+              </button>
+            )}
+            <button type="button" className="btn btn-green" disabled={busy} onClick={() => run(accept)}>
+              {t('დადასტურება')}
+            </button>
+          </div>
+        )
       )}
       <ErrorText error={error} />
     </Modal>

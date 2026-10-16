@@ -681,3 +681,22 @@
 
   /* application card: product · name · date on the left, amount on the right */
   .cab-card .info .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* ticking offers to answer them together */
+  .cab-det-row.pickable { grid-template-columns: 22px 28px 1fr auto; }
+  .cab-det-row.picked .nm { font-weight: 700; }
+  .pick { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; font-size: 13px; color: var(--fg); }
+  .pick input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .pick i { width: 20px; height: 20px; flex: none; border: 2px solid var(--line); border-radius: 5px; background: var(--bg); display: grid; place-items: center; transition: background .15s, border-color .15s; }
+  .pick i::after { content: ""; width: 9px; height: 5px; border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff; transform: rotate(-45deg) translate(1px, -1px) scale(0); transition: transform .15s; }
+  .pick input:checked + i { background: var(--green); border-color: var(--green); }
+  .pick input:checked + i::after { transform: rotate(-45deg) translate(1px, -1px) scale(1); }
+  .pick input:indeterminate + i { background: var(--green); border-color: var(--green); }
+  .pick input:indeterminate + i::after { width: 10px; height: 0; border-left: 0; border-bottom: 2.5px solid #fff; transform: none; }
+  .pick input:focus-visible + i { outline: 2px solid var(--orange); outline-offset: 2px; }
+  .pick-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 0 12px; border-top: 1px solid var(--line); }
+  .pick-bar .pick-n { font-size: 12px; color: var(--muted); }
+  .pick-bar .pick-acts { margin-inline-start: auto; display: flex; gap: 8px; }
+  .pick-bar .btn.sm { height: 34px; padding: 0 14px; font-size: 13px; }
+  .pick-bar .btn:disabled { opacity: .5; cursor: default; }
+  .pick-bar .form-err { flex-basis: 100%; }
