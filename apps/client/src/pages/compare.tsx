@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { api, ApiError } from '../api';
 import { orgColor, orgMark } from '../session';
 import { money } from '../ui';
-import { App, AppOrg, MarkBar, MarkButtons, useOfferMarks, useStatus } from './cabinet';
+import { App, AppOrg, MarkBar, MarkButtons, OfferRow, useOfferMarks, useStatus } from './cabinet';
 
 // Offers side by side (prototype #compare): one column per offer, best value highlighted,
 // filter by state (to confirm / accepted / declined); the ticked offers are accepted, the other waiting offers cancelled.
@@ -23,10 +23,16 @@ const ICONS = {
       <path d="M8 12l3 3 5-6" />
     </svg>
   ),
-  declined: (
+  rejected: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9" />
       <path d="M15 9l-6 6M9 9l6 6" />
+    </svg>
+  ),
+  waiting: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
     </svg>
   ),
 };
@@ -37,7 +43,7 @@ const FILLED = {
       <path d="M8 12l3 3 5-6" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
-  declined: (
+  rejected: (
     <svg viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="10" fill="currentColor" />
       <path d="M15 9l-6 6M9 9l6 6" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
@@ -47,11 +53,13 @@ const FILLED = {
 type Kind = keyof typeof ICONS;
 const FILTERS: [Kind, string][] = [
   ['offer', 'გამოგზავნილი'],
-  ['accepted', 'დადასტურებული'],
-  ['declined', 'უარყოფილი'],
+  ['rejected', 'უარყოფილი'],
+  ['waiting', 'ველოდებით'],
 ];
-/** Which column of the filter a record belongs to: waiting for an answer / accepted (or issued) / everything closed. */
-const kindOf = (o: AppOrg): Kind => (o.Status === 'offer' ? 'offer' : ['accepted', 'done'].includes(o.Status) ? 'accepted' : 'declined');
+/** Filter of a record: sent an offer (waiting for the answer, or already accepted / issued) / rejected by the partner /
+ *  still working on it (no offer yet); the ones the customer declined or that expired are not compared. */
+const kindOf = (o: AppOrg): Kind | null =>
+  o.Status === 'cancelled' ? 'rejected' : o.Offers.length && ['offer', 'accepted', 'done'].includes(o.Status) ? 'offer' : ['sent', 'interested'].includes(o.Status) ? 'waiting' : null;
 
 /** Opened at /cabinet/compare/{id}/{uid} — loads the application itself (a reload or a shared link works). */
 export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: () => void }) {
@@ -64,7 +72,7 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
 function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload: () => void }) {
   const qc = useQueryClient();
   const s = useStatus();
-  const [filter, setFilter] = useState<Kind[]>(['offer', 'accepted', 'declined']);
+  const [filter, setFilter] = useState<Kind[]>(['offer', 'rejected', 'waiting']);
   // marks: choose per organisation (several offer columns of one organisation share it), sent together;
   // once sent — back to the cabinet
   const marks = useOfferMarks(a, () => {
@@ -75,21 +83,29 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
   const answerable = marks.answerable;
   // a chosen offer's whole column is green
   const chosen = (o: AppOrg) => (marks.marks.get(o.ID) === 'accept' ? 'chosen' : '');
-  // only organisations that sent an offer can be compared; one column per offer; the chosen ones move to the left
-  const withOffers = a.Orgs.filter((o) => o.Offers.length);
-  const cols = FILTERS.flatMap(([k]) => (filter.includes(k) ? withOffers.filter((o) => kindOf(o) === k) : []))
-    .flatMap((o) => o.Offers.map((of) => ({ o, of, c: calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth })! })))
+  // one column per offer; an organisation without an offer (waiting / rejected) — one empty column; the chosen ones move to the left
+  const count = (k: Kind) => a.Orgs.filter((o) => kindOf(o) === k).length;
+  type Col = { o: AppOrg; of: OfferRow | null; key: string; c: ReturnType<typeof calcOffer> | null };
+  const cols = FILTERS.flatMap(([k]) => (filter.includes(k) ? a.Orgs.filter((o) => kindOf(o) === k) : []))
+    .flatMap((o): Col[] =>
+      o.Offers.length
+        ? o.Offers.map((of) => ({ o, of, key: `of-${of.ID}`, c: calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth })! }))
+        : [{ o, of: null, key: `org-${o.ID}`, c: null }],
+    )
     .sort((x, y) => Number(!!chosen(y.o)) - Number(!!chosen(x.o)));
   const dense = cols.length >= 5;
-  const row = (label: string, vals: number[], f: (v: number) => string, best = false, cls = '') => {
-    const min = Math.min(...vals);
-    const mark = best && vals.filter((v) => v === min).length < vals.length;
+  // a value of every column ("—" where there is no offer); the best one is marked among the offers only
+  const row = (label: string, val: (x: Col) => number | undefined, f: (v: number) => string, best = false, cls = '') => {
+    const vals = cols.map((x) => (x.of ? val(x) : undefined));
+    const nums = vals.filter((v): v is number => v !== undefined);
+    const min = Math.min(...nums);
+    const mark = best && nums.filter((v) => v === min).length < nums.length;
     return (
       <tr className={cls}>
         <td>{t(label)}</td>
         {vals.map((v, i) => (
-          <td key={i} className={[mark && v === min ? 'best' : '', chosen(cols[i].o)].filter(Boolean).join(' ') || undefined}>
-            {f(v)}
+          <td key={cols[i].key} className={[mark && v === min ? 'best' : '', v === undefined ? 'none' : '', chosen(cols[i].o)].filter(Boolean).join(' ') || undefined}>
+            {v === undefined ? '—' : f(v)}
           </td>
         ))}
       </tr>
@@ -119,7 +135,7 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
               <button key={k} type="button" className={`cmp-f f-${k}${on ? ' on' : ''}`} aria-pressed={on} onClick={() => setFilter(on ? filter.filter((x) => x !== k) : [...filter, k])}>
                 <span className="ico">{ICONS[k]}</span>
                 <span>{t(label)}</span>
-                <span className="cnt">{withOffers.filter((o) => kindOf(o) === k).length}</span>
+                <span className="cnt">{count(k)}</span>
               </button>
             );
           })}
@@ -131,8 +147,8 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
               <thead>
                 <tr>
                   <th />
-                  {cols.map(({ o, of }) => (
-                    <th key={of.ID} className={chosen(o) || undefined}>
+                  {cols.map(({ o, key }) => (
+                    <th key={key} className={chosen(o) || undefined}>
                       <span className="lg" style={{ ['--c' as string]: orgColor(o.Organization) }}>
                         {orgMark(o.Organization.NameKa)}
                       </span>
@@ -142,28 +158,29 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
                 </tr>
               </thead>
               <tbody>
-                {row('თანხა', cols.map((x) => x.of.Amount), m)}
-                {row('ვადა', cols.map((x) => x.of.Months), (v) => t(`${v} თვე`))}
-                {row('წლიური განაკვეთი', cols.map((x) => x.of.Rate), (v) => `${v}%`, true)}
-                {row('ეფექტური პროცენტი', cols.map((x) => x.c.eff), (v) => `${v}%`, true)}
-                {row('ერთჯერადი საკომისიოები', cols.map((x) => x.of.Fee), m, true)}
-                {row('ყოველთვიური გადასახადი', cols.map((x) => x.c.monthly), m, true)}
-                {row('სულ გადასახდელი პროცენტი', cols.map((x) => x.c.interest), m, true)}
-                {row('სულ გადასახდელი დაზღვევა', cols.map((x) => x.c.insTotal), m, true)}
-                {row('სულ ძირის გარდა გადასახდელი', cols.map((x) => x.c.costTotal), m, true)}
-                {row('სულ გადასახდელი', cols.map((x) => x.c.total), m, true, 'total')}
+                {row('თანხა', (x) => x.of?.Amount, m)}
+                {row('ვადა', (x) => x.of?.Months, (v) => t(`${v} თვე`))}
+                {row('წლიური განაკვეთი', (x) => x.of?.Rate, (v) => `${v}%`, true)}
+                {row('ეფექტური პროცენტი', (x) => x.c?.eff, (v) => `${v}%`, true)}
+                {row('ერთჯერადი საკომისიოები', (x) => x.of?.Fee, m, true)}
+                {row('ყოველთვიური გადასახადი', (x) => x.c?.monthly, m, true)}
+                {row('სულ გადასახდელი პროცენტი', (x) => x.c?.interest, m, true)}
+                {row('სულ გადასახდელი დაზღვევა', (x) => x.c?.insTotal, m, true)}
+                {row('სულ ძირის გარდა გადასახდელი', (x) => x.c?.costTotal, m, true)}
+                {row('სულ გადასახდელი', (x) => x.c?.total, m, true, 'total')}
                 <tr>
                   <td />
-                  {cols.map(({ o, of }) => {
+                  {cols.map(({ o, key }) => {
                     const k = kindOf(o);
+                    const done = ['accepted', 'done'].includes(o.Status);
                     return (
-                      <td key={of.ID} className={chosen(o) || undefined}>
+                      <td key={key} className={chosen(o) || undefined}>
                         <div className="acts">
                           {k === 'offer' && answerable.includes(o) ? (
                             <MarkButtons o={o} m={marks} />
                           ) : (
-                            <span className={`cmp-st ${k}`} title={s.label(o.Status)}>
-                              {k === 'offer' ? ICONS.offer : FILLED[k]}
+                            <span className={`cmp-st ${done ? 'accepted' : k}`} title={s.label(o.Status)}>
+                              {done ? FILLED.accepted : k === 'rejected' ? FILLED.rejected : k === 'waiting' ? ICONS.waiting : ICONS.offer}
                             </span>
                           )}
                         </div>

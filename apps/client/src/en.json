@@ -280,8 +280,7 @@
  "ამ მოქმედების გაუქმება ვერ მოხერხდება.": "This cannot be undone.",
  "არჩეულ ორგანიზაციებს გაეგზავნება თანხმობა პროცესის გაგრძელებაზე. ამ მოქმედების გაუქმება ვერ მოხერხდება.": "The chosen organisations will receive your consent to continue the process. This cannot be undone.",
  "შედარების დასრულება": "Finish comparison",
- "შეთავაზება გამოაგზავნა": "Sent an offer",
- "შეთავაზებას ველოდებით": "Waiting for an offer",
  "გაუქმდება - შეთავაზება": "Cancelled — offers",
- "გაუქმდება - შეთავაზება მიუღებელი": "Cancelled — no offer received"
+ "გაუქმდება - შეთავაზება მიუღებელი": "Cancelled — no offer received",
+ "ველოდებით": "Waiting"
 }

@@ -551,14 +551,6 @@ export function MarkBar({ m }: { m: OfferMarks }) {
   const canSend = !m.sending;
   return (
     <div className="pick-bar">
-      <span className="pick-stats">
-        <span>
-          {t('შეთავაზება გამოაგზავნა')}: <b>{m.answerable.length}</b>
-        </span>
-        <span>
-          {t('შეთავაზებას ველოდებით')}: <b>{m.pending.length}</b>
-        </span>
-      </span>
       <span className="pick-acts">
         <span className={`pick-n${m.accepts.length ? ' on' : ''}`}>
           {t('არჩეულია')}: <b>{m.accepts.length}</b>
