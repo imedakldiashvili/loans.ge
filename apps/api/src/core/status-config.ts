@@ -27,6 +27,12 @@ export class StatusConfigService {
     return this.cached.machine;
   }
 
+  /** Status a new record starts in ("incoming"): the first enabled "progress" status. */
+  async incomingKey() {
+    const s = await this.prisma.status.findFirst({ where: { isDeleted: false, isEnable: true, category: 'progress' }, orderBy: { sort: 'asc' }, select: { key: true } });
+    return s?.key ?? null;
+  }
+
   /** Statuses whose records hide the applicant's personal data from partners. */
   async hiddenKeys() {
     const m = await this.machine();

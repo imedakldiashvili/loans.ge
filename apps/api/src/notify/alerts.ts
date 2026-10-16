@@ -9,7 +9,8 @@ import { EmailSender, SmsSender } from './notifier';
 import { PUSH_CONTROLLERS, PushService } from './push';
 
 // Notifications about applications — who learns what, and how:
-//   partner staff (their organisation, sales within their cities / products): a new application; the customer
+//   partner staff (their organisation; a free one — sales within their cities / products; a taken one — its taker; back office
+//     always): a new application; the customer
 //     accepted / declined; a deadline passed;
 //   the customer: an organisation took the application into review, sent an offer, declined, issued the loan; a deadline passed.
 // Channels: the bell (notification table, live over the events stream), browser push, and e-mail / SMS as set in
@@ -104,17 +105,17 @@ export class AlertService implements OnModuleInit {
     }
   }
 
-  /** Enabled staff of the organisation for whom the application is in scope (sales: cities / products; taken — only its taker). */
+  /** Enabled staff of the organisation who see the record: back office; sales — free: within their cities / products, taken: its taker. */
   private async staffFor(e: ApplicationEvent, assignedToId: bigint | null) {
     const staff = await this.prisma.userProfile.findMany({
       where: { organizationId: e.organizationId, isDeleted: false, isEnable: true, profileType: { code: 'staff' }, user: { isDeleted: false, isEnable: true } },
       include: { user: { select: { email: true, phone: true } } },
     });
+    if (assignedToId) return staff.filter((s) => s.role !== 'sales' || s.id === assignedToId);
     const productIds = [...new Set(staff.flatMap((s) => (s.role === 'sales' ? s.scopeProducts : [])))];
     const types = productIds.length ? await this.prisma.partnerProduct.findMany({ where: { id: { in: productIds } }, select: { id: true, productTypeId: true } }) : [];
     return staff.filter((s) => {
       if (s.role !== 'sales') return true;
-      if (assignedToId && s.id !== assignedToId) return false;
       if (s.scopeCities.length && (e.cityId === null || !s.scopeCities.includes(e.cityId))) return false;
       if (s.scopeProducts.length && !types.some((t) => s.scopeProducts.includes(t.id) && t.productTypeId === e.productTypeId)) return false;
       return true;

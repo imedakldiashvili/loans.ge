@@ -100,17 +100,9 @@ const streamController = (gateway: 'client' | 'partner' | 'admin', filterFor: (r
 };
 
 const ClientEvents = streamController('client', async (r) => (e) => e.userId === r.auth?.userId);
-// partner: own organisation; sales — only their cities / products (same rule as /partner/application/find)
-const PartnerEvents = streamController('partner', async (r, prisma) => {
-  const a = r.auth;
-  const types = a?.scopeProducts.length
-    ? (await prisma.partnerProduct.findMany({ where: { id: { in: a.scopeProducts } }, select: { productTypeId: true } })).map((p) => p.productTypeId)
-    : null;
-  return (e) =>
-    e.organizationId === a?.organizationId &&
-    (!a.scopeCities.length || (e.cityId !== null && a.scopeCities.includes(e.cityId))) &&
-    (!types || types.includes(e.productTypeId));
-});
+// partner: own organisation (incoming applications go to all its staff; a taken one disappearing must reach them too —
+// the event carries ids only, the list itself is read with the caller's visibility)
+const PartnerEvents = streamController('partner', async (r) => (e) => e.organizationId === r.auth?.organizationId);
 const AdminEvents = streamController('admin', async () => () => true);
 
 @Global()

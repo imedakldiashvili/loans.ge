@@ -74,19 +74,27 @@ const foreign = await prisma.applicationOrg.findFirst({ where: { organization: {
 ok((await call('GET', `/partner/application/detail/${foreign.id}/${foreign.uid}`)).status === 404, "another organisation's record → 404");
 
 // ── sales with scope: cities თბილისი, რუსთავი; products p1, p3
+// test data: all of ბანკი A's records free incoming ones, so the scope decides
+const cities = await prisma.city.findMany({ where: { nameKa: { in: ['თბილისი', 'რუსთავი'] } } });
+const bankA = await prisma.applicationOrg.findMany({ where: { organization: { nameKa: 'ბანკი A' } }, include: { application: true } });
+const sales2 = await prisma.userProfile.findFirst({ where: { user: { email: 'sales2@1.ge' } } });
+await prisma.applicationOrg.updateMany({ where: { id: { in: bankA.map((x) => x.id) } }, data: { status: 'sent', assignedToId: null, assignedOn: null, contactsOpenedOn: null } });
+const outside = bankA.find((x) => !cities.some((c) => c.id === x.application.cityId));
 forget('partner');
 await login('partner', 'sales2@1.ge');
-const scoped = (await find('application')).json.Data;
-const cities = await prisma.city.findMany({ where: { nameKa: { in: ['თბილისი', 'რუსთავი'] } } });
-// 2 of 4 are in the scope; the one sales1 took above is no longer theirs
-const takenBySales1 = await prisma.applicationOrg.count({ where: { id: BigInt(sent.ID), application: { cityId: { in: cities.map((c) => c.id) } } } });
-ok(scoped.TotalCount === 2 - takenBySales1 && scoped.Items.every((x) => cities.some((c) => Number(c.id) === x.Application.CityID)), 'sales scope: only their cities and products, without the ones a colleague took', scoped.TotalCount);
+let scoped = (await find('application')).json.Data;
+ok(scoped.TotalCount === 2 && scoped.Items.every((x) => cities.some((c) => Number(c.id) === x.Application.CityID)), 'incoming: only their cities and products (2 of 4)', scoped.TotalCount);
+// their own record stays visible after its city left the scope
+await prisma.applicationOrg.update({ where: { id: outside.id }, data: { status: 'interested', assignedToId: sales2.id, assignedOn: new Date() } });
+scoped = (await find('application')).json.Data;
+ok(scoped.Items.some((x) => x.ID === Number(outside.id)) && scoped.TotalCount === 3, 'a record they took is visible outside their scope too');
+await prisma.applicationOrg.update({ where: { id: outside.id }, data: { assignedToId: null, assignedOn: null } });
+ok((await find('application')).json.Data.Items.every((x) => x.ID !== Number(outside.id)), 'not taken and not incoming → not theirs');
 const myProducts = (await find('product')).json.Data.Items;
 ok(myProducts.length === 2, 'sales scope: only allowed products visible', myProducts.length);
 
 // ── taking: a free incoming application is seen by every sales in scope; the first action takes it
-// test data: one of sales2's records made a free incoming one
-const free = scoped.Items.length ? await prisma.applicationOrg.update({ where: { id: BigInt(scoped.Items[0].ID) }, data: { status: 'sent', assignedToId: null, assignedOn: null, contactsOpenedOn: null } }) : null;
+const free = await prisma.applicationOrg.findUnique({ where: { id: BigInt(scoped.Items.find((x) => x.Status === 'sent').ID) } });
 if (free) {
   const fr = { ID: Number(free.id), UID: free.uid };
   ok((await ch(fr, { Status: 'interested' })).status === 200, 'sales2 takes a free application (starts the review)');

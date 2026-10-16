@@ -177,6 +177,8 @@ async function main() {
     await prisma.userProfile.create({ data: { userId: u.id, profileTypeId: pt.admin.id, role: a.role, displayName: a.name, isEnable: a.active !== false } });
   }
 
+  // enabled sales per organisation — demo records past "incoming" are taken by one of them
+  const salesOf = new Map<bigint, { id: bigint; cities: bigint[] }[]>();
   for (const s of data.staff) {
     const oid = orgId.get(s.org);
     if (!oid) continue;
@@ -184,9 +186,10 @@ async function main() {
       const u = await userFor(m.email, phoneNorm(m.phone), m.name, true);
       const cities = (m.cities ?? []).map((c: string) => cityId.get(c)).filter(Boolean) as bigint[];
       const prods = (m.products ?? []).map((p: string) => partnerProductId.get(`${s.org}|${p}`)).filter(Boolean) as bigint[];
-      await prisma.userProfile.create({
+      const sp = await prisma.userProfile.create({
         data: { userId: u.id, profileTypeId: pt.staff.id, organizationId: oid, role: m.role, displayName: m.name, scopeCities: cities, scopeProducts: prods, isEnable: m.active !== false },
       });
+      if (m.role === 'sales' && m.active !== false) salesOf.set(oid, [...(salesOf.get(oid) ?? []), { id: sp.id, cities }]);
     }
   }
 
@@ -219,6 +222,9 @@ async function main() {
       const oid = orgByName.get(o.name);
       if (!oid) continue;
       const ttl = DEFAULT_STATUS_CONFIG.statuses.find((s) => s.key === o.status)?.ttlMinutes;
+      const city = cityId.get(a.city) ?? null;
+      const worked = (o.log ?? []).some((e: { by: string; status: string }) => e.status !== 'sent' && !/^მომხმარებელი/.test(e.by) && e.by !== 'სისტემა');
+      const taker = worked ? (salesOf.get(oid) ?? []).find((x) => !x.cities.length || (city !== null && x.cities.includes(city))) : undefined;
       const ao = await prisma.applicationOrg.create({
         data: {
           applicationId: app.id, organizationId: oid, status: o.status, createdOn: at(o.sentAt), sentOn: at(o.sentAt),
@@ -227,6 +233,8 @@ async function main() {
           issued: o.status === 'done', issuedOn: o.status === 'done' ? at(o.statusAt) : null,
           // the partner started the review (interested and later) — it has the contacts
           contactsOpenedOn: ['interested', 'offer', 'accepted', 'done'].includes(o.status) ? at(o.statusAt) : null,
+          // a partner worked on it → taken by a sales whose cities include it (or one without a city limit)
+          ...(taker ? { assignedToId: taker.id, assignedOn: at(o.statusAt) } : {}),
         },
       });
       if (o.terms) {

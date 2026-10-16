@@ -9,11 +9,12 @@ import { StatusConfigService } from '../core/status-config';
 import { EventsService } from '../events/events';
 
 // Partner gateway — incoming applications (prototype partner.html): one record per application × this organisation.
-// Rules: only the caller's organisation; sales — only their cities / products; in statuses flagged "hides personal data"
+// Rules: only the caller's organisation; in statuses flagged "hides personal data"
 // (e.g. sent) the applicant is masked and never matched by search; the phone / e-mail stay hidden until the contacts are
 // opened (a status flagged "reveals contacts" — the partner started the review). Status changes go through the status machine (DB).
-// Taking: an incoming application is seen by every staff member in scope; the first one to act on it takes it
-// (assignedTo) — from then on the other sales staff don't see it; back office sees everything (and who took it).
+// Who sees what (sales): a free incoming application (the first status, nobody took it) — everyone whose scope
+// (cities / products) matches; the first one to act on it takes it (assignedTo). After that — only the one who took it,
+// even if that city / product later leaves their scope. Back office sees everything (and who took it).
 
 const PAGE_MAX = 100;
 const ctx = () => {
@@ -63,14 +64,16 @@ export class PartnerApplicationService {
   /** Records this staff member may see. */
   private async baseWhere(): Promise<Prisma.ApplicationOrgWhereInput> {
     const { org, cities, products, me, sales } = ctx();
+    if (!sales) return { organizationId: org, isDeleted: false, application: { isDeleted: false } };
+    const incoming = await this.statuses.incomingKey();
     const productTypes = products.length
       ? (await this.prisma.partnerProduct.findMany({ where: { id: { in: products } }, select: { productTypeId: true } })).map((p) => p.productTypeId)
       : null;
+    const inScope: Prisma.ApplicationWhereInput = { ...(cities.length ? { cityId: { in: cities } } : {}), ...(productTypes ? { productTypeId: { in: productTypes } } : {}) };
     return {
-      organizationId: org, isDeleted: false,
-      application: { isDeleted: false, ...(cities.length ? { cityId: { in: cities } } : {}), ...(productTypes ? { productTypeId: { in: productTypes } } : {}) },
-      // sales: free ones and their own; taken by a colleague — gone
-      ...(sales ? { AND: [{ OR: [{ assignedToId: null }, { assignedToId: me ?? BigInt(-1) }] }] } : {}),
+      organizationId: org, isDeleted: false, application: { isDeleted: false },
+      // free incoming ones within their scope + their own (whatever the scope is now); taken by a colleague — gone
+      AND: [{ OR: [...(incoming ? [{ status: incoming, assignedToId: null, application: inScope }] : []), { assignedToId: me ?? BigInt(-1) }] }],
     };
   }
 
