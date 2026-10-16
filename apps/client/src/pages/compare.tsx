@@ -65,10 +65,12 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
   const qc = useQueryClient();
   const s = useStatus();
   const [filter, setFilter] = useState<Kind[]>(['offer', 'accepted', 'declined']);
-  // marks: choose per organisation (several offer columns of one organisation share it), sent together
+  // marks: choose per organisation (several offer columns of one organisation share it), sent together;
+  // once sent — back to the cabinet
   const marks = useOfferMarks(a, () => {
     reload();
     void qc.invalidateQueries({ queryKey: ['apps'] });
+    onBack();
   });
   const answerable = marks.answerable;
   // a chosen offer's whole column is green
