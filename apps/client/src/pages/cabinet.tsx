@@ -587,7 +587,18 @@ export function ConfirmOffers({ accept, cancel, pending = [], busy, error, onYes
         </summary>
         <ul>
           {l.map((o) => (
-            <li key={o.ID}>{n(o.Organization)}</li>
+            <li key={o.ID}>
+              <span className="lg" style={{ ['--c' as string]: orgColor(o.Organization) }}>
+                {orgMark(o.Organization.NameKa)}
+              </span>
+              <span className="nm">{n(o.Organization)}</span>
+              {/* the offer's terms (one per offer); an organisation without an offer — none */}
+              {o.Offers.map((of) => (
+                <span key={of.ID} className="terms">
+                  {money(of.Amount, of.Currency)} · {t(`${of.Months} თვე`)} · {of.Rate}%
+                </span>
+              ))}
+            </li>
           ))}
         </ul>
       </details>
