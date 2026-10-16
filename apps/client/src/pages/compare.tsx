@@ -125,8 +125,7 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
         {answerable.length > 0 && <MarkBar m={marks} />}
         {cols.length ? (
           <div className="cmp-wrap">
-            {/* offer columns no wider than 260px: one or two offers don't stretch over the whole width */}
-            <table className={`cmp${dense ? ' dense' : ''}`} style={{ minWidth: (dense ? 227 : 252) + cols.length * (dense ? 130 : 160), width: `min(100%, ${252 + cols.length * 260}px)` }}>
+            <table className={`cmp${dense ? ' dense' : ''}`} style={{ minWidth: (dense ? 227 : 252) + cols.length * (dense ? 130 : 160) }}>
               <thead>
                 <tr>
                   <th />
