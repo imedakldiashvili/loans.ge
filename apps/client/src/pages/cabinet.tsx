@@ -574,10 +574,10 @@ export function MarkBar({ m }: { m: OfferMarks }) {
 
 /** Before answering: which offers will be accepted and which cancelled (it cannot be undone). */
 export function ConfirmOffers({ accept, cancel, pending = [], busy, error, onYes, onClose }: { accept: AppOrg[]; cancel: AppOrg[]; pending?: AppOrg[]; busy: boolean; error: string; onYes: () => void; onClose: () => void }) {
-  // each group folds: the heading with its count, the organisations inside
+  // each group folds: the heading with its count, the organisations inside; "will be accepted" starts open
   const group = (kind: 'ok' | 'no', title: string, l: AppOrg[]) =>
     l.length > 0 && (
-      <details className={`cf-group ${kind}`}>
+      <details className={`cf-group ${kind}`} open={kind === 'ok'}>
         <summary>
           <b>{t(title)}</b>
           <span className="cnt">{l.length}</span>
