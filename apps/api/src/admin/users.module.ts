@@ -14,11 +14,11 @@ import { currentContext, currentUserId } from '../core/request-context';
 //   /admin/customer  — borrower profiles (view, enable/disable)
 // One `user` table; every user keeps at least one profile (STANDARDS.md §5).
 
-const contacts = {
+export const contacts = {
   email: z.string().trim().toLowerCase().email().nullable().default(null),
   phone: z.string().trim().nullable().default(null),
 };
-const userInclude = { user: { select: { id: true, uid: true, email: true, phone: true, userName: true, isEnable: true, isVerified: true, lastLoginOn: true } } };
+export const userInclude = { user: { select: { id: true, uid: true, email: true, phone: true, userName: true, isEnable: true, isVerified: true, lastLoginOn: true } } };
 
 /** Normalises email/phone through the same rules as login; at least one is required. */
 const normContacts = (d: { email: string | null; phone: string | null }) => {
@@ -94,14 +94,15 @@ const lastProfileGuard = async (row: Record<string, unknown>, prisma: PrismaServ
   if (n <= 1) throw conflict('მომხმარებლის ბოლო პროფილს ვერ წაშლი — გამორთე');
 };
 
-const profileModule = (
+export const profileModule = (
   module: string,
   typeCode: string,
   cfg: Omit<CrudConfig, 'gateway' | 'module' | 'model' | 'scope'> & { schema: ZodTypeAny },
   profileData: (d: Record<string, unknown>, prisma: PrismaService) => Promise<Record<string, unknown>>,
+  gateway = 'admin',
 ) => {
   const full: CrudConfig = {
-    gateway: 'admin', module, model: 'userProfile', scope: { profileType: { code: typeCode } },
+    gateway, module, model: 'userProfile', scope: { profileType: { code: typeCode } },
     beforeEnable: async (row) => notSelf(row), beforeDelete: lastProfileGuard, ...cfg,
   };
   class Service extends ProfileService {
@@ -110,7 +111,7 @@ const profileModule = (
     }
   }
   Reflect.defineMetadata('design:paramtypes', [PrismaService], Service);
-  Object.defineProperty(Service, 'name', { value: `admin_${module}_Service` });
+  Object.defineProperty(Service, 'name', { value: `${gateway}_${module}_Service` });
   return { service: Service, controller: crudController(full, Service) };
 };
 
@@ -135,7 +136,12 @@ const staff = profileModule(
     searchFields: ['displayName', 'user.email', 'user.phone'], filterFields: ['organizationId', 'role'],
     include: { ...userInclude, organization: { select: { id: true, uid: true, nameKa: true, nameEn: true } } },
   },
-  async (d, prisma) => {
+  (d, prisma) => staffData(d, prisma),
+);
+
+/** Staff profile values: partner organisation, role, scope (sales only; empty = everything). */
+export const staffData = async (d: Record<string, unknown>, prisma: PrismaService) => {
+  {
     const org = await prisma.organization.findFirst({ where: { id: d.organizationId as bigint, isDeleted: false } });
     if (!org) throw validation([{ field: 'OrganizationID', message: 'ორგანიზაცია ვერ მოიძებნა' }]);
     if (!org.isPartner) throw validation([{ field: 'OrganizationID', message: 'ორგანიზაცია პარტნიორი არ არის' }]);
@@ -150,8 +156,8 @@ const staff = profileModule(
       throw validation([{ field: 'ScopeCities', message: 'ქალაქი ვერ მოიძებნა' }]);
     }
     return { displayName: d.displayName, organizationId: org.id, role: d.role, scopeProducts: products, scopeCities: cities };
-  },
-);
+  }
+};
 
 // ── /admin/customer — view and enable/disable only
 const customers = profileModule(

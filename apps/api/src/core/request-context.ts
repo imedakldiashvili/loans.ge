@@ -11,6 +11,13 @@ export interface RequestContext {
   /** user.id of the caller; null for anonymous calls (filled by auth in stage 2). */
   userId: bigint | null;
   userProfileId: bigint | null;
+  /** partner gateway: the caller's organisation (staff profile) */
+  organizationId?: bigint | null;
+  /** partner gateway: staff role (sales | back) */
+  role?: string | null;
+  /** partner gateway: sales scope (empty = everything) */
+  scopeCities?: bigint[];
+  scopeProducts?: bigint[];
   actorType: 'user' | 'integration' | 'system' | null;
 }
 

@@ -40,10 +40,18 @@ export class AuthGuard implements CanActivate {
 
     req.auth = auth;
     const rc = currentContext();
-    if (rc) Object.assign(rc, { userId: auth.userId, userProfileId: auth.userProfileId, actorType: 'user' });
+    if (rc) Object.assign(rc, { userId: auth.userId, userProfileId: auth.userProfileId, actorType: 'user', organizationId: auth.organizationId, role: auth.role, scopeCities: auth.scopeCities, scopeProducts: auth.scopeProducts });
 
     if (gateway === 'admin' && module !== 'auth') this.checkAdminRole(auth.role, module, action);
+    if (gateway === 'partner') this.checkPartnerRole(auth.role, module, action);
     return true;
+  }
+
+  /** Back office manages products, offer cards and staff; sales may only read products / cards (to make offers). */
+  private checkPartnerRole(role: string | null, module: string | null, action: string | null) {
+    if (role === 'back' || module === 'auth' || module === 'application') return;
+    if ((module === 'product' || module === 'card') && action && READ_ACTIONS.has(action)) return;
+    throw new AppError('FORBIDDEN', 'ამ მოქმედების უფლება არ გაქვს');
   }
 
   private checkAdminRole(role: string | null, module: string | null, action: string | null) {

@@ -10,9 +10,10 @@ import { PrismaModule } from './core/prisma.service';
 import { DevOutboxModule } from './dev/dev-outbox';
 import { HealthController } from './health/health.controller';
 import { NotifyModule } from './notify/notify.module';
+import { PartnerModule } from './partner/partner.module';
 
 @Module({
-  imports: [PrismaModule, NotifyModule, DevOutboxModule.register(), AuthModule, AdminReferencesModule, AdminUsersModule, AdminViewsModule],
+  imports: [PrismaModule, NotifyModule, DevOutboxModule.register(), AuthModule, AdminReferencesModule, AdminUsersModule, AdminViewsModule, PartnerModule],
   controllers: [HealthController],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: EnvelopeInterceptor },

@@ -33,7 +33,11 @@ export class SessionService {
     if (s.user.isDeleted || !s.user.isEnable || p.isDeleted || !p.isEnable || p.profileType.code !== GATEWAY_PROFILE[gateway]) return null;
     // a staff member of a disabled organisation can't work in the cabinet
     if (p.organization && (p.organization.isDeleted || !p.organization.isEnable)) return null;
-    return { sessionId: s.id, userId: s.userId, userProfileId: p.id, gateway, role: p.role, organizationId: p.organizationId };
+    return {
+      sessionId: s.id, userId: s.userId, userProfileId: p.id, gateway, role: p.role, organizationId: p.organizationId,
+      // scope limits only the sales role
+      scopeCities: p.role === 'sales' ? p.scopeCities : [], scopeProducts: p.role === 'sales' ? p.scopeProducts : [],
+    };
   }
 
   async close(sessionId: bigint, userId: bigint) {

@@ -33,6 +33,10 @@ export interface CrudConfig<S extends ZodTypeAny = ZodTypeAny> {
   defaultSort?: { field: string; dir: 'asc' | 'desc' }[];
   /** Fixed condition added to every query (e.g. reference item kind) */
   scope?: Record<string, unknown>;
+  /** Per-request condition for queries (e.g. the caller's organisation on the partner gateway) */
+  scopeFn?: () => Record<string, unknown>;
+  /** Per-request values written on add (e.g. organizationId) */
+  createFn?: () => Record<string, unknown>;
   include?: object;
   /** Business keys unique among non-deleted rows, e.g. [['code']] or [['cityId', 'code']] → 409 CONFLICT. */
   unique?: string[][];
@@ -83,7 +87,7 @@ export class CrudService<S extends ZodTypeAny = ZodTypeAny> {
   }
 
   protected live(extra: object = {}) {
-    return { isDeleted: false, ...(this.cfg.scope ?? {}), ...extra };
+    return { isDeleted: false, ...(this.cfg.scope ?? {}), ...(this.cfg.scopeFn?.() ?? {}), ...extra };
   }
 
   /** Loads the row by id + uid, or throws NOT_FOUND. */
@@ -109,7 +113,7 @@ export class CrudService<S extends ZodTypeAny = ZodTypeAny> {
     await this.checkUnique(data, null);
     await this.cfg.validate?.(data, this.prisma, null);
     if (this.cfg.moveGroup && data.sort === 0) data.sort = await this.nextSort(data);
-    const row = await this.db.create({ data: { ...data, ...(this.cfg.scope ?? {}), createdBy: currentUserId() }, select: { id: true, uid: true } });
+    const row = await this.db.create({ data: { ...data, ...(this.cfg.scope ?? {}), ...(this.cfg.createFn?.() ?? {}), createdBy: currentUserId() }, select: { id: true, uid: true } });
     return { id: row.id, uid: row.uid };
   }
 

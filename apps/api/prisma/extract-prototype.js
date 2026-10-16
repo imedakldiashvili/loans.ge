@@ -13,6 +13,12 @@ const window = { matchMedia: () => ({ matches: false, addEventListener() {} }), 
 const fn = new Function('document', 'window', 'localStorage', 'matchMedia',
   prefix + '\nreturn { orgs: orgsDefault(), productTypes: productsDefault(), refs: refsDefault(), settings: settingsDefault(), admins: adminsDefault(), customers: customersDefault(), staffNames: STAFF_NAMES, staff: orgsDefault().filter(o => o.partner !== false).map((o, i) => ({ org: o.id, list: seedStaff(o.name, i) })), partnerTemplates: PARTNER_TEMPLATES, demoApps: demoAppsDefault() };');
 const data = fn(document, window, window.localStorage, window.matchMedia);
+// partner products / offer cards — the TEMPLATES block of partner.html
+const partner = fs.readFileSync(path.join(__dirname, '../../../prototype/partner.html'), 'utf8');
+const t0 = partner.indexOf('  const C = (id, otype'), t1 = partner.indexOf('  const products = ()');
+if (t0 < 0 || t1 < 0) throw new Error('partner TEMPLATES not found');
+data.partnerTemplates = new Function(partner.slice(t0, t1) + ';return TEMPLATES;')();
+data.extractedAt = Date.now(); // the seed shifts demo timestamps by (seed time − this)
 const out = path.join(__dirname, 'seed-data/prototype.json');
 fs.writeFileSync(out, JSON.stringify(data, null, 2));
 console.log('written', out, Object.fromEntries(Object.entries(data).map(([k, v]) => [k, Array.isArray(v) ? v.length : typeof v])));

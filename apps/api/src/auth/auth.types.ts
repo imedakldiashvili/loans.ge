@@ -19,6 +19,9 @@ export interface AuthInfo {
   /** admin: super | operator | analyst; staff: sales | back; customer: null */
   role: string | null;
   organizationId: bigint | null;
+  /** staff sales scope — empty = everything */
+  scopeCities: bigint[];
+  scopeProducts: bigint[];
 }
 
 export type AuthedRequest = Request & { auth?: AuthInfo };

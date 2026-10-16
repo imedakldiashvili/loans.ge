@@ -12,6 +12,9 @@ const CATEGORY: Record<string, string> = { 'ბანკი': 'bank', 'მიკ
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 const phoneNorm = (p: string) => p.replace(/\D/g, '').replace(/^995/, '');
 const amountNum = (s: string) => Number(String(s).replace(/[^\d.]/g, ''));
+/** Demo timestamps are moved forward so the data always looks recent (prototype data was made relative to extraction time). */
+const SHIFT = data.extractedAt ? Date.now() - data.extractedAt : 0;
+const at = (t: number | string) => new Date(new Date(t).getTime() + SHIFT);
 
 async function clear() {
   // children first
@@ -104,6 +107,25 @@ async function main() {
     orgByName.set(o.name, row.id);
   }
 
+  // ── partner products and offer cards (partner.html TEMPLATES), only the product types the organisation accepts
+  const offerType = Object.fromEntries((await prisma.referenceItem.findMany({ where: { kind: 'offer_type' } })).map((r) => [r.code, r.id]));
+  const OT: Record<string, string> = { ot1: 'standard', ot2: 'special' };
+  const partnerProductId = new Map<string, bigint>(); // "<org prototype id>|p1" → db id
+  for (const o of data.orgs.filter((x: any) => x.partner !== false)) {
+    for (const t of data.partnerTemplates) {
+      if (!(o.products ?? []).includes(t.type) || !productTypeId.has(t.type)) continue;
+      const p = await prisma.partnerProduct.create({
+        data: {
+          organizationId: orgId.get(o.id)!, productTypeId: productTypeId.get(t.type)!, description: t.desc, currencies: t.currencies ?? ['GEL'], isEnable: t.active !== false,
+          cards: {
+            create: t.cards.map(({ id: _id, otype, cur, active, ...values }: any) => ({ offerTypeId: offerType[OT[otype]], currency: cur ?? 'GEL', isEnable: active !== false, values })),
+          },
+        },
+      });
+      partnerProductId.set(`${o.id}|${t.id}`, p.id);
+    }
+  }
+
   // ── statuses and transitions (packages/shared defaults)
   const statusId = new Map<string, bigint>();
   for (const s of DEFAULT_STATUS_CONFIG.statuses) {
@@ -161,8 +183,9 @@ async function main() {
     for (const m of s.list) {
       const u = await userFor(m.email, phoneNorm(m.phone), m.name, true);
       const cities = (m.cities ?? []).map((c: string) => cityId.get(c)).filter(Boolean) as bigint[];
+      const prods = (m.products ?? []).map((p: string) => partnerProductId.get(`${s.org}|${p}`)).filter(Boolean) as bigint[];
       await prisma.userProfile.create({
-        data: { userId: u.id, profileTypeId: pt.staff.id, organizationId: oid, role: m.role, displayName: m.name, scopeCities: cities, isEnable: m.active !== false },
+        data: { userId: u.id, profileTypeId: pt.staff.id, organizationId: oid, role: m.role, displayName: m.name, scopeCities: cities, scopeProducts: prods, isEnable: m.active !== false },
       });
     }
   }
@@ -186,7 +209,7 @@ async function main() {
     const [firstName, ...rest] = a.name.split(' ');
     const app = await prisma.application.create({
       data: {
-        userId, createdBy: userId, createdOn: new Date(a.date), productTypeId: productTypeByName.get(a.loan)!, amount: amountNum(a.amount), currency: 'GEL', source: a.source ?? null,
+        userId, createdBy: userId, createdOn: at(a.date), productTypeId: productTypeByName.get(a.loan)!, amount: amountNum(a.amount), currency: 'GEL', source: a.source ?? null,
         pid: a.pid, firstName, lastName: rest.join(' '), birthDate: a.dob ? new Date(a.dob) : null, phone: phoneNorm(a.phone), email: a.email,
         cityId: cityId.get(a.city) ?? null, districtId: a.district ? districtId.get(`${a.city}|${a.district}`) ?? null : null,
         creditHistory: a.credit, sector: a.sector, incomes: a.incomes ?? Prisma.JsonNull, banks: a.banks ?? Prisma.JsonNull,
@@ -198,21 +221,21 @@ async function main() {
       const ttl = DEFAULT_STATUS_CONFIG.statuses.find((s) => s.key === o.status)?.ttlMinutes;
       const ao = await prisma.applicationOrg.create({
         data: {
-          applicationId: app.id, organizationId: oid, status: o.status, createdOn: new Date(o.sentAt), sentOn: new Date(o.sentAt),
-          statusOn: new Date(o.statusAt), offerOn: o.offerAt ? new Date(o.offerAt) : null,
-          expiresOn: ttl ? new Date(o.statusAt + ttl * 60_000) : null, reasonText: o.reason ?? null,
-          issued: o.status === 'done', issuedOn: o.status === 'done' ? new Date(o.statusAt) : null,
+          applicationId: app.id, organizationId: oid, status: o.status, createdOn: at(o.sentAt), sentOn: at(o.sentAt),
+          statusOn: at(o.statusAt), offerOn: o.offerAt ? at(o.offerAt) : null,
+          expiresOn: ttl ? at(o.statusAt + ttl * 60_000) : null, reasonText: o.reason ?? null,
+          issued: o.status === 'done', issuedOn: o.status === 'done' ? at(o.statusAt) : null,
         },
       });
       if (o.terms) {
         await prisma.offer.create({
-          data: { applicationOrgId: ao.id, createdOn: new Date(o.offerAt ?? o.statusAt), amount: o.terms.amount, currency: 'GEL', months: o.terms.months, rate: o.terms.rate, fee: o.terms.fee ?? 0, insMonth: o.terms.insMonth ?? 0 },
+          data: { applicationOrgId: ao.id, createdOn: at(o.offerAt ?? o.statusAt), amount: o.terms.amount, currency: 'GEL', months: o.terms.months, rate: o.terms.rate, fee: o.terms.fee ?? 0, insMonth: o.terms.insMonth ?? 0 },
         });
       }
       let prev: string | null = null;
       for (const e of o.log ?? []) {
         const actor = /^მომხმარებელი/.test(e.by) ? 'customer' : e.by === 'სისტემა' ? 'system' : 'partner';
-        await prisma.statusEvent.create({ data: { applicationOrgId: ao.id, fromStatus: prev, toStatus: e.status, actor, createdOn: new Date(e.at) } });
+        await prisma.statusEvent.create({ data: { applicationOrgId: ao.id, fromStatus: prev, toStatus: e.status, actor, createdOn: at(e.at) } });
         prev = e.status;
       }
     }
@@ -226,7 +249,7 @@ async function main() {
     count('status', () => prisma.status.count()), count('status_transition', () => prisma.statusTransition.count()),
     count('user', () => prisma.user.count()), count('user_profile', () => prisma.userProfile.count()),
     count('application', () => prisma.application.count()), count('application_org', () => prisma.applicationOrg.count()),
-    count('offer', () => prisma.offer.count()), count('status_event', () => prisma.statusEvent.count()),
+    count('offer', () => prisma.offer.count()), count('partner_product', () => prisma.partnerProduct.count()), count('partner_offer_card', () => prisma.partnerOfferCard.count()), count('status_event', () => prisma.statusEvent.count()),
   ])));
 }
 
