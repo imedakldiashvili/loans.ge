@@ -551,6 +551,9 @@ export function MarkBar({ m }: { m: OfferMarks }) {
   const canSend = m.accepts.length > 0 && !m.sending;
   return (
     <div className="pick-bar">
+      <span className={`pick-n${m.accepts.length ? ' on' : ''}`}>
+        {t('შერჩეულია')} <b>{m.accepts.length}</b>
+      </span>
       <span className="pick-acts">
         <button type="button" className="btn btn-green sm" title={canSend ? undefined : t('აირჩიე მინიმუმ ერთი შეთავაზება')} disabled={!canSend} onClick={() => (m.setError(''), m.setAsking(true))}>
           {t('შედარების დასრულება')}
