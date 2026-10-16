@@ -127,12 +127,6 @@ export function OffersPage() {
                   </td>
                   <td>
                     <OrgStatus o={o} st={st} reason />
-                    {/* the offer(s) it sent — right in the row */}
-                    {o.Offers.map((of) => (
-                      <span key={of.ID} className="sub off-line">
-                        შეთავაზება: <b>{money(of.Amount, of.Currency)}</b> · {of.Months} თვე · {of.Rate}%
-                      </span>
-                    ))}
                   </td>
                   <td className="acts">
                     <button type="button" className="ib" title="ნახვა" onClick={() => setView(o)}>
