@@ -123,9 +123,11 @@ export function Cabinet({ onNew, onCompare }: { onNew: () => void; onCompare: (a
                 <i />
                 {t('დასრულებული')} <span className="rc">{counts ? `(${counts.Done})` : ''}</span>
               </label>
-              <button type="button" className="btn btn-green" onClick={onNew}>
-                {t('+ ახალი განაცხადი')}
-              </button>
+              <div className="cab-new">
+                <button type="button" className="btn btn-green" id="cabNew" onClick={onNew}>
+                  {t('+ ახალი განაცხადი')}
+                </button>
+              </div>
             </nav>
           )}
         </aside>
@@ -441,7 +443,7 @@ export function OfferModal({ a, o, onClose, onChanged }: { a: App; o: AppOrg; on
     </div>
   );
   return (
-    <Modal onClose={onClose} className="view-box" labelledBy="offerOrg">
+    <Modal onClose={onClose} className="view-box" labelledBy="offerOrg" id="offerModal">
       <h3 className="offer-name" id="offerOrg">
         {n(o.Organization)}
       </h3>
@@ -450,7 +452,7 @@ export function OfferModal({ a, o, onClose, onChanged }: { a: App; o: AppOrg; on
           <em className={`status ${stCls(o.Status)}`}>{s.label(o.Status)}</em>
         </div>
       </div>
-      <div className="view-body">
+      <div className="view-body" id="offerBody">
         {o.Offers.map((of) => {
           const c = calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth });
           if (!c) return null;
@@ -482,7 +484,7 @@ export function OfferModal({ a, o, onClose, onChanged }: { a: App; o: AppOrg; on
         {!o.Offers.length && <p style={{ textAlign: 'center' }}>{t('შეთავაზება ჯერ არ არის — გაგზავნილია')} {fmtDate(o.SentOn)}</p>}
       </div>
       {accept && o.Offers.length > 0 && (
-        <div className="cancel-actions">
+        <div className="cancel-actions" id="offerActions">
           {decline && (
             <button type="button" className="btn btn-red" disabled={busy} onClick={() => run(decline)}>
               {t('უარი')}

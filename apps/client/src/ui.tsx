@@ -30,14 +30,14 @@ export function useNow() {
 }
 
 /** Prototype modal: .modal > .modal-box, closes on Escape and on the backdrop. */
-export function Modal({ children, onClose, className = '', labelledBy, noClose }: { children: ReactNode; onClose: () => void; className?: string; labelledBy?: string; noClose?: boolean }) {
+export function Modal({ children, onClose, className = '', labelledBy, noClose, id }: { children: ReactNode; onClose: () => void; className?: string; labelledBy?: string; noClose?: boolean; id?: string }) {
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', k);
     return () => document.removeEventListener('keydown', k);
   }, [onClose]);
   return (
-    <div className="modal" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="modal" id={id} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className={`modal-box ${className}`} role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
         {!noClose && (
           <button type="button" className="modal-x" aria-label="დახურვა" onClick={onClose}>

@@ -157,7 +157,7 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
       <div className="wrap">
         <div className="wz-summary">
           <b>{n(pt)}</b>
-          <b>{money(start.amount, start.currency)}</b>
+          <b id="wzAmount">{money(start.amount, start.currency)}</b>
         </div>
         <div className="wz-head">{nav('head')}</div>
         <div className="wz-body">

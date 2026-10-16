@@ -91,7 +91,7 @@ export function Compare({ app, onBack }: { app: App; onBack: () => void }) {
     <section className="partners compare">
       <div className="wrap">
         <div className="cmp-head">
-          <button type="button" className="btn btn-ghost" onClick={onBack}>
+          <button type="button" className="btn btn-ghost" id="cmpBack" onClick={onBack}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
               <path d="M15 6l-6 6 6 6" />
             </svg>
