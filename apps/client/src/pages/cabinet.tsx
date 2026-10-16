@@ -298,6 +298,13 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                 <div className="cab-det-group" role="button" tabIndex={0} aria-expanded={isOpen} onClick={toggle} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), toggle())}>
                   <em className={`status ${stCls(st)}`}>{s.label(st)}</em>
                   <span className="grp-right">
+                    {/* the offers that came in — side by side */}
+                    {st === 'offer' && (
+                      <button type="button" className="grp-compare" onClick={(e) => (e.stopPropagation(), onCompare())} onKeyDown={(e) => e.stopPropagation()}>
+                        {I.compare}
+                        <span>{t('შედარება')}</span>
+                      </button>
+                    )}
                     <span className="cnt">{list.length}</span>
                     <span className="chev">
                       <Chevron />
