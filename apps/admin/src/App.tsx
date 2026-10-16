@@ -1,22 +1,15 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './auth/auth';
 import { Shell } from './layout/shell';
+import { AppsPage, ComparePage } from './pages/apps';
 import { LoginPage } from './pages/login';
+import { MonitorPage } from './pages/monitor';
+import { OffersPage } from './pages/offers';
 import { OrgsPage } from './pages/orgs';
 import { ProductFieldsPage, ProductsPage } from './pages/products';
 import { RefsPage } from './pages/refs';
 import { SettingsPage } from './pages/settings';
 import { UsersPage } from './pages/users';
-
-/** Pages not built yet show this. */
-const Soon = ({ title }: { title: string }) => (
-  <div className="lp-top">
-    <div className="lp-title">
-      <h2>{title}</h2>
-      <p>მზადდება</p>
-    </div>
-  </div>
-);
 
 export function App() {
   const { me, loading } = useAuth();
@@ -26,9 +19,10 @@ export function App() {
     <Shell>
       <Routes>
         <Route path="/" element={<Navigate to="/monitor" replace />} />
-        <Route path="/monitor" element={<Soon title="მონიტორინგი" />} />
-        <Route path="/apps" element={<Soon title="განაცხადები" />} />
-        <Route path="/offers" element={<Soon title="შეთავაზებები" />} />
+        <Route path="/monitor" element={<MonitorPage />} />
+        <Route path="/apps" element={<AppsPage />} />
+        <Route path="/apps/:id/:uid/compare" element={<ComparePage />} />
+        <Route path="/offers" element={<OffersPage />} />
         <Route path="/orgs" element={<OrgsPage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:id/:uid" element={<ProductFieldsPage />} />

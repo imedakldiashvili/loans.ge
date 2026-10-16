@@ -140,9 +140,19 @@ export class AdminViewsService {
     const tiles = { total: { applications: byApp.size, offers: orgs.length }, progress: { applications: 0, offers: 0 }, complete: { applications: 0, offers: 0 }, canceled: { applications: 0, offers: 0 } };
     for (const sts of byApp.values()) tiles[appCat(sts) as 'progress' | 'complete' | 'canceled'].applications++;
     for (const o of orgs) tiles[catOf(o.status) as 'progress' | 'complete' | 'canceled'].offers++;
-    // breakdown of each tile by current status
-    const breakdown: Record<string, number> = {};
-    for (const o of orgs) breakdown[o.status] = (breakdown[o.status] ?? 0) + 1;
+    // breakdown of each tile by status: applications by their leading status, offers by current status.
+    // Leading status (prototype appStatus/PRI): the most advanced in-progress one; otherwise complete; otherwise the first canceled one.
+    const sortOf = new Map(cats.all.map((x) => [x.key, x.sort]));
+    const lead = (sts: string[]) => {
+      const c = appCat(sts);
+      const mine = sts.filter((x) => catOf(x) === c).sort((a, b) => (sortOf.get(a) ?? 0) - (sortOf.get(b) ?? 0));
+      return c === 'progress' ? mine[mine.length - 1] : mine[0];
+    };
+    const byStatus = new Map<string, { applications: number; offers: number }>();
+    const slot = (k: string) => byStatus.get(k) ?? (byStatus.set(k, { applications: 0, offers: 0 }), byStatus.get(k)!);
+    for (const sts of byApp.values()) slot(lead(sts)).applications++;
+    for (const o of orgs) slot(o.status).offers++;
+    const breakdown = cats.all.filter((x) => byStatus.has(x.key)).map((x) => ({ status: x.key, ...byStatus.get(x.key)! }));
 
     // matrix: statuses each record has passed through (so "sent" is the largest)
     const rows = new Map<bigint, Record<string, number>>();
@@ -158,7 +168,7 @@ export class AdminViewsService {
     }
     const orgInfo = await this.prisma.organization.findMany({ where: { id: { in: [...rows.keys()] } }, ...orgSelect, orderBy: { sort: 'asc' } });
     return {
-      tiles, breakdown: countList(breakdown),
+      tiles, breakdown,
       statuses: cats.all.map((s) => ({ key: s.key, chipLabel: s.chipLabel, category: s.category, color: s.color })),
       matrix: orgInfo.map((o) => ({ organization: o, counts: countList(rows.get(o.id) ?? {}) })),
       totals: countList(totals),
