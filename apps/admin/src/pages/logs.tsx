@@ -190,17 +190,16 @@ function JobLogPage() {
   const [page, setPage] = useState(1);
   const [job, setJob] = useState('');
   const [result, setResult] = useState('');
-  const [onlyChanged, setOnlyChanged] = useState(true);
   const [open, setOpen] = useState<JobRun | null>(null);
-  useEffect(() => setPage(1), [job, result, onlyChanged, size]);
-  const filter = { ...(job ? { Job: job } : {}), ...(result ? { Status: result } : {}), ...(onlyChanged ? { OnlyChanged: true } : {}) };
+  useEffect(() => setPage(1), [job, result, size]);
+  const filter = { ...(job ? { Job: job } : {}), ...(result ? { Status: result } : {}) };
   const q = useFind<JobRun>('jobRun', page, size, { Filter: filter });
   const rows = q.data?.Items ?? [];
 
   return (
     <ListPage
       title="ლოგები · ჯობების ლოგი"
-      desc="ფონური ჯობების ყოველი გაშვება: რამდენი ჩანაწერი შეამოწმა, რა შეცვალა და შეცდომა, თუ იყო. ვადების ჯობი პერიოდულად ამოწმებს სტატუსების ვადას და ვადაგასულს ცვლის."
+      desc="ფონური ჯობების გაშვებები, რომლებმაც რამე შეცვალეს ან შეცდომით დასრულდა (ცარიელი გაშვებები არ იწერება). ვადების ჯობი წუთში ერთხელ ამოწმებს სტატუსების ვადას და ვადაგასულს ცვლის."
       filters={
         <>
           <select aria-label="ჯობი" value={job} onChange={(e) => setJob(e.target.value)}>
@@ -216,9 +215,6 @@ function JobLogPage() {
             <option value="ok">წარმატებული</option>
             <option value="error">შეცდომა</option>
           </select>
-          <label className="chk" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <input type="checkbox" checked={onlyChanged} onChange={(e) => setOnlyChanged(e.target.checked)} /> მხოლოდ ცვლილებით
-          </label>
         </>
       }
       foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} size={size} onPage={setPage} onSize={setSize} />}

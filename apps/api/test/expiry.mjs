@@ -1,5 +1,5 @@
 // Expiry worker: records past their deadline move to the expiry status (system), with a history event;
-// every run is written to job_run, the run that changed something lists the record.
+// runs that changed something are written to job_run (with the record), empty runs are not.
 // Runs against an API started with EXPIRY_WORKER=true, EXPIRY_INTERVAL_SECONDS=1 (see run.mjs).
 import { PrismaClient } from '@prisma/client';
 import { done, ok } from './lib.mjs';
@@ -28,7 +28,7 @@ ok(overdue === 0, 'no overdue in-progress records left', overdue);
 
 // job log
 const runs = await prisma.jobRun.findMany({ where: { job: 'expiry', startedOn: { gte: startedAt } }, orderBy: { startedOn: 'asc' } });
-ok(runs.length >= 2 && runs.every((r) => r.status === 'ok' && r.completedOn && r.instance), 'job_run: every pass recorded (ok, time, instance)', runs.length);
+ok(runs.length >= 1 && runs.every((r) => r.status === 'ok' && r.changed > 0 && r.completedOn && r.instance), 'job_run: only runs with changes are recorded (ok, time, instance)', runs.map((r) => r.changed));
 const hit = runs.find((r) => (r.details ?? []).some((d) => d.ApplicationOrgID === Number(row.id)));
 ok(hit && hit.changed >= 1 && hit.checked >= hit.changed && hit.details.find((d) => d.ApplicationOrgID === Number(row.id)).To === 'expired', 'job_run: the changed record with from / to', hit);
 const admin = await fetch(`${process.argv[2] ?? 'http://localhost:4000'}/admin/jobRun/find/1/5`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
