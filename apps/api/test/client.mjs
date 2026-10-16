@@ -87,20 +87,26 @@ ok((await call('PUT', `/client/application/cancel/${app.ID}/${app.UID}`)).status
 const counts = (await call('POST', '/client/application/find/1/10', { Filter: { State: 'done' } })).json.Data;
 ok(counts.Counts.Active === 1 && counts.Counts.Done === 1 && counts.Items[0].ID === app.ID, 'closed application moves to "done"', counts.Counts);
 
-// ── several offers answered together (the customer ticks them, then accepts / cancels all at once)
-const add3 = await call('POST', '/client/application/add', { ...body, Amount: 8000 });
+// ── the customer's answer: ticked offers are accepted, every other waiting offer is cancelled (one go)
+const add3 = await call('POST', '/client/application/add', { ...body, Amount: 8000, OrganizationIDs: accepting.slice(0, 3).map((o) => o.ID) });
 const app3 = (await call('GET', `/client/application/detail/${add3.json.Data.ID}/${add3.json.Data.UID}`)).json.Data;
-const [p1, p2] = app3.Orgs;
-await prisma.applicationOrg.update({ where: { id: BigInt(p1.ID) }, data: { status: 'offer' } });
+const [p1, p2, p3] = app3.Orgs;
+const makeOffer = async (o) => {
+  await prisma.applicationOrg.update({ where: { id: BigInt(o.ID) }, data: { status: 'offer' } });
+  await prisma.offer.create({ data: { applicationOrgId: BigInt(o.ID), amount: 8000, currency: 'GEL', months: 24, rate: 14 } });
+};
+await makeOffer(p1);
+await makeOffer(p2);
 const respond = (b) => call('PUT', `/client/application/respond/${app3.ID}/${app3.UID}`, b);
-ok((await respond({ Status: 'accepted', ApplicationOrgIDs: [p1.ID, p2.ID] })).status === 409, 'one of them has no offer → 409, nothing changes');
-ok((await prisma.applicationOrg.findUnique({ where: { id: BigInt(p1.ID) } })).status === 'offer', 'all or none: the valid one did not move either');
-ok((await respond({ Status: 'accepted', ApplicationOrgIDs: [] })).status === 400, 'nothing ticked → 400');
-ok((await respond({ Status: 'accepted', ApplicationOrgIDs: [o1.ID] })).status === 400, "another application's record → 400");
-await prisma.applicationOrg.update({ where: { id: BigInt(p2.ID) }, data: { status: 'offer' } });
-const both = await respond({ Status: 'accepted', ApplicationOrgIDs: [p1.ID, p2.ID] });
-const after3 = await prisma.applicationOrg.findMany({ where: { id: { in: [BigInt(p1.ID), BigInt(p2.ID)] } } });
-ok(both.status === 200 && after3.every((x) => x.status === 'accepted' && x.contactsOpenedOn), 'both accepted together, contacts opened for both', both.json);
+ok((await respond({ ApplicationOrgIDs: [] })).status === 400, 'nothing ticked → 400');
+ok((await respond({ ApplicationOrgIDs: [o1.ID] })).status === 400, "another application's record → 400");
+if (p3) ok((await respond({ ApplicationOrgIDs: [p1.ID, p3.ID] })).status === 409, 'an organisation without an offer cannot be ticked → 409');
+ok((await prisma.applicationOrg.findUnique({ where: { id: BigInt(p1.ID) } })).status === 'offer', 'all or none: nothing moved');
+const one = await respond({ ApplicationOrgIDs: [p1.ID] });
+const st3 = Object.fromEntries((await prisma.applicationOrg.findMany({ where: { applicationId: BigInt(app3.ID) } })).map((x) => [Number(x.id), x]));
+ok(one.status === 200 && st3[p1.ID].status === 'accepted' && st3[p1.ID].contactsOpenedOn, 'ticked → accepted, contacts opened', one.json);
+ok(st3[p2.ID].status === 'declined' && !st3[p2.ID].contactsOpenedOn, 'the other offer → cancelled by the customer, contacts stay closed');
+if (p3) ok(st3[p3.ID].status === 'sent', 'organisation without an offer yet is not touched');
 
 // ── profile
 const edit = await call('PUT', `/client/profile/edit/${me.Profile.ID}/${me.Profile.UID}`, { UserName: 'tester', Pid: '01001012345', FirstName: 'ტესტი', LastName: 'კლიენტი', BirthDate: '1990-05-01', CityID: Number(city.id), DistrictID: null, Village: null });

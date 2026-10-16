@@ -50,7 +50,7 @@ const addSchema = z.object({
 
 const findBody = z.preprocess((v) => v ?? {}, z.object({ filter: z.preprocess((v) => v ?? {}, z.object({ state: z.enum(['active', 'done']).default('active') })) }));
 const changeBody = z.object({ status: z.string().min(1) });
-const respondBody = z.object({ status: z.string().min(1), applicationOrgIds: z.array(z.coerce.bigint()).min(1, 'აირჩიე მინიმუმ ერთი შეთავაზება') });
+const respondBody = z.object({ applicationOrgIds: z.array(z.coerce.bigint()).min(1, 'აირჩიე მინიმუმ ერთი შეთავაზება') });
 
 const orgSelect = { select: { id: true, uid: true, nameKa: true, nameEn: true, category: true, color: true, logoPath: true } };
 const include = {
@@ -236,24 +236,29 @@ export class ClientApplicationService {
   }
 
   /**
-   * The customer's answer to several offers at once: the ticked organisations' records move to one status
-   * (accept / decline) together — all or none (every transition must be allowed).
+   * The customer's answer to the offers: the ticked organisations are accepted, every other offer still waiting for
+   * the customer's answer is cancelled — in one go (all or none). Organisations without an offer yet are not touched.
    */
   async respond(id: number, uid: string, body: unknown) {
     const d = parse(respondBody, body);
     const row = await this.load(id, uid);
+    const m = await this.statuses.machine();
+    // waiting for the customer = an offer is there and the customer has a non-cancelling next step (accept)
+    const acceptOf = (o: { status: string }) => m.nextStatuses(o.status, 'customer').find((k) => m.categoryOf(k) !== 'canceled');
+    const cancelOf = (o: { status: string }) => m.nextStatuses(o.status, 'customer').find((k) => m.categoryOf(k) === 'canceled');
+    const waiting = row.orgs.filter((o) => o.offers.length && acceptOf(o));
     const ids = [...new Set(d.applicationOrgIds.map(String))];
     const picked = row.orgs.filter((o) => ids.includes(String(o.id)));
     if (picked.length !== ids.length) throw validation([{ field: 'ApplicationOrgIDs', message: 'ორგანიზაცია ამ განაცხადს არ ეკუთვნის' }]);
-    const m = await this.statuses.machine();
-    const bad = picked.filter((o) => !m.canTransition(o.status, d.status, 'customer'));
-    if (bad.length) throw conflict(`ამ სტატუსზე გადასვლა დაუშვებელია: ${bad.map((o) => o.organization.nameKa).join(', ')}`);
+    const bad = picked.filter((o) => !waiting.includes(o));
+    if (bad.length) throw conflict(`ეს შეთავაზება ვერ დადასტურდება: ${bad.map((o) => o.organization.nameKa).join(', ')}`);
+    const moves = waiting.map((o) => ({ o, to: picked.includes(o) ? acceptOf(o) : cancelOf(o) })).filter((x): x is { o: (typeof waiting)[number]; to: string } => !!x.to);
     const now = new Date();
     const by = me();
     await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      for (const o of picked) await this.move(tx, o, d.status, now, by);
+      for (const { o, to } of moves) await this.move(tx, o, to, now, by);
     });
-    for (const o of picked) this.announce(row, o, d.status);
+    for (const { o, to } of moves) this.announce(row, o, to);
     return { id: row.id, uid: row.uid };
   }
 
@@ -292,7 +297,7 @@ export class ClientApplicationController {
     return this.svc.cancel(id, uid);
   }
 
-  /** Answer several offers together: { Status: accepted | declined, ApplicationOrgIDs: [...] }. */
+  /** Answer the offers: { ApplicationOrgIDs: [...] } are accepted, the other waiting offers cancelled. */
   @Put('respond/:id/:uid')
   respond(@Param('id', ParseIntPipe) id: number, @Param('uid') uid: string, @Body() body: unknown) {
     return this.svc.respond(id, uid, body);

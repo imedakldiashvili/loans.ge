@@ -5,10 +5,10 @@ import { useState } from 'react';
 import { api, ApiError } from '../api';
 import { orgColor, orgMark } from '../session';
 import { money } from '../ui';
-import { App, AppOrg, useStatus } from './cabinet';
+import { App, AppOrg, ConfirmOffers, useStatus } from './cabinet';
 
 // Offers side by side (prototype #compare): one column per offer, best value highlighted,
-// filter by state (to confirm / accepted / declined); offers waiting for an answer are ticked and accepted / cancelled together.
+// filter by state (to confirm / accepted / declined); the ticked offers are accepted, the other waiting offers cancelled.
 
 const ICONS = {
   offer: (
@@ -62,6 +62,7 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
   const [picked, setPicked] = useState<Set<number>>(new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [asking, setAsking] = useState(false);
   const a = q.data;
   if (!a) return <section className="partners compare"><div className="wrap"><p className="cmp-empty">{t(q.isError ? 'შეცდომა' : 'იტვირთება…')}</p></div></section>;
   // only organisations that sent an offer can be compared; one column per offer
@@ -79,14 +80,13 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
     else n.add(id);
     return n;
   });
-  const answer = async (kind: 'accept' | 'cancel') => {
-    const to = kind === 'accept' ? s.acceptOf(chosen[0]) : s.cancelOf(chosen[0]);
-    if (!to) return;
+  const answer = async () => {
     setBusy(true);
     setError('');
     try {
-      await api('PUT', `/client/application/respond/${a.ID}/${a.UID}`, { Status: to, ApplicationOrgIDs: chosen.map((o) => o.ID) });
+      await api('PUT', `/client/application/respond/${a.ID}/${a.UID}`, { ApplicationOrgIDs: chosen.map((o) => o.ID) });
       setPicked(new Set());
+      setAsking(false);
       await q.refetch();
       qc.invalidateQueries({ queryKey: ['apps'] });
     } catch (e) {
@@ -154,16 +154,13 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
             </label>
             <span className="pick-n">{chosen.length ? `${t('მონიშნულია')} ${chosen.length}` : t('მონიშნე შეთავაზებები')}</span>
             <span className="pick-acts">
-              <button type="button" className="btn btn-red sm" disabled={!chosen.length || busy} onClick={() => answer('cancel')}>
-                {t('გაუქმება')} {chosen.length ? `(${chosen.length})` : ''}
-              </button>
-              <button type="button" className="btn btn-green sm" disabled={!chosen.length || busy} onClick={() => answer('accept')}>
+              <button type="button" className="btn btn-green sm" disabled={!chosen.length || busy} onClick={() => (setError(''), setAsking(true))}>
                 {t('დადასტურება')} {chosen.length ? `(${chosen.length})` : ''}
               </button>
             </span>
-            {error && <p className="form-err" style={{ color: 'var(--orange)', margin: 0 }}>{error}</p>}
           </div>
         )}
+        {asking && <ConfirmOffers accept={chosen} cancel={answerable.filter((o) => !picked.has(o.ID))} busy={busy} error={error} onYes={answer} onClose={() => setAsking(false)} />}
         {cols.length ? (
           <div className="cmp-wrap">
             <table className={`cmp${dense ? ' dense' : ''}`} style={{ minWidth: (dense ? 227 : 252) + cols.length * (dense ? 130 : 160) }}>

@@ -266,5 +266,10 @@
  "მონიშვნის მოხსნა": "Unselect",
  "ყველა": "All",
  "მონიშნულია": "Selected:",
- "მონიშნე შეთავაზებები": "Select offers"
+ "მონიშნე შეთავაზებები": "Select offers",
+ "შეთავაზებების დადასტურება": "Confirm offers",
+ "დადასტურდება": "Will be confirmed",
+ "გაუქმდება": "Will be cancelled",
+ "დადასტურებულ ორგანიზაციებს გაეგზავნება შენი საკონტაქტო ინფორმაცია. ამ მოქმედების გაუქმება ვერ მოხერხდება.": "The confirmed organisations will receive your contact details. This cannot be undone.",
+ "დახურვა": "Close"
 }
