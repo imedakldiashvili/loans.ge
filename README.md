@@ -25,7 +25,7 @@ npm run db:seed -w @loans/api      # demo data from the prototypes
 npm run dev:api     # http://localhost:4000/public/system/health
 npm run dev:admin   # http://localhost:5173 — admin console (API must be running)
 npm run dev:otp     # http://localhost:5174 — OTP viewer (test environments only)
-npm run test:api   # reseeds the DB, starts the API, runs all API test suites
+npm run test:api    # own database (loans_test): migrate + seed, start the API, run all API test suites
 ```
 
 Copy `.env.example` to `.env` to change ports or providers.

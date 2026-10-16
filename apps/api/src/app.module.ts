@@ -11,9 +11,10 @@ import { DevOutboxModule } from './dev/dev-outbox';
 import { HealthController } from './health/health.controller';
 import { NotifyModule } from './notify/notify.module';
 import { PartnerModule } from './partner/partner.module';
+import { WorkerModule } from './worker/expiry';
 
 @Module({
-  imports: [PrismaModule, NotifyModule, DevOutboxModule.register(), AuthModule, AdminReferencesModule, AdminUsersModule, AdminViewsModule, PartnerModule],
+  imports: [PrismaModule, NotifyModule, DevOutboxModule.register(), AuthModule, AdminReferencesModule, AdminUsersModule, AdminViewsModule, PartnerModule, WorkerModule],
   controllers: [HealthController],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: EnvelopeInterceptor },
