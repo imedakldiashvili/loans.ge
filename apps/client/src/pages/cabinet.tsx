@@ -319,7 +319,15 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                       return (
                       <div key={o.ID} className="cab-det-row">
                         <OrgLogo org={o.Organization} />
-                        <span className="nm">{n(o.Organization)}</span>
+                        <span className="nm-wrap">
+                          <span className="nm">{n(o.Organization)}</span>
+                          {/* its offer(s) — right in the row */}
+                          {o.Offers.map((of) => (
+                            <span key={of.ID} className="of-terms">
+                              {money(of.Amount, of.Currency)} · {t(`${of.Months} თვე`)} · {of.Rate}%
+                            </span>
+                          ))}
+                        </span>
                         <div className="cab-acts">
                           <Countdown o={o} />
                           <button type="button" className="cab-ico o-ico" title={t('ნახვა')} aria-label={t('ნახვა')} onClick={() => setOffer(o)}>
