@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { z } from 'zod';
 import { CrudConfig, crudModuleParts } from '../core/crud';
 import { conflict, validation } from '../core/errors';
+import { FileStore } from '../core/files';
+import { OrgLogoController, OrgLogoService } from './org-logo';
 
 // Admin reference data and configuration — standard CRUD for each table (STANDARDS.md §2), plus `move` (↑↓) where rows are ordered.
 // Access: admin profiles only (AuthGuard); analyst — read, operator — organisations, super — everything.
@@ -173,7 +175,7 @@ const configs: CrudConfig[] = [
 const parts = configs.map(crudModuleParts);
 
 @Module({
-  controllers: parts.map((p) => p.controller),
-  providers: parts.map((p) => p.service),
+  controllers: [...parts.map((p) => p.controller), OrgLogoController],
+  providers: [...parts.map((p) => p.service), OrgLogoService, FileStore],
 })
 export class AdminReferencesModule {}

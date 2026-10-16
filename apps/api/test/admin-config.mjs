@@ -1,6 +1,6 @@
 // Group 1 — admin configuration modules: productTypeField, status, statusTransition, setting, organizationProductType, move.
 // Usage: node test/admin-config.mjs [baseUrl] [apiLogFile]
-import { call, done, login, ok } from './lib.mjs';
+import { call, done, login, ok, getCookie, B } from './lib.mjs';
 
 await login('admin', '555000001'); // super admin by phone (email login is used by smoke.mjs — resend interval is per target)
 
@@ -87,5 +87,30 @@ await call('PUT', `/admin/setting/edit/${otp.ID}/${otp.UID}`, { Key: 'otp', Valu
 const org = (await find('organization', { Filter: { Search: 'ბანკი A' } })).json.Data.Items[0];
 const opt = (await find('organizationProductType', { Filter: { OrganizationID: org.ID } })).json.Data.Items;
 ok(opt.length === 7 && opt[0].ProductType.NameKa, 'organizationProductType: by organisation with product type');
+
+
+// ── organisation logo: upload (checked by content) → served at /fs/…, replace, remove
+const upload = async (name, bytes) => {
+  const fd = new FormData();
+  fd.append('File', new Blob([bytes]), name);
+  const r = await fetch(`${B}/admin/organization/uploadLogo/${org.ID}/${org.UID}`, { method: 'POST', headers: { Cookie: getCookie('admin') }, body: fd });
+  return { status: r.status, json: await r.json().catch(() => null) };
+};
+// 1×1 transparent PNG
+const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
+ok((await upload('x.png', Buffer.from('not an image'))).status === 400, 'logo: not an image → 400');
+ok((await upload('x.svg', Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'))).status === 400, 'logo: SVG with a script → 400');
+ok((await upload('big.png', Buffer.concat([png, Buffer.alloc(600 * 1024)]))).status === 400, 'logo: over 512 KB → 400');
+const up1 = await upload('logo.png', png);
+const key1 = up1.json?.Data?.LogoPath;
+ok(up1.status === 200 && /^org\/.+\.png$/.test(key1), 'logo: PNG uploaded, key org/….png', up1.json);
+const f1 = await fetch(`${B}/fs/${key1}`);
+ok(f1.status === 200 && f1.headers.get('content-type') === 'image/png' && /immutable/.test(f1.headers.get('cache-control') ?? '') && /sandbox/.test(f1.headers.get('content-security-policy') ?? ''), 'logo: served at /fs/ (image/png, cached, sandboxed)');
+ok((await find('organization', { Filter: { Search: 'ბანკი A' } })).json.Data.Items[0].LogoPath === key1, 'logo: organisation has the key');
+const up2 = await upload('logo.svg', Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5"/></svg>'));
+const key2 = up2.json?.Data?.LogoPath;
+ok(up2.status === 200 && key2.endsWith('.svg') && (await fetch(`${B}/fs/${key1}`)).status === 404, 'logo: replaced by SVG, the old file is gone', up2.json);
+ok((await call('PUT', `/admin/organization/removeLogo/${org.ID}/${org.UID}`)).status === 200 && (await fetch(`${B}/fs/${key2}`)).status === 404, 'logo: removed (file too)');
+ok((await fetch(`${B}/fs/../../.env`)).status === 404, 'files: no way out of the storage folder');
 
 done();
