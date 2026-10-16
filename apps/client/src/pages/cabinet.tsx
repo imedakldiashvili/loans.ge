@@ -265,9 +265,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           </span>
         </button>
         <div className="cab-acts">
-          <button type="button" className="cab-ico cab-compare good" aria-label={t('შეთავაზებები')} title={t('შეთავაზებები')} onClick={onCompare}>
-            {I.compare}
-          </button>
           <button type="button" className="cab-ico cab-view" aria-label={t('ნახვა')} title={t('ნახვა')} onClick={() => setView(true)}>
             {I.eye}
           </button>
