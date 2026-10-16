@@ -53,12 +53,14 @@ const FILTERS: [Kind, string][] = [
 /** Which column of the filter a record belongs to: waiting for an answer / accepted (or issued) / everything closed. */
 const kindOf = (o: AppOrg): Kind => (o.Status === 'offer' ? 'offer' : ['accepted', 'done'].includes(o.Status) ? 'accepted' : 'declined');
 
-export function Compare({ app, onBack }: { app: App; onBack: () => void }) {
+/** Opened at /cabinet/compare/{id}/{uid} — loads the application itself (a reload or a shared link works). */
+export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: () => void }) {
   const qc = useQueryClient();
   const s = useStatus();
-  const q = useQuery({ queryKey: ['app', app.ID], queryFn: () => api<App>('GET', `/client/application/detail/${app.ID}/${app.UID}`), initialData: app });
-  const a = q.data;
+  const q = useQuery({ queryKey: ['app', id], queryFn: () => api<App>('GET', `/client/application/detail/${id}/${uid}`) });
   const [filter, setFilter] = useState<Kind[]>(['offer', 'accepted', 'declined']);
+  const a = q.data;
+  if (!a) return <section className="partners compare"><div className="wrap"><p className="cmp-empty">{t(q.isError ? 'შეცდომა' : 'იტვირთება…')}</p></div></section>;
   // only organisations that sent an offer can be compared; one column per offer
   const withOffers = a.Orgs.filter((o) => o.Offers.length);
   const cols = FILTERS.flatMap(([k]) => (filter.includes(k) ? withOffers.filter((o) => kindOf(o) === k) : [])).flatMap((o) =>

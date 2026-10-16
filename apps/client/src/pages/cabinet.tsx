@@ -1,7 +1,8 @@
 import { lang, n, refName, t, up } from '../i18n';
 import { calcOffer } from '@loans/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, ApiError, Page, Ref } from '../api';
 import { OtpModal } from '../auth';
 import { orgColor, orgMark, StatusRow, useRefs, useSession } from '../session';
@@ -56,10 +57,7 @@ type Found = Page<App> & { Counts: { Active: number; Done: number } };
 
 /** Order of the status groups in a card: what needs an answer first, closed ones last. */
 const GROUP_ORDER = ['offer', 'interested', 'sent', 'accepted', 'done', 'declined', 'cancelled', 'expired'];
-const OPEN_GROUPS = ['offer', 'interested'];
-/** Which organisation's status speaks for the whole application: the furthest along first. */
-const LEAD_ORDER = ['done', 'accepted', 'offer', 'interested', 'sent', 'cancelled', 'declined', 'expired'];
-const PAGE_SIZE = 5;
+const OPEN_GROUPS = ['offer', 'interested'];const PAGE_SIZE = 5;
 /** CSS of the prototype has no class for "expired" — it looks like "cancelled". */
 export const stCls = (k: string) => (k === 'expired' ? 'cancelled' : k);
 const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
@@ -77,19 +75,26 @@ export const useStatus = () => {
 
 export const changeOrg = (o: AppOrg, status: string) => api<Ref>('PUT', `/client/applicationOrg/changeStatus/${o.ID}/${o.UID}`, { Status: status });
 
-export function Cabinet({ onNew, onCompare }: { onNew: () => void; onCompare: (a: App) => void }) {
-  const [view, setView] = useState<'active' | 'done' | 'profile'>('active');
+type CabView = 'active' | 'done' | 'profile';
+/** The view comes from the address: /cabinet, /cabinet/closed, /cabinet/profile. */
+const PATHS: Record<CabView, string> = { active: '/cabinet', done: '/cabinet/closed', profile: '/cabinet/profile' };
+
+export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
+  const nav = useNavigate();
   const [page, setPage] = useState(1);
+  const [lastList, setLastList] = useState<'active' | 'done'>(view === 'done' ? 'done' : 'active');
+  useEffect(() => {
+    setPage(1);
+    if (view !== 'profile') setLastList(view);
+  }, [view]);
   const state = view === 'profile' ? 'active' : view;
   const size = state === 'done' ? PAGE_SIZE : 50;
   const q = useQuery({
     queryKey: ['apps', state, page],
     queryFn: () => api<Found>('POST', `/client/application/find/${page}/${size}`, { Filter: { State: state } }),
   });
-  const go = (v: typeof view) => {
-    setView(v);
-    setPage(1);
-  };
+  const go = (v: CabView) => nav(PATHS[v]);
+  const onCompare = (a: App) => nav(`/cabinet/compare/${a.ID}/${a.UID}`);
   const counts = q.data?.Counts;
 
   return (
@@ -97,7 +102,7 @@ export function Cabinet({ onNew, onCompare }: { onNew: () => void; onCompare: (a
       <div className="wrap cab-layout">
         <aside className="cab-side">
           <nav className="cab-nav cab-nav-top">
-            <button type="button" className={view !== 'profile' ? 'on' : ''} onClick={() => go(view === 'profile' ? 'active' : view)}>
+            <button type="button" className={view !== 'profile' ? 'on' : ''} onClick={() => go(view === 'profile' ? lastList : view)}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
                 <path d="M14 3v6h6M9 13h6M9 17h4" />
@@ -221,11 +226,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
   const [offer, setOffer] = useState<AppOrg | null>(null);
   const [cancel, setCancel] = useState(false);
   const refresh = () => qc.invalidateQueries({ queryKey: ['apps'] });
-  const isClosed = a.Orgs.every((o) => !o.Next.length);
-  // the application's status = the furthest one among the organisations (prototype appStatus); its nearest deadline
-  const leadKey = LEAD_ORDER.find((k) => a.Orgs.some((o) => o.Status === k));
-  const lead = a.Orgs.filter((o) => o.Status === leadKey).sort((x, y) => (x.ExpiresOn ?? '9').localeCompare(y.ExpiresOn ?? '9'))[0];
-  const declineOrg = async (o: AppOrg) => {
+  const isClosed = a.Orgs.every((o) => !o.Next.length);  const declineOrg = async (o: AppOrg) => {
     const to = s.cancelOf(o);
     if (!to) return;
     try {
@@ -254,12 +255,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           </span>
           <span className="right">
             <i className="amt">{money(a.Amount, a.Currency)}</i>
-            {lead && (
-              <span className="amt-line">
-                <Countdown o={lead} />
-                <span className={`st-text ${stCls(lead.Status)}`}>{s.label(lead.Status)}</span>
-              </span>
-            )}
           </span>
         </button>
         <div className="cab-acts">

@@ -1,21 +1,27 @@
-import { n, t, useLang } from './i18n';
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
+import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAskLogin } from './auth';
 import { Bell } from './bell';
+import { n, t, useLang } from './i18n';
 import { useLiveEvents } from './live';
 import logo from './logo.png';
-import { App as Application, Cabinet } from './pages/cabinet';
+import { Cabinet } from './pages/cabinet';
 import { Compare } from './pages/compare';
 import { AboutPage, Home, PartnersPage, QuickForm, Start, TermsPage } from './pages/home';
 import { Sent, Wizard } from './pages/wizard';
 import { useRefs, useSession } from './session';
 import { Modal } from './ui';
 
-// Customer site (prototype loans-ge.html): home → wizard → cabinet; compare, partners, terms, about.
-// One page app; the body class (in-wizard / in-cabinet / in-partners) drives the prototype CSS.
+// Customer site (prototype loans-ge.html). Every part has its own address:
+//   /                     home (?loan={productTypeId} preselects the loan)
+//   /apply                the application wizard (started from the home page)
+//   /cabinet              current applications · /cabinet/closed · /cabinet/profile
+//   /cabinet/compare/{id}/{uid}   offers side by side
+//   /partners · /terms · /about
+// The body class (in-wizard / in-cabinet / in-partners) drives the prototype CSS.
 
-type View = 'home' | 'wizard' | 'cabinet' | 'compare' | 'partners' | 'terms' | 'about';
-const BODY: Partial<Record<View, string>> = { wizard: 'in-wizard', cabinet: 'in-cabinet', compare: 'in-partners', partners: 'in-partners', terms: 'in-partners', about: 'in-partners' };
+const bodyClass = (path: string) =>
+  path.startsWith('/apply') ? 'in-wizard' : path.startsWith('/cabinet/compare') ? 'in-partners' : path.startsWith('/cabinet') ? 'in-cabinet' : ['/partners', '/terms', '/about'].includes(path) ? 'in-partners' : null;
 
 function useTheme(): [boolean, () => void] {
   const [dark, setDark] = useState(() => {
@@ -37,6 +43,30 @@ function useTheme(): [boolean, () => void] {
   return [dark, () => setDark((d) => !d)];
 }
 
+/** The cabinet needs a login: asks for it, back to the home page if the dialog is closed. */
+function RequireLogin({ children }: { children: ReactNode }) {
+  const { me, loading } = useSession();
+  const askLogin = useAskLogin();
+  const nav = useNavigate();
+  useEffect(() => {
+    if (!loading && !me) void askLogin().then((ok) => !ok && nav('/', { replace: true }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, me]);
+  return me ? <>{children}</> : null;
+}
+
+function ComparePage() {
+  const { id, uid } = useParams();
+  const nav = useNavigate();
+  return <Compare id={Number(id)} uid={uid ?? ''} onBack={() => nav('/cabinet')} />;
+}
+
+function HomePage({ onStart }: { onStart: (s: Start) => void }) {
+  const { search } = useLocation();
+  const loan = Number(new URLSearchParams(search).get('loan')) || undefined;
+  return <Home onStart={onStart} purpose={loan} />;
+}
+
 export function App() {
   const { me, loading, logout } = useSession();
   // partners' answers arrive live: the cabinet and the comparison reload when an event comes
@@ -45,47 +75,42 @@ export function App() {
   const { toggle: toggleLang } = useLang(); // re-renders the whole site on a language change
   const { productTypes } = useRefs();
   const [, toggleTheme] = useTheme();
-  const [view, setView] = useState<View>('home');
+  const nav = useNavigate();
+  const { pathname } = useLocation();
   const [start, setStart] = useState<Start | null>(null);
-  const [compare, setCompare] = useState<Application | null>(null);
   const [sent, setSent] = useState<Sent | null>(null);
   const [newApp, setNewApp] = useState(false);
-  const [purpose, setPurpose] = useState<number | undefined>();
 
   useEffect(() => {
     document.body.classList.remove('in-wizard', 'in-cabinet', 'in-partners');
-    const c = BODY[view];
+    const c = bodyClass(pathname);
     if (c) document.body.classList.add(c);
     window.scrollTo({ top: 0 });
-  }, [view]);
-  // logged out while in the cabinet → home
-  useEffect(() => {
-    if (!loading && !me && (view === 'cabinet' || view === 'compare')) setView('home');
-  }, [me, loading, view]);
+  }, [pathname]);
 
   const begin = (s: Start) => {
     setNewApp(false);
     setStart(s);
-    setView('wizard');
+    nav('/apply');
   };
   const openCabinet = async () => {
-    if (me || (await askLogin())) setView('cabinet');
+    if (me || (await askLogin())) nav('/cabinet');
   };
-  const home = (e?: { preventDefault: () => void }) => {
-    e?.preventDefault();
-    setView('home');
+  const toCabinet = () => {
+    setSent(null);
+    nav('/cabinet');
   };
 
   return (
     <>
       <header id="hdr">
         <div className="wrap nav">
-          <a className="logo" href="#" onClick={home}>
+          <Link className="logo" to="/">
             <img src={logo} alt="" width={40} height={37} />
             <b>
               Loans<span>.ge</span>
             </b>
-          </a>
+          </Link>
           <button className="theme" type="button" aria-label={t('თემის გადართვა')} onClick={toggleTheme}>
             <svg className="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <circle cx="12" cy="12" r="4" />
@@ -102,10 +127,10 @@ export function App() {
           {!loading && !me && (
             <a
               className="btn btn-green login"
-              href="#"
+              href="/cabinet"
               onClick={(e) => {
                 e.preventDefault();
-                openCabinet();
+                void openCabinet();
               }}
             >
               {t('შესვლა')}
@@ -113,13 +138,13 @@ export function App() {
           )}
           {me && (
             <>
-              <Bell gateway="client" onOpen={() => setView('cabinet')} />
-              <button type="button" className="theme userbtn" aria-label={t('კაბინეტი')} title={me.User.UserName || me.User.Email?.split('@')[0] || t('კაბინეტი')} onClick={() => setView('cabinet')}>
+              <Bell gateway="client" onOpen={() => nav('/cabinet')} />
+              <Link className="theme userbtn" to="/cabinet" aria-label={t('კაბინეტი')} title={me.User.UserName || me.User.Email?.split('@')[0] || t('კაბინეტი')}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="8" r="4" />
                   <path d="M4 21a8 8 0 0 1 16 0" />
                 </svg>
-              </button>
+              </Link>
               <button
                 type="button"
                 className="theme logout"
@@ -127,7 +152,7 @@ export function App() {
                 title={t('გასვლა')}
                 onClick={async () => {
                   await logout();
-                  setView('home');
+                  nav('/');
                 }}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -140,13 +165,19 @@ export function App() {
         </div>
       </header>
 
-      {view === 'home' && <Home onStart={begin} purpose={purpose} />}
-      {view === 'wizard' && start && <Wizard key={`${start.productType.ID}-${start.amount}`} start={start} onClose={() => setView('home')} onSent={setSent} />}
-      {view === 'cabinet' && me && <Cabinet onNew={() => setNewApp(true)} onCompare={(a) => (setCompare(a), setView('compare'))} />}
-      {view === 'compare' && compare && <Compare app={compare} onBack={() => setView('cabinet')} />}
-      {view === 'partners' && <PartnersPage />}
-      {view === 'terms' && <TermsPage />}
-      {view === 'about' && <AboutPage />}
+      <Routes>
+        <Route path="/" element={<HomePage onStart={begin} />} />
+        {/* the wizard starts from the home page (loan, amount, currency) — opened directly it goes back there */}
+        <Route path="/apply" element={start ? <Wizard key={`${start.productType.ID}-${start.amount}`} start={start} onClose={() => nav('/')} onSent={setSent} /> : <Navigate to="/" replace />} />
+        <Route path="/cabinet" element={<RequireLogin><Cabinet view="active" onNew={() => setNewApp(true)} /></RequireLogin>} />
+        <Route path="/cabinet/closed" element={<RequireLogin><Cabinet view="done" onNew={() => setNewApp(true)} /></RequireLogin>} />
+        <Route path="/cabinet/profile" element={<RequireLogin><Cabinet view="profile" onNew={() => setNewApp(true)} /></RequireLogin>} />
+        <Route path="/cabinet/compare/:id/:uid" element={<RequireLogin><ComparePage /></RequireLogin>} />
+        <Route path="/partners" element={<PartnersPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
       {newApp && (
         <Modal onClose={() => setNewApp(false)} className="newapp-box" labelledBy="newAppTitle">
@@ -155,14 +186,14 @@ export function App() {
         </Modal>
       )}
       {sent && (
-        <Modal onClose={() => (setSent(null), setView('cabinet'))} noClose labelledBy="doneTitle">
+        <Modal onClose={toCabinet} noClose labelledBy="doneTitle">
           <div className="done-ico">✓</div>
           <h3 id="doneTitle">{t('განაცხადი გაიგზავნა')}</h3>
           <p className="done-sum">
             <b>{sent.amount}</b> · <span>{sent.loan}</span> · <b>{sent.orgs}</b> <span>{t('ორგანიზაცია')}</span>
           </p>
           <p>{t('შეთავაზებებს მიიღებ კაბინეტში — ორგანიზაციების პასუხები იქ გამოჩნდება.')}</p>
-          <button type="button" className="btn btn-green full" onClick={() => (setSent(null), setView('cabinet'))}>
+          <button type="button" className="btn btn-green full" onClick={toCabinet}>
             {t('კაბინეტში გადასვლა')}
           </button>
         </Modal>
@@ -176,16 +207,7 @@ export function App() {
               <ul>
                 {productTypes.map((p) => (
                   <li key={p.ID}>
-                    <a
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setPurpose(p.ID);
-                        setView('home');
-                      }}
-                    >
-                      {n(p)}
-                    </a>
+                    <Link to={`/?loan=${p.ID}`}>{n(p)}</Link>
                   </li>
                 ))}
               </ul>
@@ -203,31 +225,16 @@ export function App() {
             </div>
           </div>
           <div className="foot-bottom">
-            <a className="logo" href="#" onClick={home}>
+            <Link className="logo" to="/">
               <img src={logo} alt="" width={40} height={37} />
               <b>
                 Loans<span>.ge</span>
               </b>
-            </a>
+            </Link>
             <nav className="foot-links">
-              {(
-                [
-                  ['terms', 'საიტის წესები'],
-                  ['about', 'ჩვენს შესახებ'],
-                  ['partners', 'პარტნიორები'],
-                ] as const
-              ).map(([v, label]) => (
-                <a
-                  key={v}
-                  href={`#${v}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setView(v);
-                  }}
-                >
-                  {t(label)}
-                </a>
-              ))}
+              <Link to="/terms">{t('საიტის წესები')}</Link>
+              <Link to="/about">{t('ჩვენს შესახებ')}</Link>
+              <Link to="/partners">{t('პარტნიორები')}</Link>
             </nav>
             <span className="foot-copy">© 2026 loans.ge</span>
           </div>
