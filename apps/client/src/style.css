@@ -640,13 +640,6 @@
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
 
-  /* wide screens: menu on the left, the applications / profile on the right */
-  @media (min-width: 901px) {
-    .cab-layout { grid-template-columns: 260px minmax(0, 1fr); gap: 24px; }
-    .cab-side { position: sticky; top: 88px; }
-    .cab-nav-sub { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 2px; padding: 4px 0 0; }
-    .cab-nav-sub .cab-radio { justify-content: flex-start; }
-  }
 
   /* current / closed + new application — on a white panel, like the cards */
   .cab-nav.cab-nav-sub { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
