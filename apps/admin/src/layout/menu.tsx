@@ -28,7 +28,7 @@ export interface MenuGroup {
   items: MenuItem[];
 }
 
-// Four collapsible groups; only one is open at a time (prototype MENU).
+// Collapsible groups; only one is open at a time (prototype MENU).
 export const MENU: MenuGroup[] = [
   {
     key: 'main', label: 'მთავარი', icon: Icon.main,
@@ -55,7 +55,13 @@ export const MENU: MenuGroup[] = [
       { path: '/settings/statuses', label: 'სტატუსები', count: 'status' },
       { path: '/settings/transitions', label: 'გადასვლები', count: 'statusTransition' },
       { path: '/settings/otp', label: 'OTP პარამეტრები' },
-      { path: '/settings/log', label: 'ქმედებების ლოგი' },
+    ],
+  },
+  {
+    key: 'logs', label: 'ლოგები', icon: Icon.list,
+    items: [
+      { path: '/logs/actions', label: 'ქმედებების ლოგი' },
+      { path: '/logs/jobs', label: 'ჯობების ლოგი' },
     ],
   },
 ];

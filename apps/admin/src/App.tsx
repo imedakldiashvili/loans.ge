@@ -3,6 +3,7 @@ import { useAuth } from './auth/auth';
 import { Shell } from './layout/shell';
 import { AppsPage, ComparePage } from './pages/apps';
 import { LoginPage } from './pages/login';
+import { LogsPage } from './pages/logs';
 import { MonitorPage } from './pages/monitor';
 import { OffersPage } from './pages/offers';
 import { OrgsPage } from './pages/orgs';
@@ -28,7 +29,9 @@ export function App() {
         <Route path="/products/:id/:uid" element={<ProductFieldsPage />} />
         <Route path="/refs/:key" element={<RefsPage />} />
         <Route path="/users/:key" element={<UsersPage />} />
+        <Route path="/settings/log" element={<Navigate to="/logs/actions" replace />} />
         <Route path="/settings/:key" element={<SettingsPage />} />
+        <Route path="/logs/:key" element={<LogsPage />} />
         <Route path="*" element={<Navigate to="/monitor" replace />} />
       </Routes>
     </Shell>

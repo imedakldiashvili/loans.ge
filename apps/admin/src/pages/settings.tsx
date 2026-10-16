@@ -1,22 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ApiError, Base, crud } from '../api/client';
+import { ApiError, Base } from '../api/client';
 import { useAll, useFind, useRowActions } from '../api/hooks';
 import { useAuth } from '../auth/auth';
-import { BiInput, BiView, fmtDate, RowActions, Switch } from '../ui/controls';
+import { BiInput, BiView, RowActions, Switch } from '../ui/controls';
 import { Confirm, Dialog, FieldError, FieldErrors } from '../ui/dialog';
 import { Icon } from '../ui/icons';
-import { DataTable, ListPage, Pager, StateRow, usePageSize } from '../ui/list-page';
+import { DataTable, ListPage, StateRow } from '../ui/list-page';
 import { useToast } from '../ui/toast';
 import { STATUS_CATEGORIES, statusColor, StatusRow } from './common';
 
-// Settings: statuses, transitions, OTP channels, action log (prototype renderSettings / statusDialog / renderOtp / otpDialog).
+// Settings: statuses, transitions, OTP channels (prototype renderSettings / statusDialog / renderOtp / otpDialog).
 
 export function SettingsPage() {
   const { key = 'statuses' } = useParams();
   if (key === 'transitions') return <TransitionsPage />;
   if (key === 'otp') return <OtpPage />;
-  if (key === 'log') return <ActionLogPage />;
   return <StatusesPage />;
 }
 
@@ -519,156 +518,6 @@ function OtpDialog({ label, channel, value, onSave, onClose }: { label: string; 
         <small>{'{code}'} — კოდის ადგილი</small>
         {err('Tpl')}
       </div>
-    </Dialog>
-  );
-}
-
-// ── action log
-interface Log {
-  ID: number;
-  UID: string;
-  Url: string;
-  Method: string;
-  Gateway: string | null;
-  Module: string | null;
-  Action: string | null;
-  ItemID: number | null;
-  CreatedBy: number | null;
-  CreatedOn: string;
-  DurationMs: number | null;
-  ResponseCode: number | null;
-  IsSuccess: boolean | null;
-  ErrorCode: string | null;
-  ErrorMessage: string | null;
-  Ip: string | null;
-}
-
-function ActionLogPage() {
-  const [size, setSize] = usePageSize();
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [gateway, setGateway] = useState('');
-  const [result, setResult] = useState('');
-  const [open, setOpen] = useState<Log | null>(null);
-  useEffect(() => setPage(1), [search, gateway, result, size]);
-  const uid = /^[0-9a-f-]{36}$/i.test(search.trim()) ? search.trim() : '';
-  const filter = { ...(uid ? { Uid: uid } : search ? { Search: search } : {}), ...(gateway ? { Gateway: gateway } : {}), ...(result ? { IsSuccess: result === 'ok' } : {}) };
-  const q = useFind<Log>('actionLog', page, size, { Filter: filter });
-  const rows = q.data?.Items ?? [];
-
-  return (
-    <ListPage
-      title="პარამეტრები · ქმედებების ლოგი"
-      desc="ყველა API ზარი UID-ით — წარმატებულიც და შეცდომითაც (actionLog). ინახება სამუდამოდ; მოთხოვნა და პასუხი — ცალკე, uid-ით. ძებნა URL-ით ან UID-ით."
-      filters={
-        <>
-          <input className="search" type="search" placeholder="ძებნა: URL ან UID" value={search} onChange={(e) => setSearch(e.target.value)} />
-          <select aria-label="gateway" value={gateway} onChange={(e) => setGateway(e.target.value)}>
-            <option value="">ყველა gateway</option>
-            {['admin', 'partner', 'client', 'public'].map((g) => (
-              <option key={g}>{g}</option>
-            ))}
-          </select>
-          <select aria-label="შედეგი" value={result} onChange={(e) => setResult(e.target.value)}>
-            <option value="">ყველა შედეგი</option>
-            <option value="ok">წარმატებული</option>
-            <option value="err">შეცდომა</option>
-          </select>
-        </>
-      }
-      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} size={size} onPage={setPage} onSize={setSize} />}
-    >
-      <DataTable
-        className="wide"
-        head={
-          <tr>
-            <th className="w5">დრო</th>
-            <th className="w2">მეთოდი</th>
-            <th>URL</th>
-            <th className="w4">მოდული · მოქმედება</th>
-            <th className="num w2">კოდი</th>
-            <th className="num w2">მწმ</th>
-            <th className="w3">ვინ</th>
-            <th className="acts" style={{ width: 56 }} />
-          </tr>
-        }
-      >
-        {rows.length === 0 ? (
-          <StateRow span={8} loading={q.isLoading} error={q.error?.message} />
-        ) : (
-          rows.map((l) => (
-            <tr key={l.ID}>
-              <td style={{ whiteSpace: 'nowrap' }}>{fmtDate(l.CreatedOn)}</td>
-              <td>
-                <code>{l.Method}</code>
-              </td>
-              <td style={{ wordBreak: 'break-all' }}>
-                {l.Url}
-                {l.ErrorMessage && <span className="sub" style={{ color: 'var(--red)' }}>{l.ErrorCode} · {l.ErrorMessage}</span>}
-              </td>
-              <td>
-                {l.Module ?? '—'}
-                <span className="sub">{l.Action ?? ''}</span>
-              </td>
-              <td className="num">
-                <span className={`tag ${l.IsSuccess ? 'green' : 'red'}`}>{l.ResponseCode}</span>
-              </td>
-              <td className="num">{l.DurationMs}</td>
-              <td>{l.CreatedBy ?? '—'}</td>
-              <td className="acts">
-                <button type="button" className="ib" title="დეტალები" onClick={() => setOpen(l)}>
-                  <Icon.eye />
-                </button>
-              </td>
-            </tr>
-          ))
-        )}
-      </DataTable>
-      {open && <LogDialog log={open} onClose={() => setOpen(null)} />}
-    </ListPage>
-  );
-}
-
-function LogDialog({ log, onClose }: { log: Log; onClose: () => void }) {
-  const [detail, setDetail] = useState<{ Request: { Headers: unknown; Query: unknown; Body: unknown } | null; Response: { Body: unknown } | null } | null>(null);
-  useEffect(() => {
-    crud.detail<typeof detail>('actionLog', log).then(setDetail);
-  }, [log]);
-  const pre = (v: unknown) => <pre style={{ margin: 0, maxHeight: 260, overflow: 'auto', fontSize: 12, background: 'var(--bg-soft)', padding: 10, borderRadius: 6 }}>{JSON.stringify(v, null, 2)}</pre>;
-  return (
-    <Dialog title={`${log.Method} ${log.Module ?? ''} · ${log.Action ?? ''}`} onClose={onClose} wide>
-      <div className="kv">
-        <span>UID</span>
-        <b>
-          <code>{log.UID}</code>
-        </b>
-        <span>URL</span>
-        <b>{log.Url}</b>
-        <span>დრო</span>
-        <b>
-          {fmtDate(log.CreatedOn)} · {log.DurationMs} მწმ
-        </b>
-        <span>შედეგი</span>
-        <b>
-          {log.ResponseCode} {log.ErrorCode ? `· ${log.ErrorCode} · ${log.ErrorMessage}` : ''}
-        </b>
-        <span>IP</span>
-        <b>{log.Ip ?? '—'}</b>
-      </div>
-      {!detail ? (
-        <p>იტვირთება…</p>
-      ) : (
-        <div className="oe-det two" style={{ marginTop: 12 }}>
-          <div className="oe-col">
-            <h5>მოთხოვნა</h5>
-            {pre(detail.Request)}
-          </div>
-          <div className="oe-col">
-            <h5>პასუხი</h5>
-            {pre(detail.Response?.Body)}
-          </div>
-        </div>
-      )}
     </Dialog>
   );
 }

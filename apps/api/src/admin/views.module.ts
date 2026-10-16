@@ -210,6 +210,40 @@ export class AdminViewsService {
     ]);
     return { ...log, request, response };
   }
+
+  /** Background job runs (job_run): every pass of a job with what it checked and changed. */
+  async findJobRuns(pageNumber: number, pageSize: number, body: unknown) {
+    pageCheck(pageNumber, pageSize);
+    const { filter: f } = parse(findBody({ job: z.string().optional(), status: z.enum(['ok', 'error']).optional(), onlyChanged: z.boolean().optional(), ...period }), body);
+    const where: Prisma.JobRunWhereInput = {
+      ...(f.job ? { job: f.job } : {}), ...(f.status ? { status: f.status } : {}), ...(f.onlyChanged ? { changed: { gt: 0 } } : {}),
+      ...(f.from || f.to ? { startedOn: { ...(f.from ? { gte: f.from } : {}), ...(f.to ? { lte: f.to } : {}) } } : {}),
+    };
+    const [items, totalCount] = await Promise.all([
+      this.prisma.jobRun.findMany({ where, orderBy: { startedOn: 'desc' }, skip: (pageNumber - 1) * pageSize, take: pageSize }),
+      this.prisma.jobRun.count({ where }),
+    ]);
+    return page(items, pageNumber, pageSize, totalCount);
+  }
+
+  async jobRunDetail(id: number, uid: string) {
+    const run = await this.prisma.jobRun.findFirst({ where: { id: BigInt(id), uid } });
+    if (!run) throw notFound('ჩანაწერი');
+    return run;
+  }
+}
+
+@Controller('admin/jobRun')
+class JobRunController {
+  constructor(private readonly svc: AdminViewsService) {}
+  @Post('find/:pageNumber/:pageSize')
+  find(@Param('pageNumber', ParseIntPipe) p: number, @Param('pageSize', ParseIntPipe) s: number, @Body() body: unknown) {
+    return this.svc.findJobRuns(p, s, body);
+  }
+  @Get('detail/:id/:uid')
+  detail(@Param('id', ParseIntPipe) id: number, @Param('uid') uid: string) {
+    return this.svc.jobRunDetail(id, uid);
+  }
 }
 
 @Controller('admin/application')
@@ -261,7 +295,7 @@ class ActionLogController {
 }
 
 @Module({
-  controllers: [ApplicationController, OfferController, MonitorController, ActionLogController],
+  controllers: [ApplicationController, OfferController, MonitorController, ActionLogController, JobRunController],
   providers: [AdminViewsService],
 })
 export class AdminViewsModule {}

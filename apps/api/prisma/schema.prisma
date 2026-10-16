@@ -692,6 +692,31 @@ model StatusEvent {
 
 // ───────────────────────── Action log (no BaseEntity, kept forever) ─────────────────────────
 
+/// One run of a background job (e.g. the status expiry check) — kept like action_log, as an information source.
+model JobRun {
+  id          BigInt    @id @default(autoincrement())
+  uid         String    @unique @default(uuid()) @db.Uuid
+  /// job key, e.g. expiry
+  job         String
+  /// ok | error
+  status      String
+  startedOn   DateTime  @map("started_on") @db.Timestamptz(3)
+  completedOn DateTime? @map("completed_on") @db.Timestamptz(3)
+  durationMs  Int?      @map("duration_ms")
+  /// records the job looked at / changed
+  checked     Int       @default(0)
+  changed     Int       @default(0)
+  /// what was changed, e.g. [{ ApplicationOrgId, From, To }]
+  details     Json?
+  error       String?
+  /// API instance that ran it (host:pid)
+  instance    String?
+
+  @@index([job, startedOn])
+  @@index([startedOn])
+  @@map("job_run")
+}
+
 model ActionLog {
   id            BigInt    @id @default(autoincrement())
   uid           String    @unique @db.Uuid
