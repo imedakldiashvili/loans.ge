@@ -547,8 +547,8 @@ export function MarkButtons({ o, m }: { o: AppOrg; m: OfferMarks }) {
 
 /** Counts and "send" (with a summary first). */
 export function MarkBar({ m }: { m: OfferMarks }) {
-  // consent goes only with at least one chosen offer
-  const canSend = m.accepts.length > 0 && !m.sending;
+  // nothing chosen is an answer too — then every offer (and every organisation still without one) is cancelled
+  const canSend = !m.sending;
   return (
     <div className="pick-bar">
       <span className="pick-stats">
@@ -561,9 +561,9 @@ export function MarkBar({ m }: { m: OfferMarks }) {
       </span>
       <span className="pick-acts">
         <span className={`pick-n${m.accepts.length ? ' on' : ''}`}>
-          {t('შერჩეულია')}: <b>{m.accepts.length}</b>
+          {t('არჩეულია')}: <b>{m.accepts.length}</b>
         </span>
-        <button type="button" className="btn btn-green sm" title={canSend ? undefined : t('აირჩიე მინიმუმ ერთი შეთავაზება')} disabled={!canSend} onClick={() => (m.setError(''), m.setAsking(true))}>
+        <button type="button" className="btn btn-green sm" disabled={!canSend} onClick={() => (m.setError(''), m.setAsking(true))}>
           {t('შედარების დასრულება')}
         </button>
       </span>
