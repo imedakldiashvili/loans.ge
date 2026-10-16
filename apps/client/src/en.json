@@ -252,5 +252,14 @@
  "ევრო": "Euro",
  "თვიური თანხა": "monthly amount",
  "ჩამოშლა": "Expand",
- "ამ პროდუქტზე პარტნიორი ორგანიზაცია ჯერ არ არის.": "No partner organization offers this product yet."
+ "ამ პროდუქტზე პარტნიორი ორგანიზაცია ჯერ არ არის.": "No partner organization offers this product yet.",
+ "შეტყობინებები": "Notifications",
+ "ყველა წაკითხულია": "Mark all as read",
+ "შეტყობინება ჯერ არ არის": "No notifications yet",
+ "ბრაუზერის შეტყობინებების გამორთვა": "Turn off browser notifications",
+ "ბრაუზერის შეტყობინებები დაბლოკილია (ბრაუზერის პარამეტრებში)": "Browser notifications are blocked (in the browser settings)",
+ "🔔 ბრაუზერის შეტყობინებების ჩართვა": "🔔 Turn on browser notifications",
+ "ახლახან": "just now",
+ "წთ წინ": "min ago",
+ "სთ წინ": "h ago"
 }

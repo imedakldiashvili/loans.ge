@@ -18,7 +18,7 @@ const ctx = () => {
   return { org: c?.organizationId ?? BigInt(-1), cities: c?.scopeCities ?? [], products: c?.scopeProducts ?? [] };
 };
 
-const findBody = z.preprocess(
+export const findBody = z.preprocess(
   (v) => v ?? {},
   z.object({
     filter: z.preprocess(
@@ -35,7 +35,7 @@ const findBody = z.preprocess(
   }),
 );
 
-const changeBody = z.object({
+export const changeBody = z.object({
   status: z.string().min(1),
   reasonIds: z.array(z.coerce.bigint()).default([]),
   reasonText: z.string().trim().max(500).nullable().default(null),

@@ -1,6 +1,7 @@
 import { n, t, useLang } from './i18n';
 import { useEffect, useState } from 'react';
 import { useAskLogin } from './auth';
+import { Bell } from './bell';
 import { useLiveEvents } from './live';
 import logo from './logo.png';
 import { App as Application, Cabinet } from './pages/cabinet';
@@ -112,6 +113,7 @@ export function App() {
           )}
           {me && (
             <>
+              <Bell gateway="client" onOpen={() => setView('cabinet')} />
               <button type="button" className="theme userbtn" aria-label={t('კაბინეტი')} title={me.User.UserName || me.User.Email?.split('@')[0] || t('კაბინეტი')} onClick={() => setView('cabinet')}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="8" r="4" />

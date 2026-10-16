@@ -129,6 +129,13 @@ await login('admin', 'analyst@loans.ge');
 ok((await call('POST', '/admin/webhookDelivery/find/1/10', {})).json.Data.TotalCount >= 3, 'admin: webhook delivery log');
 ok((await call('POST', '/admin/apiKey/find/1/10', {})).status === 200, 'admin: API keys of all organisations');
 
+// ── API description (Swagger)
+const doc = await fetch(`${B}/docs/openapi.json`).then((r) => r.json());
+ok(doc.openapi?.startsWith('3.') && doc.paths['/partner/application/changeStatus/{id}/{uid}'] && doc.components.securitySchemes.ApiKey.name === 'X-Api-Key', 'OpenAPI: partner endpoints and the API key scheme');
+const cs = doc.paths['/partner/application/changeStatus/{id}/{uid}'].put.requestBody.content['application/json'].schema;
+ok(cs.properties.Status && cs.properties.Offers && cs.required?.includes('Status'), 'OpenAPI: request bodies from the validation schemas, PascalCase', Object.keys(cs.properties ?? {}));
+ok((await fetch(`${B}/docs`)).status === 200, 'Swagger UI at /docs');
+
 server.close();
 await prisma.$disconnect();
 done();

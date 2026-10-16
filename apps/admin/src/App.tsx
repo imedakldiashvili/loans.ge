@@ -3,6 +3,7 @@ import { useAuth } from './auth/auth';
 import { Shell } from './layout/shell';
 import { AppsPage, ComparePage } from './pages/apps';
 import { LoginPage } from './pages/login';
+import { IntegrationPage } from './pages/integration';
 import { LogsPage } from './pages/logs';
 import { MonitorPage } from './pages/monitor';
 import { OffersPage } from './pages/offers';
@@ -32,6 +33,7 @@ export function App() {
         <Route path="/settings/log" element={<Navigate to="/logs/actions" replace />} />
         <Route path="/settings/:key" element={<SettingsPage />} />
         <Route path="/logs/:key" element={<LogsPage />} />
+        <Route path="/integration/:key" element={<IntegrationPage />} />
         <Route path="*" element={<Navigate to="/monitor" replace />} />
       </Routes>
     </Shell>

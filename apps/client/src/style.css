@@ -655,3 +655,26 @@
   .cab-list .cab-card, .cab-list .cab-det, .cab-list .cab-toggle { background: var(--card); }
   .cab-list .cab-stat, .cab-list .cab-det-group { background: var(--bg); }
   .cab-list .cab-group-empty { background: var(--card); }
+  /* the bell — notifications */
+  .bell { position: relative; }
+  .bell-btn { position: relative; }
+  .bell-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .bell-n { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #d9534f; color: #fff; font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; }
+  .bell-menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; width: min(360px, calc(100vw - 24px)); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, .14); overflow: hidden; }
+  .bell-head, .bell-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; }
+  .bell-head { border-bottom: 1px solid var(--line); }
+  .bell-head b { color: var(--fg); font-size: 14px; }
+  .bell-foot { border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .bell-link { background: none; border: 0; padding: 0; font: inherit; font-size: 12px; font-weight: 600; color: var(--green); cursor: pointer; }
+  .bell-list { max-height: 380px; overflow-y: auto; }
+  .bell-empty { padding: 24px 14px; text-align: center; color: var(--muted); font-size: 13px; }
+  .bell-item { display: flex; gap: 10px; width: 100%; padding: 10px 14px; border: 0; border-bottom: 1px solid var(--line); background: none; font: inherit; text-align: start; cursor: pointer; color: var(--fg); }
+  .bell-item:last-child { border-bottom: 0; }
+  .bell-item:hover { background: var(--bg-soft); }
+  .bell-item i { flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: transparent; }
+  .bell-item.unread i { background: var(--green); }
+  .bell-item.unread b { font-weight: 700; }
+  .bell-item span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .bell-item b { font-size: 13px; font-weight: 500; }
+  .bell-item small { font-size: 12px; color: var(--muted); }
+  .bell-item em { font-style: normal; font-size: 11px; color: var(--muted); }

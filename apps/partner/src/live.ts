@@ -37,6 +37,8 @@ export function useLiveEvents(path: string | null, keys: QueryKey[], onEvent?: (
     };
     es.addEventListener('application.created', handle);
     es.addEventListener('application.status', handle);
+    // a new notification for this profile → the bell
+    es.addEventListener('notification', () => qc.invalidateQueries({ queryKey: ['notifications'] }));
     return () => es.close();
   }, [path, qc]);
 }

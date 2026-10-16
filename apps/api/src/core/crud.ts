@@ -56,7 +56,7 @@ export type CrudAction = 'add' | 'edit' | 'enable' | 'disable' | 'delete' | 'det
 
 const PAGE_MAX = 100;
 
-const findBody = z
+export const crudFindBody = z
   .object({
     filter: z.record(z.unknown()).optional(),
     sort: z.array(z.object({ field: z.string(), dir: z.enum(['asc', 'desc']).default('asc') })).optional(),
@@ -169,7 +169,7 @@ export class CrudService<S extends ZodTypeAny = ZodTypeAny> {
   async find(pageNumber: number, pageSize: number, body: unknown) {
     if (pageNumber < 1) throw validation([{ field: 'PageNumber', message: 'მინიმუმ 1' }]);
     if (pageSize < 1 || pageSize > PAGE_MAX) throw validation([{ field: 'PageSize', message: `1-დან ${PAGE_MAX}-მდე` }]);
-    const { filter = {}, sort } = parse(findBody, body);
+    const { filter = {}, sort } = parse(crudFindBody, body);
     const allowed = new Set(['isEnable', ...(this.cfg.filterFields ?? [])]);
     const where: Record<string, unknown> = this.live();
     for (const [k, v] of Object.entries(filter)) {

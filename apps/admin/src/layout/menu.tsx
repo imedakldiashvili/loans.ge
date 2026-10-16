@@ -55,6 +55,14 @@ export const MENU: MenuGroup[] = [
       { path: '/settings/statuses', label: 'სტატუსები', count: 'status' },
       { path: '/settings/transitions', label: 'გადასვლები', count: 'statusTransition' },
       { path: '/settings/otp', label: 'OTP პარამეტრები' },
+      { path: '/settings/notify', label: 'შეტყობინებები' },
+    ],
+  },
+  {
+    key: 'integration', label: 'ინტეგრაცია', icon: Icon.orgs,
+    items: [
+      { path: '/integration/keys', label: 'API გასაღებები' },
+      { path: '/integration/webhooks', label: 'webhook-ების ლოგი' },
     ],
   },
   {

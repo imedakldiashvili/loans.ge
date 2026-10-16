@@ -16,6 +16,7 @@ export function SettingsPage() {
   const { key = 'statuses' } = useParams();
   if (key === 'transitions') return <TransitionsPage />;
   if (key === 'otp') return <OtpPage />;
+  if (key === 'notify') return <NotifyPage />;
   return <StatusesPage />;
 }
 
@@ -519,5 +520,72 @@ function OtpDialog({ label, channel, value, onSave, onClose }: { label: string; 
         {err('Tpl')}
       </div>
     </Dialog>
+  );
+}
+
+// ── notifications: who gets e-mail / SMS (the bell and browser notifications are always on)
+interface NotifyValue {
+  StaffEmail: boolean;
+  StaffSms: boolean;
+  CustomerEmail: boolean;
+  CustomerSms: boolean;
+}
+const NOTIFY_DEFAULT: NotifyValue = { StaffEmail: true, StaffSms: false, CustomerEmail: false, CustomerSms: true };
+const NOTIFY_ROWS: { who: string; when: string; email: keyof NotifyValue; sms: keyof NotifyValue }[] = [
+  { who: 'პარტნიორის თანამშრომლები', when: 'ახალი განაცხადი (თავისი ქალაქები / პროდუქტები)', email: 'StaffEmail', sms: 'StaffSms' },
+  { who: 'მომხმარებელი', when: 'ორგანიზაციამ შეთავაზება გამოუგზავნა', email: 'CustomerEmail', sms: 'CustomerSms' },
+];
+
+function NotifyPage() {
+  const { canWrite } = useAuth();
+  const toast = useToast();
+  const q = useFind<{ ID: number; UID: string; Key: string; Value: NotifyValue }>('setting', 1, 10, { Filter: { Search: 'notify' } });
+  const act = useRowActions('setting');
+  const writable = canWrite('setting');
+  const s = q.data?.Items.find((x) => x.Key === 'notify');
+  const v = { ...NOTIFY_DEFAULT, ...(s?.Value ?? {}) };
+  const set = async (k: keyof NotifyValue, on: boolean) => {
+    try {
+      await act.save(s ?? null, { Key: 'notify', Value: { ...v, [k]: on } });
+      toast('შენახულია');
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : 'შეცდომა');
+    }
+  };
+  return (
+    <ListPage
+      title="პარამეტრები · შეტყობინებები"
+      desc="ვის მიუვიდეს ელ.ფოსტა / SMS განაცხადებზე. ზარი (კაბინეტში) და ბრაუზერის შეტყობინებები ყოველთვის ჩართულია; მომხმარებელი ბრაუზერის შეტყობინებებს თავად რთავს."
+    >
+      <DataTable
+        head={
+          <tr>
+            <th>ვის</th>
+            <th>როდის</th>
+            <th className="w3">ელ.ფოსტა</th>
+            <th className="w3">SMS</th>
+          </tr>
+        }
+      >
+        {q.isLoading ? (
+          <StateRow span={4} loading />
+        ) : (
+          NOTIFY_ROWS.map((r) => (
+            <tr key={r.who}>
+              <td>
+                <b style={{ fontWeight: 600 }}>{r.who}</b>
+              </td>
+              <td>{r.when}</td>
+              <td>
+                <Switch checked={v[r.email]} disabled={!writable} onChange={(on) => set(r.email, on)} />
+              </td>
+              <td>
+                <Switch checked={v[r.sms]} disabled={!writable} onChange={(on) => set(r.sms, on)} />
+              </td>
+            </tr>
+          ))
+        )}
+      </DataTable>
+    </ListPage>
   );
 }

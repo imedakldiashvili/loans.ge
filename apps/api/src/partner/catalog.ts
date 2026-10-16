@@ -16,7 +16,7 @@ const productScope = () => {
   return p.length ? { id: { in: p } } : {};
 };
 
-const products: CrudConfig = {
+export const products: CrudConfig = {
   gateway: 'partner', module: 'product', model: 'partnerProduct',
   scopeFn: () => ({ organizationId: org(), ...productScope() }),
   createFn: () => ({ organizationId: org() }),
@@ -64,7 +64,7 @@ export const validateCardValues = async (prisma: PrismaService, productTypeId: b
   if (details.length) throw validation(details);
 };
 
-const cards: CrudConfig = {
+export const cards: CrudConfig = {
   gateway: 'partner', module: 'card', model: 'partnerOfferCard',
   scopeFn: () => ({ product: { organizationId: org(), isDeleted: false, ...productScope() } }),
   schema: z.object({

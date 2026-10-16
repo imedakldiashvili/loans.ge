@@ -2,9 +2,11 @@ import { FormEvent, useEffect, useState } from 'react';
 import { api, ApiError, Ref } from './api';
 import logo from './logo.png';
 import { AppsPage } from './pages/apps';
+import { IntegrationPage } from './pages/integration';
 import { ProductsPage } from './pages/products';
 import { UsersPage } from './pages/users';
 import { chime, useTitleCounter } from './attention';
+import { Bell } from './bell';
 import { useLiveEvents } from './live';
 import { ROLES, useSession } from './session';
 import { useToast } from './ui/ui';
@@ -37,7 +39,7 @@ function useTheme(): [boolean, () => void] {
 export function App() {
   const { me, loading, logout, switchTo } = useSession();
   const [, toggleTheme] = useTheme();
-  const [tab, setTab] = useState<'apps' | 'products' | 'users'>('apps');
+  const [tab, setTab] = useState<'apps' | 'products' | 'users' | 'integration'>('apps');
   const p = me?.Profile;
   const back = p?.Role === 'back';
   const toast = useToast();
@@ -90,6 +92,7 @@ export function App() {
               )}
             </div>
           )}
+          {p && <Bell gateway="partner" onOpen={() => setTab('apps')} />}
           <button type="button" className="ctl" title="თემა" aria-label="თემა" onClick={toggleTheme}>
             <svg viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="4" />
@@ -112,9 +115,9 @@ export function App() {
           <section className="ws">
             {back && (
               <nav className="tabs">
-                {(['apps', 'products', 'users'] as const).map((t) => (
+                {(['apps', 'products', 'users', 'integration'] as const).map((t) => (
                   <button key={t} type="button" className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
-                    {{ apps: 'განაცხადები', products: 'პროდუქტები', users: 'მომხმარებლები' }[t]}
+                    {{ apps: 'განაცხადები', products: 'პროდუქტები', users: 'მომხმარებლები', integration: 'ინტეგრაცია' }[t]}
                   </button>
                 ))}
               </nav>
@@ -122,6 +125,7 @@ export function App() {
             {tab === 'apps' && <AppsPage key={p.ID} />}
             {tab === 'products' && back && <ProductsPage key={p.ID} />}
             {tab === 'users' && back && <UsersPage key={p.ID} />}
+            {tab === 'integration' && back && <IntegrationPage key={p.ID} />}
           </section>
         )}
       </main>
