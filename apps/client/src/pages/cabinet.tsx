@@ -262,17 +262,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             <small className="when">
               {[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '—'} · {fmtDate(a.CreatedOn)}
             </small>
-            {/* the organisations that sent an offer — in one line */}
-            {a.Orgs.some((o) => o.Offers.length) && (
-              <span className="offered">
-                {a.Orgs.filter((o) => o.Offers.length).map((o) => (
-                  <span key={o.ID} className="of-org">
-                    <OrgLogo org={o.Organization} />
-                    {n(o.Organization)}
-                  </span>
-                ))}
-              </span>
-            )}
           </span>
           <span className="right">
             <i className="amt">{money(a.Amount, a.Currency)}</i>
