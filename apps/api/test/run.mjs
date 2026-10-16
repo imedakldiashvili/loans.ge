@@ -1,4 +1,4 @@
-// Runs all API test suites: reseeds the database, starts the built API on a free port with its log in a file,
+// Runs all API test suites against the TEST database (TEST_DATABASE_URL, default loans_test): migrates and reseeds it, starts the built API on a free port with its log in a file,
 // runs every suite against it and stops it. Usage: npm run test:api -w @loans/api  (after npm run build)
 import { spawn, spawnSync } from 'child_process';
 import { openSync } from 'fs';
@@ -12,8 +12,13 @@ const base = `http://localhost:${port}`;
 const log = join(root, '.api-test.log');
 const SUITES = ['auth', 'smoke', 'admin-config', 'users', 'views'];
 
-const seed = spawnSync('npx', ['prisma', 'db', 'seed'], { cwd: root, shell: true, stdio: 'inherit' });
-if (seed.status !== 0) process.exit(seed.status ?? 1);
+// tests use their own database — the working one (DATABASE_URL in .env) is never touched
+process.env.DATABASE_URL = process.env.TEST_DATABASE_URL ?? 'postgresql://loans:loans@localhost:5433/loans_test';
+process.env.DEV_OUTBOX = 'true';
+for (const args of [['prisma', 'migrate', 'deploy'], ['prisma', 'db', 'seed']]) {
+  const r = spawnSync('npx', args, { cwd: root, shell: true, stdio: ['ignore', 'ignore', 'inherit'], env: process.env });
+  if (r.status !== 0) process.exit(r.status ?? 1);
+}
 
 // suites log in the same accounts one after another — use the shortest allowed OTP resend interval (10 s)
 const { PrismaClient } = await import('@prisma/client');
