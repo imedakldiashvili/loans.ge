@@ -1,3 +1,4 @@
+import { n, t, useLang } from './i18n';
 import { useEffect, useState } from 'react';
 import { useAskLogin } from './auth';
 import logo from './logo.png';
@@ -37,6 +38,7 @@ function useTheme(): [boolean, () => void] {
 export function App() {
   const { me, loading, logout } = useSession();
   const askLogin = useAskLogin();
+  const { toggle: toggleLang } = useLang(); // re-renders the whole site on a language change
   const { productTypes } = useRefs();
   const [, toggleTheme] = useTheme();
   const [view, setView] = useState<View>('home');
@@ -80,7 +82,7 @@ export function App() {
               Loans<span>.ge</span>
             </b>
           </a>
-          <button className="theme" type="button" aria-label="თემის გადართვა" onClick={toggleTheme}>
+          <button className="theme" type="button" aria-label={t('თემის გადართვა')} onClick={toggleTheme}>
             <svg className="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <circle cx="12" cy="12" r="4" />
               <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
@@ -88,6 +90,10 @@ export function App() {
             <svg className="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
             </svg>
+          </button>
+          <button className="lang" type="button" aria-label="Switch language" onClick={toggleLang}>
+            <span>ქარ</span>
+            <span>EN</span>
           </button>
           {!loading && !me && (
             <a
@@ -98,12 +104,12 @@ export function App() {
                 openCabinet();
               }}
             >
-              შესვლა
+              {t('შესვლა')}
             </a>
           )}
           {me && (
             <>
-              <button type="button" className="theme userbtn" aria-label="კაბინეტი" title={me.User.UserName || me.User.Email?.split('@')[0] || 'კაბინეტი'} onClick={() => setView('cabinet')}>
+              <button type="button" className="theme userbtn" aria-label={t('კაბინეტი')} title={me.User.UserName || me.User.Email?.split('@')[0] || t('კაბინეტი')} onClick={() => setView('cabinet')}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="8" r="4" />
                   <path d="M4 21a8 8 0 0 1 16 0" />
@@ -112,8 +118,8 @@ export function App() {
               <button
                 type="button"
                 className="theme logout"
-                aria-label="გასვლა"
-                title="გასვლა"
+                aria-label={t('გასვლა')}
+                title={t('გასვლა')}
                 onClick={async () => {
                   await logout();
                   setView('home');
@@ -139,20 +145,20 @@ export function App() {
 
       {newApp && (
         <Modal onClose={() => setNewApp(false)} className="newapp-box" labelledBy="newAppTitle">
-          <h3 id="newAppTitle">ახალი განაცხადი</h3>
+          <h3 id="newAppTitle">{t('ახალი განაცხადი')}</h3>
           <QuickForm onSubmit={begin} />
         </Modal>
       )}
       {sent && (
         <Modal onClose={() => (setSent(null), setView('cabinet'))} noClose labelledBy="doneTitle">
           <div className="done-ico">✓</div>
-          <h3 id="doneTitle">განაცხადი გაიგზავნა</h3>
+          <h3 id="doneTitle">{t('განაცხადი გაიგზავნა')}</h3>
           <p className="done-sum">
-            <b>{sent.amount}</b> · <span>{sent.loan}</span> · <b>{sent.orgs}</b> <span>ორგანიზაცია</span>
+            <b>{sent.amount}</b> · <span>{sent.loan}</span> · <b>{sent.orgs}</b> <span>{t('ორგანიზაცია')}</span>
           </p>
-          <p>შეთავაზებებს მიიღებ კაბინეტში — ორგანიზაციების პასუხები იქ გამოჩნდება.</p>
+          <p>{t('შეთავაზებებს მიიღებ კაბინეტში — ორგანიზაციების პასუხები იქ გამოჩნდება.')}</p>
           <button type="button" className="btn btn-green full" onClick={() => (setSent(null), setView('cabinet'))}>
-            კაბინეტში გადასვლა
+            {t('კაბინეტში გადასვლა')}
           </button>
         </Modal>
       )}
@@ -161,7 +167,7 @@ export function App() {
         <div className="wrap">
           <div className="foot">
             <div className="foot-loans">
-              <h4>სესხები</h4>
+              <h4>{t('სესხები')}</h4>
               <ul>
                 {productTypes.map((p) => (
                   <li key={p.ID}>
@@ -173,14 +179,14 @@ export function App() {
                         setView('home');
                       }}
                     >
-                      {p.NameKa}
+                      {n(p)}
                     </a>
                   </li>
                 ))}
               </ul>
             </div>
             <div className="foot-contact">
-              <h4>დაგვიკავშირდით</h4>
+              <h4>{t('დაგვიკავშირდით')}</h4>
               <div className="contact">
                 <span>
                   <b>+995 599 919 444</b>
@@ -214,7 +220,7 @@ export function App() {
                     setView(v);
                   }}
                 >
-                  {label}
+                  {t(label)}
                 </a>
               ))}
             </nav>

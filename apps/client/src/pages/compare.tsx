@@ -1,3 +1,4 @@
+import { n, t, up } from '../i18n';
 import { calcOffer } from '@loans/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -61,7 +62,7 @@ export function Compare({ app, onBack }: { app: App; onBack: () => void }) {
   // only organisations that sent an offer can be compared; one column per offer
   const withOffers = a.Orgs.filter((o) => o.Offers.length);
   const cols = FILTERS.flatMap(([k]) => (filter.includes(k) ? withOffers.filter((o) => kindOf(o) === k) : [])).flatMap((o) =>
-    o.Offers.map((t) => ({ o, t, c: calcOffer({ amount: t.Amount, months: t.Months, rate: t.Rate, fee: t.Fee, insMonth: t.InsMonth })! })),
+    o.Offers.map((of) => ({ o, of, c: calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth })! })),
   );
   const dense = cols.length >= 5;
   const run = async (o: AppOrg, to: string | undefined) => {
@@ -75,7 +76,7 @@ export function Compare({ app, onBack }: { app: App; onBack: () => void }) {
     const mark = best && vals.filter((v) => v === min).length < vals.length;
     return (
       <tr className={cls}>
-        <td>{label}</td>
+        <td>{t(label)}</td>
         {vals.map((v, i) => (
           <td key={i} className={mark && v === min ? 'best' : undefined}>
             {f(v)}
@@ -94,12 +95,12 @@ export function Compare({ app, onBack }: { app: App; onBack: () => void }) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
               <path d="M15 6l-6 6 6 6" />
             </svg>
-            უკან
+            {t('უკან')}
           </button>
           <p className="cmp-sub">
-            {a.ProductType.NameKa} · <b>{money(a.Amount, a.Currency)}</b>
+            {n(a.ProductType)} · <b>{money(a.Amount, a.Currency)}</b>
           </p>
-          <h2 className="sec-title">შეთავაზებები</h2>
+          <h2 className="sec-title">{up(t('შეთავაზებები'))}</h2>
         </div>
         <div className="cmp-filter">
           {FILTERS.map(([k, label]) => {
@@ -107,7 +108,7 @@ export function Compare({ app, onBack }: { app: App; onBack: () => void }) {
             return (
               <button key={k} type="button" className={`cmp-f f-${k}${on ? ' on' : ''}`} aria-pressed={on} onClick={() => setFilter(on ? filter.filter((x) => x !== k) : [...filter, k])}>
                 <span className="ico">{ICONS[k]}</span>
-                <span>{label}</span>
+                <span>{t(label)}</span>
                 <span className="cnt">{withOffers.filter((o) => kindOf(o) === k).length}</span>
               </button>
             );
@@ -119,22 +120,22 @@ export function Compare({ app, onBack }: { app: App; onBack: () => void }) {
               <thead>
                 <tr>
                   <th />
-                  {cols.map(({ o, t }) => (
-                    <th key={t.ID}>
+                  {cols.map(({ o, of }) => (
+                    <th key={of.ID}>
                       <span className="lg" style={{ ['--c' as string]: orgColor(o.Organization) }}>
                         {orgMark(o.Organization.NameKa)}
                       </span>
-                      {o.Organization.NameKa}
+                      {n(o.Organization)}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {row('თანხა', cols.map((x) => x.t.Amount), m)}
-                {row('ვადა', cols.map((x) => x.t.Months), (v) => `${v} თვე`)}
-                {row('წლიური განაკვეთი', cols.map((x) => x.t.Rate), (v) => `${v}%`, true)}
+                {row('თანხა', cols.map((x) => x.of.Amount), m)}
+                {row('ვადა', cols.map((x) => x.of.Months), (v) => t(`${v} თვე`))}
+                {row('წლიური განაკვეთი', cols.map((x) => x.of.Rate), (v) => `${v}%`, true)}
                 {row('ეფექტური პროცენტი', cols.map((x) => x.c.eff), (v) => `${v}%`, true)}
-                {row('ერთჯერადი საკომისიოები', cols.map((x) => x.t.Fee), m, true)}
+                {row('ერთჯერადი საკომისიოები', cols.map((x) => x.of.Fee), m, true)}
                 {row('ყოველთვიური გადასახადი', cols.map((x) => x.c.monthly), m, true)}
                 {row('სულ გადასახდელი პროცენტი', cols.map((x) => x.c.interest), m, true)}
                 {row('სულ გადასახდელი დაზღვევა', cols.map((x) => x.c.insTotal), m, true)}
@@ -142,17 +143,17 @@ export function Compare({ app, onBack }: { app: App; onBack: () => void }) {
                 {row('სულ გადასახდელი', cols.map((x) => x.c.total), m, true, 'total')}
                 <tr>
                   <td />
-                  {cols.map(({ o, t }) => {
+                  {cols.map(({ o, of }) => {
                     const k = kindOf(o);
                     return (
-                      <td key={t.ID}>
+                      <td key={of.ID}>
                         <div className="acts">
                           {k === 'offer' ? (
                             <>
-                              <button type="button" className="cab-ico cmp-ok" title="დადასტურება" aria-label="დადასტურება" onClick={() => run(o, s.acceptOf(o))}>
+                              <button type="button" className="cab-ico cmp-ok" title={t('დადასტურება')} aria-label={t('დადასტურება')} onClick={() => run(o, s.acceptOf(o))}>
                                 {ICONS.accepted}
                               </button>
-                              <button type="button" className="cab-ico cmp-no" title="უარი" aria-label="უარი" onClick={() => run(o, s.cancelOf(o))}>
+                              <button type="button" className="cab-ico cmp-no" title={t('უარი')} aria-label={t('უარი')} onClick={() => run(o, s.cancelOf(o))}>
                                 {ICONS.declined}
                               </button>
                             </>
@@ -170,7 +171,7 @@ export function Compare({ app, onBack }: { app: App; onBack: () => void }) {
             </table>
           </div>
         ) : (
-          <p className="cmp-empty">ამ კატეგორიაში შეთავაზება არ არის</p>
+          <p className="cmp-empty">{t('ამ კატეგორიაში შეთავაზება არ არის')}</p>
         )}
       </div>
     </section>

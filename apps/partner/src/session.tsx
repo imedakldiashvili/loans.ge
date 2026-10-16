@@ -52,12 +52,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     refresh: () => q.refetch(),
     logout: async () => {
       await api('PUT', '/partner/auth/logout').catch(() => undefined);
-      qc.clear();
       qc.setQueryData(['me'], null);
+      // keep the session query (the header observes it); drop everything else
+      qc.removeQueries({ predicate: (x) => x.queryKey[0] !== 'me' });
     },
     switchTo: async (p) => {
       await api('PUT', `/partner/auth/switchProfile/${p.ID}/${p.UID}`);
-      qc.clear();
+      qc.removeQueries({ predicate: (x) => x.queryKey[0] !== 'me' });
       await q.refetch();
     },
   };

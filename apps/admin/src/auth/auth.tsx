@@ -51,8 +51,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refresh: () => q.refetch(),
     logout: async () => {
       await api('PUT', '/admin/auth/logout').catch(() => undefined);
-      qc.clear();
       qc.setQueryData(['me'], null);
+      // keep the session query (the app observes it); drop everything else
+      qc.removeQueries({ predicate: (x) => x.queryKey[0] !== 'me' });
     },
     canWrite: (module) => role === 'super' || (role === 'operator' && OPERATOR_WRITE.has(module)),
   };

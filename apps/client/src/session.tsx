@@ -41,8 +41,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     refresh: async () => (await q.refetch()).data ?? null,
     logout: async () => {
       await api('PUT', '/client/auth/logout').catch(() => undefined);
-      qc.removeQueries({ predicate: (x) => x.queryKey[0] !== 'public' });
       qc.setQueryData(['me'], null);
+      // drop the customer's data; keep the session query (the header observes it) and the reference data
+      qc.removeQueries({ predicate: (x) => !['public', 'me'].includes(String(x.queryKey[0])) });
     },
   };
   return <Ctx.Provider value={state}>{children}</Ctx.Provider>;
@@ -94,6 +95,7 @@ export interface Org {
 export interface StatusRow {
   Key: string;
   CustomerKa: string;
+  CustomerEn: string;
   Category: 'progress' | 'complete' | 'canceled';
   Sort: number;
 }

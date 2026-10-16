@@ -1,3 +1,4 @@
+import { t, useLang } from './i18n';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { api, ApiError, Ref } from './api';
 import { useSession } from './session';
@@ -25,7 +26,7 @@ export function OtpModal({ where, target, send, verify, onClose }: { where: stri
       setRef(await send());
       setLeft(RESEND);
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'კოდის გაგზავნა ვერ მოხერხდა');
+      setError(e instanceof ApiError ? e.message : t('კოდის გაგზავნა ვერ მოხერხდა'));
       setLeft(0);
     }
     input.current?.focus();
@@ -48,7 +49,7 @@ export function OtpModal({ where, target, send, verify, onClose }: { where: stri
     try {
       await verify(ref, code);
     } catch (e) {
-      setError(e instanceof ApiError ? [e.message, ...e.details.filter((d) => d.Field !== 'Otp').map((d) => d.Message)].join(' — ') : 'შეცდომა');
+      setError(e instanceof ApiError ? [e.message, ...e.details.filter((d) => d.Field !== 'Otp').map((d) => d.Message)].join(' — ') : t('შეცდომა'));
     } finally {
       setBusy(false);
     }
@@ -56,19 +57,20 @@ export function OtpModal({ where, target, send, verify, onClose }: { where: stri
   const ok = /^\d{4,6}$/.test(code) && !!ref;
   return (
     <Modal onClose={onClose} labelledBy="otpTitle">
-      <h3 id="otpTitle">შეიყვანე OTP კოდი</h3>
+      <h3 id="otpTitle">{t('შეიყვანე OTP კოდი')}</h3>
       <p>
         <span>{where}</span> <b>{target}</b>
       </p>
       <div className="otp-row">
         <input
           ref={input}
+          id="otp"
           type="text"
           inputMode="numeric"
           maxLength={6}
           placeholder="••••"
           autoComplete="one-time-code"
-          aria-label="OTP კოდი"
+          aria-label={t('OTP კოდი')}
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
           onKeyDown={(e) => e.key === 'Enter' && ok && !busy && confirm()}
@@ -80,14 +82,14 @@ export function OtpModal({ where, target, send, verify, onClose }: { where: stri
           </span>
         ) : (
           <button type="button" className="otp-resend" onClick={doSend}>
-            თავიდან
+            {t('თავიდან')}
             <br />
-            გაგზავნა
+            {t('გაგზავნა')}
           </button>
         )}
       </div>
       <button type="button" className="btn btn-green full" disabled={!ok || busy} onClick={confirm}>
-        დადასტურება
+        {t('დადასტურება')}
       </button>
       <ErrorText error={error} />
     </Modal>
@@ -100,6 +102,7 @@ export const useAskLogin = () => useContext(Ctx);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { refresh } = useSession();
+  useLang(); // dialogs follow the language switch
   const [step, setStep] = useState<'email' | 'otp' | null>(null);
   const [email, setEmail] = useState('');
   const resolver = useRef<((ok: boolean) => void) | null>(null);
@@ -123,9 +126,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
       {step === 'email' && (
         <Modal onClose={() => finish(false)} labelledBy="loginTitle">
-          <h3 id="loginTitle">ავტორიზაცია</h3>
+          <h3 id="loginTitle">{t('ავტორიზაცია')}</h3>
           <div className="social">
-            <button type="button" className="btn btn-social" disabled title="მალე">
+            <button type="button" className="btn btn-social" disabled title={t('მალე')}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.4z" />
                 <path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z" />
@@ -134,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               </svg>
               Google
             </button>
-            <button type="button" className="btn btn-social" disabled title="მალე">
+            <button type="button" className="btn btn-social" disabled title={t('მალე')}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path fill="#1877F2" d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7.1V12h3V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.3l-.5 3.5h-2.8v8.4A12 12 0 0 0 24 12z" />
               </svg>
@@ -142,18 +145,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             </button>
           </div>
           <div className="or">
-            <span>ან</span>
+            <span>{t('ან')}</span>
           </div>
           <p>
-            შეიყვანე ელ. ფოსტა
+            {t('შეიყვანე ელ. ფოსტა')}
             <br />
-            გამოგიგზავნით ერთჯერად კოდს
+            {t('გამოგიგზავნით ერთჯერად კოდს')}
           </p>
           <input
             type="email"
             placeholder="name@example.com"
             autoComplete="email"
-            aria-label="ელ. ფოსტა"
+            aria-label={t('ელ. ფოსტა')}
             className="login-email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -161,7 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             autoFocus
           />
           <button type="button" className="btn btn-green full" disabled={!valid} onClick={() => setStep('otp')}>
-            კოდის გაგზავნა
+            {t('კოდის გაგზავნა')}
           </button>
         </Modal>
       )}

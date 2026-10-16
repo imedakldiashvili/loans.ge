@@ -1,3 +1,4 @@
+import { lang, n, refName, t, up } from '../i18n';
 import { calcOffer } from '@loans/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -59,13 +60,13 @@ const OPEN_GROUPS = ['offer', 'interested'];
 const PAGE_SIZE = 5;
 /** CSS of the prototype has no class for "expired" — it looks like "cancelled". */
 export const stCls = (k: string) => (k === 'expired' ? 'cancelled' : k);
-const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : 'შეცდომა');
+const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
 
 export const useStatus = () => {
   const { statuses } = useRefs();
   const st = (k: string): StatusRow | undefined => statuses.find((s) => s.Key === k);
   return {
-    label: (k: string) => st(k)?.CustomerKa ?? k,
+    label: (k: string) => (lang() === 'en' ? st(k)?.CustomerEn : st(k)?.CustomerKa) ?? k,
     /** next status of a record that cancels it / accepts it (allowed transitions come from the API) */
     cancelOf: (o: AppOrg) => o.Next.find((k) => st(k)?.Category === 'canceled'),
     acceptOf: (o: AppOrg) => o.Next.find((k) => st(k)?.Category !== 'canceled'),
@@ -100,14 +101,14 @@ export function Cabinet({ onNew, onCompare }: { onNew: () => void; onCompare: (a
                 <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
                 <path d="M14 3v6h6M9 13h6M9 17h4" />
               </svg>
-              განაცხადები
+              {t('განაცხადები')}
             </button>
             <button type="button" className={view === 'profile' ? 'on' : ''} onClick={() => go('profile')}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="8" r="4" />
                 <path d="M4 21a8 8 0 0 1 16 0" />
               </svg>
-              პროფილი
+              {t('პროფილი')}
             </button>
           </nav>
           {view !== 'profile' && (
@@ -115,15 +116,15 @@ export function Cabinet({ onNew, onCompare }: { onNew: () => void; onCompare: (a
               <label className="cab-radio">
                 <input type="radio" name="cabv" checked={view === 'active'} onChange={() => go('active')} />
                 <i />
-                მიმდინარე <span className="rc">{counts ? `(${counts.Active})` : ''}</span>
+                {t('მიმდინარე')} <span className="rc">{counts ? `(${counts.Active})` : ''}</span>
               </label>
               <label className="cab-radio">
                 <input type="radio" name="cabv" checked={view === 'done'} onChange={() => go('done')} />
                 <i />
-                დასრულებული <span className="rc">{counts ? `(${counts.Done})` : ''}</span>
+                {t('დასრულებული')} <span className="rc">{counts ? `(${counts.Done})` : ''}</span>
               </label>
               <button type="button" className="btn btn-green" onClick={onNew}>
-                + ახალი განაცხადი
+                {t('+ ახალი განაცხადი')}
               </button>
             </nav>
           )}
@@ -134,15 +135,15 @@ export function Cabinet({ onNew, onCompare }: { onNew: () => void; onCompare: (a
           ) : (
             <div>
               <div className="cab-top">
-                <h2 className="cab-title">{view === 'done' ? 'დასრულებული განაცხადები' : 'მიმდინარე განაცხადები'}</h2>
+                <h2 className="cab-title">{t(view === 'done' ? 'დასრულებული განაცხადები' : 'მიმდინარე განაცხადები')}</h2>
                 <span className="cab-count">
                   <b>{q.data?.TotalCount ?? 0}</b>
                 </span>
               </div>
               <div className="cab-cards">
                 {q.data?.Items.map((a) => <AppCard key={a.ID} a={a} expanded={view === 'active'} onCompare={() => onCompare(a)} />)}
-                {q.data && !q.data.Items.length && <div className="cab-group-empty">{counts && counts.Active + counts.Done === 0 ? 'განაცხადები ჯერ არ გაგიგზავნია — შეავსე განაცხადი და აქ გამოჩნდება.' : 'ჯერ არ არის'}</div>}
-                {q.isLoading && <div className="cab-group-empty">იტვირთება…</div>}
+                {q.data && !q.data.Items.length && <div className="cab-group-empty">{t(counts && counts.Active + counts.Done === 0 ? 'განაცხადები ჯერ არ გაგიგზავნია' : 'ჯერ არ არის')}</div>}
+                {q.isLoading && <div className="cab-group-empty">{t('იტვირთება…')}</div>}
               </div>
               {(q.data?.TotalPages ?? 1) > 1 && <Pager page={page} pages={q.data!.TotalPages} onPage={setPage} />}
             </div>
@@ -160,7 +161,7 @@ function Pager({ page, pages, onPage }: { page: number; pages: number; onPage: (
     </svg>
   );
   return (
-    <nav className="pager" aria-label="გვერდები">
+    <nav className="pager" aria-label={t('გვერდები')}>
       <button type="button" className="pg arrow" disabled={page === 1} onClick={() => onPage(page - 1)}>
         {chev(-1)}
       </button>
@@ -204,7 +205,7 @@ function Countdown({ o }: { o: AppOrg }) {
   if (!o.ExpiresOn || !['sent', 'offer'].includes(o.Status)) return null;
   const left = new Date(o.ExpiresOn).getTime() - now;
   return (
-    <span className={`cd${left <= 0 ? ' over' : ''}`} title={o.Status === 'offer' ? 'დასადასტურებლად დარჩენილი დრო' : 'პასუხისთვის დარჩენილი დრო'}>
+    <span className={`cd${left <= 0 ? ' over' : ''}`} title={t(o.Status === 'offer' ? 'დასადასტურებლად დარჩენილი დრო' : 'პასუხისთვის დარჩენილი დრო')}>
       {fmtCd(left)}
     </span>
   );
@@ -241,7 +242,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             </svg>
           </span>
           <span className="info">
-            <b>{a.ProductType.NameKa}</b>
+            <b>{n(a.ProductType)}</b>
             <span className="who">
               {a.FirstName} {a.LastName}
             </span>
@@ -252,14 +253,14 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           </span>
         </button>
         <div className="cab-acts">
-          <button type="button" className="cab-ico cab-compare good" aria-label="შეთავაზებები" title="შეთავაზებები" onClick={onCompare}>
+          <button type="button" className="cab-ico cab-compare good" aria-label={t('შეთავაზებები')} title={t('შეთავაზებები')} onClick={onCompare}>
             {I.compare}
           </button>
-          <button type="button" className="cab-ico cab-view" aria-label="ნახვა" title="ნახვა" onClick={() => setView(true)}>
+          <button type="button" className="cab-ico cab-view" aria-label={t('ნახვა')} title={t('ნახვა')} onClick={() => setView(true)}>
             {I.eye}
           </button>
           {!isClosed && (
-            <button type="button" className="cab-ico cab-cancel danger" aria-label="განაცხადის დასრულება" title="განაცხადის დასრულება" onClick={() => setCancel(true)}>
+            <button type="button" className="cab-ico cab-cancel danger" aria-label={t('განაცხადის დასრულება')} title={t('განაცხადის დასრულება')} onClick={() => setCancel(true)}>
               {I.x}
             </button>
           )}
@@ -298,14 +299,14 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                         <span className="lg" style={{ ['--c' as string]: orgColor(o.Organization) }}>
                           {orgMark(o.Organization.NameKa)}
                         </span>
-                        <span className="nm">{o.Organization.NameKa}</span>
+                        <span className="nm">{n(o.Organization)}</span>
                         <div className="cab-acts">
                           <Countdown o={o} />
-                          <button type="button" className="cab-ico o-ico" title="ნახვა" aria-label="ნახვა" onClick={() => setOffer(o)}>
+                          <button type="button" className="cab-ico o-ico" title={t('ნახვა')} aria-label={t('ნახვა')} onClick={() => setOffer(o)}>
                             {I.eye}
                           </button>
                           {s.cancelOf(o) && (
-                            <button type="button" className="cab-ico o-ico danger" title="გაუქმება" aria-label="გაუქმება" onClick={() => declineOrg(o)}>
+                            <button type="button" className="cab-ico o-ico danger" title={t('გაუქმება')} aria-label={t('გაუქმება')} onClick={() => declineOrg(o)}>
                               {I.x}
                             </button>
                           )}
@@ -340,14 +341,14 @@ function CancelModal({ a, onClose, onDone }: { a: App; onClose: () => void; onDo
   const [busy, setBusy] = useState(false);
   return (
     <Modal onClose={onClose} noClose labelledBy="cancelTitle">
-      <h3 id="cancelTitle">დავასრულოთ განაცხადი?</h3>
+      <h3 id="cancelTitle">{t('დავასრულოთ განაცხადი?')}</h3>
       <p>
-        {a.ProductType.NameKa} · {money(a.Amount, a.Currency)}
+        {n(a.ProductType)} · {money(a.Amount, a.Currency)}
       </p>
-      <p>ორგანიზაციები შეთავაზებებს აღარ გამოგიგზავნიან. ამ მოქმედების გაუქმება ვერ მოხერხდება.</p>
+      <p>{t('ორგანიზაციები შეთავაზებებს აღარ გამოგიგზავნიან. ამ მოქმედების გაუქმება ვერ მოხერხდება.')}</p>
       <div className="cancel-actions">
         <button type="button" className="btn btn-ghost" onClick={onClose}>
-          არა
+          {t('არა')}
         </button>
         <button
           type="button"
@@ -364,7 +365,7 @@ function CancelModal({ a, onClose, onDone }: { a: App; onClose: () => void; onDo
             }
           }}
         >
-          დიახ, დავასრულო
+          {t('დიახ, დავასრულო')}
         </button>
       </div>
       <ErrorText error={error} />
@@ -374,15 +375,15 @@ function CancelModal({ a, onClose, onDone }: { a: App; onClose: () => void; onDo
 
 /** Application as sent — read only (prototype viewModal). */
 function ViewModal({ a, onClose }: { a: App; onClose: () => void }) {
-  const { cities, districts } = useRefs();
+  const { cities, districts, creditHistory, sectors, incomeSources, organizations } = useRefs();
   const s = useStatus();
   const total = (a.Incomes ?? []).reduce((t, i) => t + (+i.Amount || 0), 0);
   const sec = (title: string, rows: [string, string, string?][]) => (
     <div className="view-sec">
-      <h4>{title}</h4>
+      <h4>{up(t(title))}</h4>
       {rows.map(([k, v, cls], i) => (
         <div key={i} className="view-row">
-          <span>{k}</span>
+          <span>{t(k)}</span>
           <b>{cls ? <em className={`status ${cls}`}>{v}</em> : v || '—'}</b>
         </div>
       ))}
@@ -391,24 +392,24 @@ function ViewModal({ a, onClose }: { a: App; onClose: () => void }) {
   return (
     <Modal onClose={onClose} className="view-box" labelledBy="viewTitle">
       <h3 id="viewTitle">
-        {a.ProductType.NameKa} · {money(a.Amount, a.Currency)}
+        {n(a.ProductType)} · {money(a.Amount, a.Currency)}
       </h3>
-      <p>გაგზავნილია {fmtDate(a.CreatedOn)}</p>
+      <p>{t('გაგზავნილია')} {fmtDate(a.CreatedOn)}</p>
       <div className="view-body">
-        {sec('საკრედიტო ისტორია', [['სტატუსი', a.CreditHistory ?? '']])}
+        {sec('საკრედიტო ისტორია', [['სტატუსი', refName(creditHistory, a.CreditHistory)]])}
         {sec('ფინანსური მდგომარეობა', [
-          ['საქმიანობის სფერო', a.Sector ?? ''],
-          ...(a.Incomes ?? []).map((i): [string, string] => [i.Src, `${fmt(i.Amount)} ₾`]),
+          ['საქმიანობის სფერო', refName(sectors, a.Sector)],
+          ...(a.Incomes ?? []).map((i): [string, string] => [refName(incomeSources, i.Src), `${fmt(i.Amount)} ₾`]),
           ['ჯამური თვიური შემოსავალი', `${fmt(total)} ₾`],
-          ['ბანკის სერვისები', (a.Banks ?? []).join(', ')],
+          ['ბანკის სერვისები', (a.Banks ?? []).map((b) => refName(organizations, b)).join(', ')],
         ])}
-        {sec('ორგანიზაციები', a.Orgs.map((o): [string, string, string] => [o.Organization.NameKa, s.label(o.Status), stCls(o.Status)]))}
+        {sec('ორგანიზაციები', a.Orgs.map((o): [string, string, string] => [n(o.Organization), s.label(o.Status), stCls(o.Status)]))}
         {sec('პირადი მონაცემები', [
           ['პირადი ნომერი', a.Pid],
           ['სახელი, გვარი', `${a.FirstName} ${a.LastName}`],
           ['დაბადების თარიღი', fmtDay(a.BirthDate)],
-          ['ქალაქი', cities.find((c) => c.ID === a.CityID)?.NameKa ?? ''],
-          ['უბანი / სოფელი', districts.find((d) => d.ID === a.DistrictID)?.NameKa ?? a.Village ?? ''],
+          ['ქალაქი', n(cities.find((c) => c.ID === a.CityID))],
+          ['უბანი / სოფელი', n(districts.find((d) => d.ID === a.DistrictID)) || a.Village || ''],
           ['მობილური ნომერი', a.Phone ? fmtPhone(a.Phone) : ''],
         ])}
       </div>
@@ -435,14 +436,14 @@ export function OfferModal({ a, o, onClose, onChanged }: { a: App; o: AppOrg; on
   };
   const row = (k: string, v: string, i: number) => (
     <div key={i} className="view-row">
-      <span>{k}</span>
+      <span>{t(k)}</span>
       <b>{v}</b>
     </div>
   );
   return (
     <Modal onClose={onClose} className="view-box" labelledBy="offerOrg">
       <h3 className="offer-name" id="offerOrg">
-        {o.Organization.NameKa}
+        {n(o.Organization)}
       </h3>
       <div className="offer-head">
         <div className="offer-row offer-center">
@@ -450,25 +451,25 @@ export function OfferModal({ a, o, onClose, onChanged }: { a: App; o: AppOrg; on
         </div>
       </div>
       <div className="view-body">
-        {o.Offers.map((t) => {
-          const c = calcOffer({ amount: t.Amount, months: t.Months, rate: t.Rate, fee: t.Fee, insMonth: t.InsMonth });
+        {o.Offers.map((of) => {
+          const c = calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth });
           if (!c) return null;
-          const m = (n: number) => money(n, t.Currency);
+          const m = (v: number) => money(v, of.Currency);
           return (
-            <div key={t.ID}>
+            <div key={of.ID}>
               <div className="view-sec">
                 {[
-                  ['თანხა', m(t.Amount)],
-                  ['ვადა', `${t.Months} თვე`],
-                  ['წლიური განაკვეთი', `${t.Rate}%`],
+                  ['თანხა', m(of.Amount)],
+                  ['ვადა', t(`${of.Months} თვე`)],
+                  ['წლიური განაკვეთი', `${of.Rate}%`],
                   ['ეფექტური პროცენტი', `${c.eff}%`],
-                  ['ერთჯერადი საკომისიოები', m(t.Fee)],
+                  ['ერთჯერადი საკომისიოები', m(of.Fee)],
                   ['ყოველთვიური გადასახადი', m(c.monthly)],
                 ].map(([k, v], i) => row(k, v, i))}
               </div>
               <div className="view-sec">
                 {[
-                  ['სულ გადასახდელი საკომისიო', m(t.Fee)],
+                  ['სულ გადასახდელი საკომისიო', m(of.Fee)],
                   ['სულ გადასახდელი პროცენტი', m(c.interest)],
                   ['სულ გადასახდელი დაზღვევა', m(c.insTotal)],
                   ['სულ ძირის გარდა გადასახდელი', m(c.costTotal)],
@@ -478,17 +479,17 @@ export function OfferModal({ a, o, onClose, onChanged }: { a: App; o: AppOrg; on
             </div>
           );
         })}
-        {!o.Offers.length && <p style={{ textAlign: 'center' }}>შეთავაზება ჯერ არ არის — გაგზავნილია {fmtDate(o.SentOn)}</p>}
+        {!o.Offers.length && <p style={{ textAlign: 'center' }}>{t('შეთავაზება ჯერ არ არის — გაგზავნილია')} {fmtDate(o.SentOn)}</p>}
       </div>
       {accept && o.Offers.length > 0 && (
         <div className="cancel-actions">
           {decline && (
             <button type="button" className="btn btn-red" disabled={busy} onClick={() => run(decline)}>
-              უარი
+              {t('უარი')}
             </button>
           )}
           <button type="button" className="btn btn-green" disabled={busy} onClick={() => run(accept)}>
-            დადასტურება
+            {t('დადასტურება')}
           </button>
         </div>
       )}
@@ -519,12 +520,12 @@ function Profile() {
   const q = useQuery({ queryKey: ['profile', p?.ID], queryFn: () => api<ProfileData>('GET', `/client/profile/detail/${p!.ID}/${p!.UID}`), enabled: !!p });
   const [edit, setEdit] = useState<Field | null>(null);
   const d = q.data;
-  if (!d) return <div className="cab-group-empty">იტვირთება…</div>;
+  if (!d) return <div className="cab-group-empty">{t('იტვირთება…')}</div>;
   const c = d.Customer;
-  const loc = [cities.find((x) => x.ID === c?.CityID)?.NameKa, districts.find((x) => x.ID === c?.DistrictID)?.NameKa ?? c?.Village].filter(Boolean).join(', ');
+  const loc = [n(cities.find((x) => x.ID === c?.CityID)), n(districts.find((x) => x.ID === c?.DistrictID)) || c?.Village].filter(Boolean).join(', ');
   const btn = (f: Field) => (
     <button type="button" className="btn btn-green prof-edit" onClick={() => setEdit(f)}>
-      შეცვლა
+      {t('შეცვლა')}
     </button>
   );
   const saved = async () => {
@@ -535,55 +536,55 @@ function Profile() {
   return (
     <div>
       <div className="cab-panel prof-sec">
-        <h3 className="prof-h">მომხმარებელი</h3>
+        <h3 className="prof-h">{t('მომხმარებელი')}</h3>
         <div className="prof-info">
           <div className="prof-row">
-            <span>ელ. ფოსტა</span>
+            <span>{t('ელ. ფოსტა')}</span>
             <b>{d.User.Email ?? '—'}</b>
             <i />
           </div>
           <div className="prof-row">
-            <span>მომხმარებლის სახელი</span>
+            <span>{t('მომხმარებლის სახელი')}</span>
             <b>{d.User.UserName || d.User.Email?.split('@')[0] || '—'}</b>
             {btn('user')}
           </div>
           <div className="prof-row">
-            <span>მობილური</span>
+            <span>{t('მობილური')}</span>
             <b>{d.User.Phone ? fmtPhone(d.User.Phone) : '—'}</b>
             {btn('phone')}
           </div>
           <div className="prof-row">
-            <span>ლოკაცია</span>
+            <span>{t('ლოკაცია')}</span>
             <b>{loc || '—'}</b>
             {btn('loc')}
           </div>
         </div>
       </div>
       <div className="cab-panel prof-sec">
-        <h3 className="prof-h">პირადი მონაცემები</h3>
+        <h3 className="prof-h">{t('პირადი მონაცემები')}</h3>
         <div className="prof-info prof-info-2">
           <div className="prof-row prof-row-3">
-            <span>ვერიფიცირებული</span>
-            <b className={`verify ${d.User.IsVerified ? 'yes' : 'no'}`}>{d.User.IsVerified ? 'კი' : 'არა'}</b>
+            <span>{t('ვერიფიცირებული')}</span>
+            <b className={`verify ${d.User.IsVerified ? 'yes' : 'no'}`}>{t(d.User.IsVerified ? 'კი' : 'არა')}</b>
             <i />
           </div>
           <div className="prof-row prof-row-3">
-            <span>პირადი ნომერი</span>
+            <span>{t('პირადი ნომერი')}</span>
             <b>{c?.Pid || '—'}</b>
             {btn('pid')}
           </div>
           <div className="prof-row prof-row-3">
-            <span>სახელი</span>
+            <span>{t('სახელი')}</span>
             <b>{c?.FirstName || '—'}</b>
             {btn('first')}
           </div>
           <div className="prof-row prof-row-3">
-            <span>გვარი</span>
+            <span>{t('გვარი')}</span>
             <b>{c?.LastName || '—'}</b>
             {btn('last')}
           </div>
           <div className="prof-row prof-row-3">
-            <span>დაბადების თარიღი</span>
+            <span>{t('დაბადების თარიღი')}</span>
             <b>{fmtDay(c?.BirthDate)}</b>
             {btn('dob')}
           </div>
@@ -649,43 +650,43 @@ function ChangeModal({ field, d, onClose, onSaved }: { field: Field; d: ProfileD
     );
   return (
     <Modal onClose={onClose} labelledBy="changeTitle">
-      <h3 id="changeTitle">{TITLES[field]}</h3>
-      {field === 'phone' && <p>ახალ ნომერზე SMS-ით ერთჯერადი კოდი გაიგზავნება</p>}
+      <h3 id="changeTitle">{t(TITLES[field])}</h3>
+      {field === 'phone' && <p>{t('ახალ ნომერზე SMS-ით ერთჯერადი კოდი გაიგზავნება')}</p>}
       {field === 'phone' ? (
         <div className="phone login-phone">
           <span>+995</span>
-          <input type="tel" inputMode="numeric" maxLength={9} placeholder="5XX XXX XXX" aria-label="ახალი მობილური ნომერი" value={text} onChange={(e) => setText(e.target.value.replace(/\D/g, '').slice(0, 9))} autoFocus />
+          <input type="tel" inputMode="numeric" maxLength={9} placeholder="5XX XXX XXX" aria-label={t('ახალი მობილური ნომერი')} value={text} onChange={(e) => setText(e.target.value.replace(/\D/g, '').slice(0, 9))} autoFocus />
         </div>
       ) : field === 'loc' ? (
         <div className="f-grid loc-grid">
           <div className="f">
-            <label htmlFor="chCity">ქალაქი</label>
+            <label htmlFor="chCity">{t('ქალაქი')}</label>
             <select id="chCity" value={city} onChange={(e) => (setCity(e.target.value), setDistrict(''), setVillage(''))}>
               <option value="" disabled>
-                აირჩიეთ
+                {t('აირჩიეთ')}
               </option>
               {cities.map((x) => (
                 <option key={x.ID} value={x.ID}>
-                  {x.NameKa}
+                  {n(x)}
                 </option>
               ))}
             </select>
           </div>
           {cityDistricts.length > 0 ? (
             <div className="f">
-              <label htmlFor="chDistrict">უბანი</label>
+              <label htmlFor="chDistrict">{t('უბანი')}</label>
               <select id="chDistrict" value={district} onChange={(e) => setDistrict(e.target.value)}>
-                <option value="">აირჩიეთ</option>
+                <option value="">{t('აირჩიეთ')}</option>
                 {cityDistricts.map((x) => (
                   <option key={x.ID} value={x.ID}>
-                    {x.NameKa}
+                    {n(x)}
                   </option>
                 ))}
               </select>
             </div>
           ) : (
             <div className="f">
-              <label htmlFor="chVillage">უბანი / სოფელი</label>
+              <label htmlFor="chVillage">{t('უბანი / სოფელი')}</label>
               <input id="chVillage" value={village} disabled={!city} onChange={(e) => setVillage(e.target.value)} />
             </div>
           )}
@@ -698,7 +699,7 @@ function ChangeModal({ field, d, onClose, onSaved }: { field: Field; d: ProfileD
           max={field === 'dob' ? '2010-12-31' : undefined}
           inputMode={field === 'pid' ? 'numeric' : 'text'}
           maxLength={field === 'pid' ? 11 : 60}
-          placeholder={field === 'pid' ? '11 ციფრი' : ''}
+          placeholder={field === 'pid' ? t('11 ციფრი') : ''}
           value={text}
           onChange={(e) => setText(field === 'pid' ? e.target.value.replace(/\D/g, '').slice(0, 11) : e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && ok && save()}
@@ -706,7 +707,7 @@ function ChangeModal({ field, d, onClose, onSaved }: { field: Field; d: ProfileD
         />
       )}
       <button type="button" className="btn btn-green full" disabled={!ok} onClick={save}>
-        {field === 'phone' ? 'გაგრძელება' : 'შენახვა'}
+        {t(field === 'phone' ? 'გაგრძელება' : 'შენახვა')}
       </button>
       <ErrorText error={error} />
     </Modal>

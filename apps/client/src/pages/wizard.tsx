@@ -1,3 +1,4 @@
+import { n, t, up } from '../i18n';
 import { useEffect, useState } from 'react';
 import { api, ApiError, Ref } from '../api';
 import { OtpModal, useAskLogin } from '../auth';
@@ -87,8 +88,8 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
     CityID: Number(p.city), DistrictID: p.district ? Number(p.district) : null, Village: p.village.trim() || null,
     ...(code ? { Otp: { ID: code.ref.ID, UID: code.ref.UID, Code: code.code } } : {}),
   });
-  const sent = (ref: Ref) => onSent({ ref, amount: money(start.amount, start.currency), loan: pt.NameKa, orgs: orgs.length });
-  const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : 'შეცდომა');
+  const sent = (ref: Ref) => onSent({ ref, amount: money(start.amount, start.currency), loan: n(pt), orgs: orgs.length });
+  const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
 
   const next = async () => {
     if (!valid(step)) return;
@@ -116,7 +117,7 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
             <path d="M15 6l-6 6 6 6" />
           </svg>
         )}
-        <span>უკან</span>
+        <span>{t('უკან')}</span>
       </button>
       {cls === 'head' && (
         <ol className="wz-steps">
@@ -129,7 +130,7 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
         </ol>
       )}
       <button type="button" className="btn btn-green" disabled={!valid(step) || busy} onClick={next}>
-        <span>{step === STEPS ? 'გაგზავნა' : 'გაგრძელება'}</span>
+        <span>{t(step === STEPS ? 'გაგზავნა' : 'გაგრძელება')}</span>
         {cls === 'head' && (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M9 6l6 6-6 6" />
@@ -144,7 +145,7 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
         <label key={x.NameKa} className="opt-row">
           <input type="radio" name={name} checked={value === x.NameKa} onChange={() => set(x.NameKa)} />
           <i />
-          {x.NameKa}
+          {n(x)}
         </label>
       ))}
     </div>
@@ -155,26 +156,26 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
     <section className="wizard">
       <div className="wrap">
         <div className="wz-summary">
-          <b>{pt.NameKa}</b>
+          <b>{n(pt)}</b>
           <b>{money(start.amount, start.currency)}</b>
         </div>
         <div className="wz-head">{nav('head')}</div>
         <div className="wz-body">
           {step === 1 && (
             <div className="wz-panel">
-              <h2 className="sec-title">საკრედიტო ისტორია</h2>
+              <h2 className="sec-title">{up(t('საკრედიტო ისტორია'))}</h2>
               <div className="wz-form">{radios('credit', refs.creditHistory, credit, setCredit)}</div>
             </div>
           )}
           {step === 2 && (
             <div className="wz-panel">
-              <h2 className="sec-title">საქმიანობის სფერო</h2>
+              <h2 className="sec-title">{up(t('საქმიანობის სფერო'))}</h2>
               <div className="wz-form">{radios('sector', refs.sectors, sector, setSector)}</div>
             </div>
           )}
           {step === 3 && (
             <div className="wz-panel">
-              <h2 className="sec-title">შემოსავლის წყარო</h2>
+              <h2 className="sec-title">{up(t('შემოსავლის წყარო'))}</h2>
               <div className="wz-form">
                 <div className="inc-list">
                   {refs.incomeSources.map((s) => {
@@ -186,18 +187,18 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
                             type="checkbox"
                             checked={on}
                             onChange={(e) => {
-                              const n = { ...incomes };
-                              if (e.target.checked) n[s.NameKa] = '';
-                              else delete n[s.NameKa];
-                              setIncomes(n);
+                              const next = { ...incomes };
+                              if (e.target.checked) next[s.NameKa] = '';
+                              else delete next[s.NameKa];
+                              setIncomes(next);
                             }}
                           />
                           <i />
-                          {s.NameKa}
+                          {n(s)}
                         </label>
                         {on && (
                           <div className="inc-amt">
-                            <input type="number" min={0} step={50} inputMode="numeric" placeholder="თვიური თანხა" aria-label={`${s.NameKa}, თვიური თანხა`} value={incomes[s.NameKa]} onChange={(e) => setIncomes({ ...incomes, [s.NameKa]: e.target.value })} autoFocus />
+                            <input type="number" min={0} step={50} inputMode="numeric" placeholder={t('თვიური თანხა')} aria-label={`${n(s)}, ${t('თვიური თანხა')}`} value={incomes[s.NameKa]} onChange={(e) => setIncomes({ ...incomes, [s.NameKa]: e.target.value })} autoFocus />
                             <span>₾</span>
                           </div>
                         )}
@@ -206,7 +207,7 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
                   })}
                 </div>
                 <div className="inc-total">
-                  <span>ჯამური თვიური შემოსავალი</span>
+                  <span>{t('ჯამური თვიური შემოსავალი')}</span>
                   <b>{fmt(total)} ₾</b>
                 </div>
               </div>
@@ -214,14 +215,14 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
           )}
           {step === 4 && (
             <div className="wz-panel">
-              <h2 className="sec-title">რომელი ბანკის სერვისებით სარგებლობთ</h2>
+              <h2 className="sec-title">{up(t('რომელი ბანკის სერვისებით სარგებლობთ'))}</h2>
               <div className="wz-form">
-                <div className="opt-list banks-list" role="group" aria-label="ბანკის სერვისები">
+                <div className="opt-list banks-list" role="group" aria-label={t('ბანკის სერვისები')}>
                   {bankList.map((b) => (
                     <label key={b.ID} className="opt-row opt-check">
                       <input type="checkbox" checked={banks.includes(b.NameKa)} onChange={(e) => setBanks(e.target.checked ? [...banks, b.NameKa] : banks.filter((x) => x !== b.NameKa))} />
                       <i />
-                      {b.NameKa}
+                      {n(b)}
                     </label>
                   ))}
                 </div>
@@ -230,14 +231,14 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
           )}
           {step === 5 && (
             <div className="wz-panel">
-              <h2 className="sec-title">ორგანიზაციების არჩევა</h2>
-              <p className="wz-note">მონიშნე ორგანიზაციები, რომლებსაც გინდა განაცხადი გაუგზავნო. თითოეული ცალ-ცალკე მოგცემს შეთავაზებას.</p>
+              <h2 className="sec-title">{up(t('ორგანიზაციების არჩევა'))}</h2>
+              <p className="wz-note">{t('მონიშნე ორგანიზაციები, რომლებსაც გინდა განაცხადი გაუგზავნო. თითოეული ცალ-ცალკე მოგცემს შეთავაზებას.')}</p>
               <div className="wz-form wz-form-wide">
                 <div className="org-groups">
                   {CATEGORIES.map(([cat, label]) => {
                     const list = accepting.filter((o) => o.Category === cat);
                     if (!list.length) return null;
-                    const n = list.filter((o) => orgs.includes(o.ID)).length;
+                    const cnt = list.filter((o) => orgs.includes(o.ID)).length;
                     const isOpen = open.has(cat);
                     return (
                       <div key={cat} className="org-group">
@@ -246,9 +247,9 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
                             <input
                               type="checkbox"
                               className="org-all"
-                              checked={n === list.length}
+                              checked={cnt === list.length}
                               ref={(el) => {
-                                if (el) el.indeterminate = n > 0 && n < list.length;
+                                if (el) el.indeterminate = cnt > 0 && cnt < list.length;
                               }}
                               onChange={(e) => {
                                 const ids = list.map((o) => o.ID);
@@ -256,18 +257,18 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
                               }}
                             />
                             <i />
-                            <h3>{label}</h3>
+                            <h3>{t(label)}</h3>
                           </label>
-                          {n > 0 && (
+                          {cnt > 0 && (
                             <span className="org-cnt">
-                              {n}/{list.length}
+                              {cnt}/{list.length}
                             </span>
                           )}
                           <button
                             type="button"
                             className="org-toggle"
                             aria-expanded={isOpen}
-                            aria-label="ჩამოშლა"
+                            aria-label={t('ჩამოშლა')}
                             onClick={() => {
                               const s = new Set(open);
                               if (isOpen) s.delete(cat);
@@ -287,7 +288,7 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
                                 <span className="lg" style={{ ['--c' as string]: orgColor(o) }}>
                                   {orgMark(o.NameKa)}
                                 </span>
-                                {o.NameKa}
+                                {n(o)}
                               </label>
                             ))}
                           </div>
@@ -295,10 +296,10 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
                       </div>
                     );
                   })}
-                  {!accepting.length && <p className="wz-note">ამ პროდუქტზე პარტნიორი ორგანიზაცია ჯერ არ არის.</p>}
+                  {!accepting.length && <p className="wz-note">{t('ამ პროდუქტზე პარტნიორი ორგანიზაცია ჯერ არ არის.')}</p>}
                 </div>
                 <div className="org-total">
-                  <span>არჩეულია</span>
+                  <span>{t('არჩეულია')}</span>
                   <b>{orgs.length}</b>
                 </div>
               </div>
@@ -306,58 +307,58 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
           )}
           {step === 6 && (
             <div className="wz-panel">
-              <h2 className="sec-title">პირადი მონაცემები</h2>
+              <h2 className="sec-title">{up(t('პირადი მონაცემები'))}</h2>
               <div className="wz-form">
                 <div className="f-grid">
                   <div className="f">
-                    <label htmlFor="pPid">პირადი ნომერი</label>
-                    <input type="text" id="pPid" inputMode="numeric" maxLength={11} placeholder="11 ციფრი" value={p.pid} onChange={(e) => setP({ ...p, pid: e.target.value.replace(/\D/g, '').slice(0, 11) })} />
+                    <label htmlFor="pPid">{t('პირადი ნომერი')}</label>
+                    <input type="text" id="pPid" inputMode="numeric" maxLength={11} placeholder={t('11 ციფრი')} value={p.pid} onChange={(e) => setP({ ...p, pid: e.target.value.replace(/\D/g, '').slice(0, 11) })} />
                   </div>
                   <div className="f">
-                    <label htmlFor="pFirst">სახელი</label>
+                    <label htmlFor="pFirst">{t('სახელი')}</label>
                     <input type="text" id="pFirst" autoComplete="given-name" value={p.first} onChange={setField('first')} />
                   </div>
                   <div className="f">
-                    <label htmlFor="pLast">გვარი</label>
+                    <label htmlFor="pLast">{t('გვარი')}</label>
                     <input type="text" id="pLast" autoComplete="family-name" value={p.last} onChange={setField('last')} />
                   </div>
                   <div className="f">
-                    <label htmlFor="pDob">დაბადების თარიღი</label>
+                    <label htmlFor="pDob">{t('დაბადების თარიღი')}</label>
                     <input type="date" id="pDob" max="2010-12-31" min="1930-01-01" value={p.dob} onChange={setField('dob')} />
                   </div>
                   <div className="f">
-                    <label htmlFor="pCity">ქალაქი</label>
+                    <label htmlFor="pCity">{t('ქალაქი')}</label>
                     <select id="pCity" value={p.city} onChange={(e) => setP({ ...p, city: e.target.value, district: '', village: '' })}>
                       <option value="" disabled>
-                        აირჩიეთ
+                        {t('აირჩიეთ')}
                       </option>
                       {refs.cities.map((c) => (
                         <option key={c.ID} value={c.ID}>
-                          {c.NameKa}
+                          {n(c)}
                         </option>
                       ))}
                     </select>
                   </div>
                   {cityDistricts.length > 0 ? (
                     <div className="f">
-                      <label htmlFor="pDistrict">უბანი</label>
+                      <label htmlFor="pDistrict">{t('უბანი')}</label>
                       <select id="pDistrict" value={p.district} onChange={setField('district')}>
-                        <option value="">აირჩიეთ</option>
+                        <option value="">{t('აირჩიეთ')}</option>
                         {cityDistricts.map((d) => (
                           <option key={d.ID} value={d.ID}>
-                            {d.NameKa}
+                            {n(d)}
                           </option>
                         ))}
                       </select>
                     </div>
                   ) : (
                     <div className="f">
-                      <label htmlFor="pVillage">უბანი / სოფელი</label>
+                      <label htmlFor="pVillage">{t('უბანი / სოფელი')}</label>
                       <input type="text" id="pVillage" autoComplete="address-level3" value={p.village} disabled={!p.city} onChange={setField('village')} />
                     </div>
                   )}
                   <div className="f">
-                    <label htmlFor="pPhone">მობილური ნომერი</label>
+                    <label htmlFor="pPhone">{t('მობილური ნომერი')}</label>
                     <div className="phone">
                       <span>+995</span>
                       <input type="tel" id="pPhone" inputMode="numeric" maxLength={9} placeholder="5XX XXX XXX" autoComplete="tel-national" value={p.phone} onChange={(e) => setP({ ...p, phone: e.target.value.replace(/\D/g, '').slice(0, 9) })} />
@@ -372,7 +373,7 @@ export function Wizard({ start, onClose, onSent }: { start: Start; onClose: () =
         <div className="wz-foot">{nav('foot')}</div>
         <p style={{ textAlign: 'center', marginTop: 12 }}>
           <button type="button" className="btn btn-ghost" onClick={onClose}>
-            მთავარზე დაბრუნება
+            {t('მთავარზე დაბრუნება')}
           </button>
         </p>
       </div>

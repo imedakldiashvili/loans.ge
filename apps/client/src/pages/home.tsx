@@ -1,3 +1,4 @@
+import { lang, n, t, up } from '../i18n';
 import { useQuery } from '@tanstack/react-query';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { api } from '../api';
@@ -49,11 +50,11 @@ export function QuickForm({ onSubmit, initial }: { onSubmit: (s: Start) => void;
     if (pt) onSubmit({ productType: pt, amount: v, currency: cur });
   };
   return (
-    <form className="calc" aria-label="სესხის განაცხადი" onSubmit={submit}>
-      <select required aria-label="მიზნობრიობა" value={pt?.ID ?? ''} onChange={(e) => setPtId(Number(e.target.value))}>
+    <form className="calc" aria-label={t('სესხის განაცხადი')} onSubmit={submit}>
+      <select required aria-label={t('მიზნობრიობა')} value={pt?.ID ?? ''} onChange={(e) => setPtId(Number(e.target.value))}>
         {productTypes.map((x) => (
           <option key={x.ID} value={x.ID}>
-            {x.NameKa}
+            {n(x)}
           </option>
         ))}
       </select>
@@ -76,7 +77,7 @@ export function QuickForm({ onSubmit, initial }: { onSubmit: (s: Start) => void;
         <div className="box">
           <strong>{fmt(v)}</strong>
           <div className="cur" ref={curRef}>
-            <button type="button" aria-haspopup="listbox" aria-expanded={curOpen} aria-label="ვალუტა" onClick={() => setCurOpen(!curOpen)}>
+            <button type="button" aria-haspopup="listbox" aria-expanded={curOpen} aria-label={t('ვალუტა')} onClick={() => setCurOpen(!curOpen)}>
               {sym}
             </button>
             {curOpen && (
@@ -91,7 +92,7 @@ export function QuickForm({ onSubmit, initial }: { onSubmit: (s: Start) => void;
                       setCurOpen(false);
                     }}
                   >
-                    <b>{c.Symbol}</b> {({ GEL: 'ლარი', USD: 'დოლარი', EUR: 'ევრო' } as Record<string, string>)[c.Code] ?? c.Code}
+                    <b>{c.Symbol}</b> {t(({ GEL: 'ლარი', USD: 'დოლარი', EUR: 'ევრო' } as Record<string, string>)[c.Code] ?? c.Code)}
                   </li>
                 ))}
               </ul>
@@ -99,14 +100,14 @@ export function QuickForm({ onSubmit, initial }: { onSubmit: (s: Start) => void;
           </div>
         </div>
       </div>
-      <input type="range" min={min} max={max} step={Math.max(1, r / 10)} value={v} aria-label="თანხა" style={{ ['--p' as string]: `${p}%` }} onChange={(e) => setValue(Number(e.target.value))} />
+      <input type="range" min={min} max={max} step={Math.max(1, r / 10)} value={v} aria-label={t('თანხა')} style={{ ['--p' as string]: `${p}%` }} onChange={(e) => setValue(Number(e.target.value))} />
       <div className="ticks">
         {Array.from({ length: 10 }, (_, i) => (
           <span key={i}>{short(r * (i + 1))}</span>
         ))}
       </div>
       <button type="submit" className="btn btn-green full" disabled={!pt}>
-        შეავსე განაცხადი
+        {t('შეავსე განაცხადი')}
       </button>
     </form>
   );
@@ -119,8 +120,8 @@ export function Home({ onStart, purpose }: { onStart: (s: Start) => void; purpos
       <section className="hero">
         <div className="wrap">
           <div className="hero-text">
-            <h1>აირჩიე სესხი საუკეთესო პირობებით</h1>
-            <p>შეავსე ერთი განაცხადი და მიიღე შეთავაზებები რამდენიმე საფინანსო ორგანიზაციისგან. შეადარე პროცენტი, ვადა და ყოველთვიური გადასახადი ერთ გვერდზე.</p>
+            <h1>{up(t('აირჩიე სესხი საუკეთესო პირობებით'))}</h1>
+            <p>{t('შეავსე ერთი განაცხადი და მიიღე შეთავაზებები რამდენიმე საფინანსო ორგანიზაციისგან. შეადარე პროცენტი, ვადა და ყოველთვიური გადასახადი ერთ გვერდზე.')}</p>
             <div className="stats">
               <div className="stat">
                 <i>
@@ -131,9 +132,9 @@ export function Home({ onStart, purpose }: { onStart: (s: Start) => void; purpos
                 </i>
                 <b>{fmt(stats?.Applications ?? 0)}</b>
                 <span>
-                  შევსებული
+                  {t('შევსებული')}
                   <br />
-                  განაცხადი
+                  {lang() === 'en' ? 'applications' : 'განაცხადი'}
                 </span>
               </div>
               <div className="stat">
@@ -147,9 +148,9 @@ export function Home({ onStart, purpose }: { onStart: (s: Start) => void; purpos
                 </i>
                 <b>{fmt(stats?.Customers ?? 0)}</b>
                 <span>
-                  რეგისტრირებული
+                  {t('რეგისტრირებული')}
                   <br />
-                  მომხმარებელი
+                  {lang() === 'en' ? 'users' : 'მომხმარებელი'}
                 </span>
               </div>
               <div className="stat">
@@ -161,9 +162,9 @@ export function Home({ onStart, purpose }: { onStart: (s: Start) => void; purpos
                 </i>
                 <b>{fmt(stats?.Organizations ?? 0)}</b>
                 <span>
-                  პარტნიორი
+                  {t('პარტნიორი')}
                   <br />
-                  ორგანიზაცია
+                  {t('ორგანიზაცია')}
                 </span>
               </div>
             </div>
@@ -175,36 +176,36 @@ export function Home({ onStart, purpose }: { onStart: (s: Start) => void; purpos
       </section>
       <section id="how">
         <div className="wrap">
-          <h2 className="sec-title">აირჩიე საუკეთესო შეთავაზება</h2>
+          <h2 className="sec-title">{up(t('აირჩიე საუკეთესო შეთავაზება'))}</h2>
           <div className="steps">
             <article className="step">
               <div className="num n1">01</div>
-              <h3>შეავსე განაცხადი</h3>
-              <p>შეავსე განაცხადი, აირჩიე სასურველი ორგანიზაციები და მიიღე ონლაინ შეთავაზებები</p>
+              <h3>{t('შეავსე განაცხადი')}</h3>
+              <p>{t('შეავსე განაცხადი, აირჩიე სასურველი ორგანიზაციები და მიიღე ონლაინ შეთავაზებები')}</p>
             </article>
             <article className="step">
               <div className="num n2">02</div>
-              <h3>აირჩიე საუკეთესო</h3>
-              <p>შეადარე შეთავაზებები და დაეთანხმე შენთვის სასურველ პირობებს</p>
+              <h3>{t('აირჩიე საუკეთესო')}</h3>
+              <p>{t('შეადარე შეთავაზებები და დაეთანხმე შენთვის სასურველ პირობებს')}</p>
             </article>
           </div>
         </div>
       </section>
       <section className="advsec">
         <div className="wrap">
-          <h2 className="sec-title">უპირატესობები</h2>
+          <h2 className="sec-title">{up(t('უპირატესობები'))}</h2>
           <div className="adv">
             <div>
-              <h3>აირჩიე საუკეთესო</h3>
-              <p>გაწვდით შენი მოთხოვნის შესაბამის ყველა შეთავაზებას. შენ თვითონ ადარებ და ირჩევ შენთვის ყველაზე მისაღებ პირობებს.</p>
+              <h3>{t('აირჩიე საუკეთესო')}</h3>
+              <p>{t('გაწვდით შენი მოთხოვნის შესაბამის ყველა შეთავაზებას. შენ თვითონ ადარებ და ირჩევ შენთვის ყველაზე მისაღებ პირობებს.')}</p>
             </div>
             <div>
-              <h3>დაზოგე დრო</h3>
-              <p>სრულიად ციფრული პროცესი, არანაირი ბიუროკრატია და დამატებითი დანახარჯები. ერთი განაცხადი — რამდენიმე შეთავაზება.</p>
+              <h3>{t('დაზოგე დრო')}</h3>
+              <p>{t('სრულიად ციფრული პროცესი, არანაირი ბიუროკრატია და დამატებითი დანახარჯები. ერთი განაცხადი — რამდენიმე შეთავაზება.')}</p>
             </div>
             <div>
-              <h3>შენი ერთგული პარტნიორი</h3>
-              <p>გვსურს გრძელვადიანი პარტნიორობა. ამიტომ მუდმივად ვეძებთ შენთვის საუკეთესო წინადადებებს და გაძლევთ არჩევანის მეტ თავისუფლებას.</p>
+              <h3>{t('შენი ერთგული პარტნიორი')}</h3>
+              <p>{t('გვსურს გრძელვადიანი პარტნიორობა. ამიტომ მუდმივად ვეძებთ შენთვის საუკეთესო წინადადებებს და გაძლევთ არჩევანის მეტ თავისუფლებას.')}</p>
             </div>
           </div>
         </div>
@@ -243,7 +244,7 @@ export function PartnersPage() {
   return (
     <section className="partners">
       <div className="wrap">
-        <h2 className="sec-title">პარტნიორი ორგანიზაციები</h2>
+        <h2 className="sec-title">{up(t('პარტნიორი ორგანიზაციები'))}</h2>
         <div className="cats">
           {CATEGORIES.map(([cat, label]) => {
             const list = partners.filter((o) => o.Category === cat);
@@ -256,7 +257,7 @@ export function PartnersPage() {
                       {CAT_ICONS[cat]}
                     </svg>
                   </i>
-                  <h3>{label}</h3>
+                  <h3>{t(label)}</h3>
                   <b>{list.length}</b>
                 </header>
                 <ul>
@@ -265,7 +266,7 @@ export function PartnersPage() {
                       <span className="lg" style={{ ['--c' as string]: orgColor(o) }}>
                         {orgMark(o.NameKa)}
                       </span>
-                      {o.NameKa}
+                      {n(o)}
                     </li>
                   ))}
                 </ul>
@@ -281,16 +282,16 @@ export function PartnersPage() {
 export const TermsPage = () => (
   <section className="partners page-text">
     <div className="wrap">
-      <h2 className="sec-title">საიტის წესები</h2>
+      <h2 className="sec-title">{up(t('საიტის წესები'))}</h2>
       <div className="page-body">
-        <h3>1. ზოგადი დებულებები</h3>
-        <p>loans.ge არის საინფორმაციო პლატფორმა, რომელიც მომხმარებელს ეხმარება სესხის შეთავაზებების შედარებასა და განაცხადის ერთდროულად რამდენიმე ორგანიზაციაში გაგზავნაში. საიტი თავად სესხს არ გასცემს.</p>
-        <h3>2. განაცხადის გაგზავნა</h3>
-        <p>განაცხადის შევსებით მომხმარებელი ადასტურებს, რომ მითითებული მონაცემები ზუსტია და თანახმაა, ისინი გადაეცეს მის მიერ არჩეულ პარტნიორ ორგანიზაციებს.</p>
-        <h3>3. პერსონალური მონაცემები</h3>
-        <p>მონაცემები მუშავდება მხოლოდ სესხის შეთავაზების მომზადების მიზნით და ინახება კანონმდებლობით დადგენილი წესით. მომხმარებელს ნებისმიერ დროს შეუძლია მონაცემების წაშლის მოთხოვნა.</p>
-        <h3>4. პასუხისმგებლობა</h3>
-        <p>სესხის საბოლოო პირობებს განსაზღვრავს გამცემი ორგანიზაცია. loans.ge არ არის პასუხისმგებელი პარტნიორის გადაწყვეტილებაზე ან შეთავაზების პირობების ცვლილებაზე.</p>
+        <h3>{t('1. ზოგადი დებულებები')}</h3>
+        <p>{t('loans.ge არის საინფორმაციო პლატფორმა, რომელიც მომხმარებელს ეხმარება სესხის შეთავაზებების შედარებასა და განაცხადის ერთდროულად რამდენიმე ორგანიზაციაში გაგზავნაში. საიტი თავად სესხს არ გასცემს.')}</p>
+        <h3>{t('2. განაცხადის გაგზავნა')}</h3>
+        <p>{t('განაცხადის შევსებით მომხმარებელი ადასტურებს, რომ მითითებული მონაცემები ზუსტია და თანახმაა, ისინი გადაეცეს მის მიერ არჩეულ პარტნიორ ორგანიზაციებს.')}</p>
+        <h3>{t('3. პერსონალური მონაცემები')}</h3>
+        <p>{t('მონაცემები მუშავდება მხოლოდ სესხის შეთავაზების მომზადების მიზნით და ინახება კანონმდებლობით დადგენილი წესით. მომხმარებელს ნებისმიერ დროს შეუძლია მონაცემების წაშლის მოთხოვნა.')}</p>
+        <h3>{t('4. პასუხისმგებლობა')}</h3>
+        <p>{t('სესხის საბოლოო პირობებს განსაზღვრავს გამცემი ორგანიზაცია. loans.ge არ არის პასუხისმგებელი პარტნიორის გადაწყვეტილებაზე ან შეთავაზების პირობების ცვლილებაზე.')}</p>
       </div>
     </div>
   </section>
@@ -299,14 +300,14 @@ export const TermsPage = () => (
 export const AboutPage = () => (
   <section className="partners page-text">
     <div className="wrap">
-      <h2 className="sec-title">ჩვენს შესახებ</h2>
+      <h2 className="sec-title">{up(t('ჩვენს შესახებ'))}</h2>
       <div className="page-body">
-        <p>loans.ge არის სესხების შედარების პლატფორმა, სადაც ერთი განაცხადით რამდენიმე ბანკიდან, მიკროსაფინანსო და სალიზინგო ორგანიზაციიდან იღებ შეთავაზებებს და ირჩევ საუკეთესოს.</p>
-        <h3>როგორ ვმუშაობთ</h3>
-        <p>შენ ავსებ ერთ განაცხადს, ჩვენ ვუგზავნით მას შენ მიერ არჩეულ ორგანიზაციებს, ისინი კი კაბინეტში გიგზავნიან კონკრეტულ შეთავაზებებს — თანხით, ვადით და პროცენტით. შედარება და არჩევა შენზეა.</p>
-        <h3>რატომ loans.ge</h3>
-        <p>უფასოა მომხმარებლისთვის, ზოგავს დროს და გაძლევს რეალურ არჩევანს — შეთავაზებები ერთ ადგილას, გამჭვირვალე პირობებით.</p>
-        <h3>კონტაქტი</h3>
+        <p>{t('loans.ge არის სესხების შედარების პლატფორმა, სადაც ერთი განაცხადით რამდენიმე ბანკიდან, მიკროსაფინანსო და სალიზინგო ორგანიზაციიდან იღებ შეთავაზებებს და ირჩევ საუკეთესოს.')}</p>
+        <h3>{t('როგორ ვმუშაობთ')}</h3>
+        <p>{t('შენ ავსებ ერთ განაცხადს, ჩვენ ვუგზავნით მას შენ მიერ არჩეულ ორგანიზაციებს, ისინი კი კაბინეტში გიგზავნიან კონკრეტულ შეთავაზებებს — თანხით, ვადით და პროცენტით. შედარება და არჩევა შენზეა.')}</p>
+        <h3>{t('რატომ loans.ge')}</h3>
+        <p>{t('უფასოა მომხმარებლისთვის, ზოგავს დროს და გაძლევს რეალურ არჩევანს — შეთავაზებები ერთ ადგილას, გამჭვირვალე პირობებით.')}</p>
+        <h3>{t('კონტაქტი')}</h3>
         <p>
           <b>+995 599 919 444</b> · <b>info@loans.ge</b>
         </p>
