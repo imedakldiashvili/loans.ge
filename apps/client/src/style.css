@@ -764,3 +764,7 @@
   /* card: an organisation's offer terms under its name */
   .cab-det-row .nm-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; min-width: 0; }
   .cab-det-row .of-terms { margin-inline-start: auto; display: grid; justify-items: end; gap: 2px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* comparison: filters left, the answer (chosen / finish) right — one line */
+  .cmp-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 16px; }
+  .cmp-bar .cmp-filter { margin-bottom: 0; justify-content: flex-start; }
+  .cmp-bar .pick-bar { margin-inline-start: auto; padding: 0; border-top: 0; }

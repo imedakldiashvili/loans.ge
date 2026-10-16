@@ -128,19 +128,22 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
           </p>
           <h2 className="sec-title">{up(t('შეთავაზებები'))}</h2>
         </div>
-        <div className="cmp-filter">
-          {FILTERS.map(([k, label]) => {
-            const on = filter.includes(k);
-            return (
-              <button key={k} type="button" className={`cmp-f f-${k}${on ? ' on' : ''}`} aria-pressed={on} onClick={() => setFilter(on ? filter.filter((x) => x !== k) : [...filter, k])}>
-                <span className="ico">{ICONS[k]}</span>
-                <span>{t(label)}</span>
-                <span className="cnt">{count(k)}</span>
-              </button>
-            );
-          })}
+        {/* one line: the filters on the left, "chosen: n" + "finish comparison" on the right */}
+        <div className="cmp-bar">
+          <div className="cmp-filter">
+            {FILTERS.map(([k, label]) => {
+              const on = filter.includes(k);
+              return (
+                <button key={k} type="button" className={`cmp-f f-${k}${on ? ' on' : ''}`} aria-pressed={on} onClick={() => setFilter(on ? filter.filter((x) => x !== k) : [...filter, k])}>
+                  <span className="ico">{ICONS[k]}</span>
+                  <span>{t(label)}</span>
+                  <span className="cnt">{count(k)}</span>
+                </button>
+              );
+            })}
+          </div>
+          {answerable.length > 0 && <MarkBar m={marks} />}
         </div>
-        {answerable.length > 0 && <MarkBar m={marks} />}
         {cols.length ? (
           <div className="cmp-wrap">
             <table className={`cmp${dense ? ' dense' : ''}`} style={{ minWidth: (dense ? 227 : 252) + cols.length * (dense ? 130 : 160) }}>
