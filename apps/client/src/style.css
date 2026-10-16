@@ -639,9 +639,6 @@
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
-  /* "+ ახალი განაცხადი" — its own last row in the cabinet menu, on the left */
-  .cab-nav .cab-new { flex: 1 1 100%; order: 99; display: flex; justify-content: flex-start; }
-  .cab-nav .cab-new #cabNew { margin-inline-start: 0; flex: none; width: auto; }
 
   /* wide screens: menu on the left, the applications / profile on the right */
   @media (min-width: 901px) {
@@ -649,8 +646,11 @@
     .cab-side { position: sticky; top: 88px; }
     .cab-nav-sub { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 2px; padding: 4px 0 0; }
     .cab-nav-sub .cab-radio { justify-content: flex-start; }
-    .cab-nav .cab-new { flex: none; margin-top: 10px; }
   }
 
   /* current / closed + new application — on a white panel, like the cards */
   .cab-nav.cab-nav-sub { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+
+  /* "+ ახალი განაცხადი" — in the list header, on the right of the title */
+  .cab-top .cab-title { margin-inline-end: 0; }
+  .cab-top .cab-new-btn { margin-inline-start: auto; height: 42px; padding: 0 16px; border-radius: 6px; font-size: 13px; font-weight: 600; }

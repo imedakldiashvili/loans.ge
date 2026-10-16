@@ -123,11 +123,6 @@ export function Cabinet({ onNew, onCompare }: { onNew: () => void; onCompare: (a
                 <i />
                 {t('დასრულებული')} <span className="rc">{counts ? `(${counts.Done})` : ''}</span>
               </label>
-              <div className="cab-new">
-                <button type="button" className="btn btn-green" id="cabNew" onClick={onNew}>
-                  {t('+ ახალი განაცხადი')}
-                </button>
-              </div>
             </nav>
           )}
         </aside>
@@ -141,6 +136,9 @@ export function Cabinet({ onNew, onCompare }: { onNew: () => void; onCompare: (a
                 <span className="cab-count">
                   <b>{q.data?.TotalCount ?? 0}</b>
                 </span>
+                <button type="button" className="btn btn-green cab-new-btn" id="cabNew" onClick={onNew}>
+                  {t('+ ახალი განაცხადი')}
+                </button>
               </div>
               <div className="cab-cards">
                 {q.data?.Items.map((a) => <AppCard key={a.ID} a={a} expanded={view === 'active'} onCompare={() => onCompare(a)} />)}
