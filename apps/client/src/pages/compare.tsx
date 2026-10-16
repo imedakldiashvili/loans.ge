@@ -55,12 +55,16 @@ const kindOf = (o: AppOrg): Kind => (o.Status === 'offer' ? 'offer' : ['accepted
 
 /** Opened at /cabinet/compare/{id}/{uid} — loads the application itself (a reload or a shared link works). */
 export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: () => void }) {
+  const q = useQuery({ queryKey: ['app', id], queryFn: () => api<App>('GET', `/client/application/detail/${id}/${uid}`) });
+  if (!q.data) return <section className="partners compare"><div className="wrap"><p className="cmp-empty">{t(q.isError ? 'შეცდომა' : 'იტვირთება…')}</p></div></section>;
+  // the page itself only once the application is there (its hooks must run on every render)
+  return <CompareView a={q.data} onBack={onBack} reload={() => void q.refetch()} />;
+}
+
+function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload: () => void }) {
   const qc = useQueryClient();
   const s = useStatus();
-  const q = useQuery({ queryKey: ['app', id], queryFn: () => api<App>('GET', `/client/application/detail/${id}/${uid}`) });
   const [filter, setFilter] = useState<Kind[]>(['offer', 'accepted', 'declined']);
-  const a = q.data;
-  if (!a) return <section className="partners compare"><div className="wrap"><p className="cmp-empty">{t(q.isError ? 'შეცდომა' : 'იტვირთება…')}</p></div></section>;
   // only organisations that sent an offer can be compared; one column per offer
   const withOffers = a.Orgs.filter((o) => o.Offers.length);
   const cols = FILTERS.flatMap(([k]) => (filter.includes(k) ? withOffers.filter((o) => kindOf(o) === k) : [])).flatMap((o) =>
@@ -69,7 +73,7 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
   const dense = cols.length >= 5;
   // marks: choose / cancel per organisation (several offer columns of one organisation share it), sent together
   const marks = useOfferMarks(a, () => {
-    void q.refetch();
+    reload();
     void qc.invalidateQueries({ queryKey: ['apps'] });
   });
   const answerable = marks.answerable;
