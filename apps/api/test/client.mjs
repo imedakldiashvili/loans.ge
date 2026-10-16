@@ -102,16 +102,18 @@ const st3 = async () => Object.fromEntries((await prisma.applicationOrg.findMany
 ok((await respond({})).status === 400, 'nothing marked → 400');
 ok((await respond({ AcceptIDs: [p1.ID], DeclineIDs: [p1.ID] })).status === 400, 'the same offer in both lists → 400');
 ok((await respond({ AcceptIDs: [o1.ID] })).status === 400, "another application's record → 400");
-if (p3) ok((await respond({ AcceptIDs: [p1.ID], DeclineIDs: [p3.ID] })).status === 409, 'an organisation without an offer cannot be answered → 409');
+if (p3) ok((await respond({ AcceptIDs: [p1.ID, p3.ID] })).status === 409, 'an organisation without an offer cannot be accepted → 409');
 ok((await st3())[p1.ID].status === 'offer', 'all or none: nothing moved');
 const r3 = await respond({ AcceptIDs: [p1.ID] });
 let s3 = await st3();
 ok(r3.status === 200 && s3[p1.ID].status === 'accepted' && s3[p1.ID].contactsOpenedOn, 'marked "choose" → accepted, contacts opened', r3.json);
 ok(s3[p2.ID].status === 'offer', 'an unmarked offer stays waiting');
 if (p3) ok(s3[p3.ID].status === 'sent', 'organisation without an offer yet is not touched');
-ok((await respond({ DeclineIDs: [p2.ID] })).status === 200, 'later: marked "cancel" and sent');
+// finishing the comparison: the other offers and the organisations still without an offer are cancelled
+ok((await respond({ DeclineIDs: [p2.ID, ...(p3 ? [p3.ID] : [])] })).status === 200, 'later: the rest cancelled together');
 s3 = await st3();
 ok(s3[p2.ID].status === 'declined' && !s3[p2.ID].contactsOpenedOn, '→ cancelled by the customer, contacts stay closed');
+if (p3) ok(s3[p3.ID].status === 'declined', 'an organisation that had not sent its offer yet is cancelled too');
 
 // ── profile
 const edit = await call('PUT', `/client/profile/edit/${me.Profile.ID}/${me.Profile.UID}`, { UserName: 'tester', Pid: '01001012345', FirstName: 'ტესტი', LastName: 'კლიენტი', BirthDate: '1990-05-01', CityID: Number(city.id), DistrictID: null, Village: null });

@@ -258,10 +258,12 @@ export class ClientApplicationService {
     };
     const toAccept = find(accept, 'AcceptIDs');
     const toDecline = find(decline, 'DeclineIDs');
-    const bad = [...toAccept, ...toDecline].filter((o) => !waiting.includes(o));
+    // accept — only an offer that waits for the answer; decline — also an organisation that has not sent its offer yet
+    // (finishing the comparison closes the search with them too)
+    const bad = [...toAccept.filter((o) => !waiting.includes(o)), ...toDecline.filter((o) => !cancelOf(o))];
     if (bad.length) throw conflict(`ამ შეთავაზებაზე პასუხი ახლა შეუძლებელია: ${bad.map((o) => o.organization.nameKa).join(', ')}`);
     const moves = [...toAccept.map((o) => ({ o, to: acceptOf(o) })), ...toDecline.map((o) => ({ o, to: cancelOf(o) }))].filter(
-      (x): x is { o: (typeof waiting)[number]; to: string } => !!x.to,
+      (x): x is { o: (typeof row.orgs)[number]; to: string } => !!x.to,
     );
     const now = new Date();
     const by = me();

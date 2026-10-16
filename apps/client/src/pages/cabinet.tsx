@@ -499,6 +499,8 @@ export type Mark = 'accept';
 export function useOfferMarks(a: App, onSent: () => void) {
   const s = useStatus();
   const answerable = a.Orgs.filter((o) => s.acceptOf(o) && o.Offers.length);
+  // organisations still working on it (no offer yet) — finishing the comparison cancels them too
+  const pending = a.Orgs.filter((o) => !o.Offers.length && s.cancelOf(o));
   const [marks, setMarks] = useState<Map<number, Mark>>(new Map());
   const [asking, setAsking] = useState(false);
   const [sending, setSending] = useState(false);
@@ -517,7 +519,7 @@ export function useOfferMarks(a: App, onSent: () => void) {
     setSending(true);
     setError('');
     try {
-      await api('PUT', `/client/application/respond/${a.ID}/${a.UID}`, { AcceptIDs: accepts.map((o) => o.ID), DeclineIDs: declines.map((o) => o.ID) });
+      await api('PUT', `/client/application/respond/${a.ID}/${a.UID}`, { AcceptIDs: accepts.map((o) => o.ID), DeclineIDs: [...declines, ...pending].map((o) => o.ID) });
       setMarks(new Map());
       setAsking(false);
       onSent();
@@ -527,7 +529,7 @@ export function useOfferMarks(a: App, onSent: () => void) {
       setSending(false);
     }
   };
-  return { answerable, marks, mark, accepts, declines, asking, setAsking, sending, error, setError, send };
+  return { answerable, pending, marks, mark, accepts, declines, asking, setAsking, sending, error, setError, send };
 }
 export type OfferMarks = ReturnType<typeof useOfferMarks>;
 
@@ -552,18 +554,23 @@ export function MarkBar({ m }: { m: OfferMarks }) {
       <span className={`pick-n${m.accepts.length ? ' on' : ''}`}>
         {t('შერჩეულია')} <b>{m.accepts.length}</b>
       </span>
+      {m.pending.length > 0 && (
+        <span className="pick-pending">
+          {t('შეთავაზებას ჯერ ელოდება')}: <b>{m.pending.map((o) => n(o.Organization)).join(', ')}</b> — {t('შედარების დასრულებისას გაუქმდება')}
+        </span>
+      )}
       <span className="pick-acts">
         <button type="button" className="btn btn-green sm" title={canSend ? undefined : t('აირჩიე მინიმუმ ერთი შეთავაზება')} disabled={!canSend} onClick={() => (m.setError(''), m.setAsking(true))}>
           {t('შედარების დასრულება')}
         </button>
       </span>
-      {m.asking && <ConfirmOffers accept={m.accepts} cancel={m.declines} busy={m.sending} error={m.error} onYes={m.send} onClose={() => m.setAsking(false)} />}
+      {m.asking && <ConfirmOffers accept={m.accepts} cancel={m.declines} pending={m.pending} busy={m.sending} error={m.error} onYes={m.send} onClose={() => m.setAsking(false)} />}
     </div>
   );
 }
 
 /** Before answering: which offers will be accepted and which cancelled (it cannot be undone). */
-export function ConfirmOffers({ accept, cancel, busy, error, onYes, onClose }: { accept: AppOrg[]; cancel: AppOrg[]; busy: boolean; error: string; onYes: () => void; onClose: () => void }) {
+export function ConfirmOffers({ accept, cancel, pending = [], busy, error, onYes, onClose }: { accept: AppOrg[]; cancel: AppOrg[]; pending?: AppOrg[]; busy: boolean; error: string; onYes: () => void; onClose: () => void }) {
   const names = (l: AppOrg[]) => l.map((o) => n(o.Organization)).join(', ');
   return (
     <Modal onClose={onClose} labelledBy="confirmOffersTitle">
@@ -582,6 +589,14 @@ export function ConfirmOffers({ accept, cancel, busy, error, onYes, onClose }: {
             {t('გაუქმდება')} ({cancel.length}):
           </b>{' '}
           {names(cancel)}
+        </p>
+      )}
+      {pending.length > 0 && (
+        <p>
+          <b style={{ color: '#d9534f' }}>
+            {t('გაუქმდება (შეთავაზება ჯერ არ გამოუგზავნიათ)')} ({pending.length}):
+          </b>{' '}
+          {names(pending)}
         </p>
       )}
       <p>{t(accept.length ? 'არჩეულ ორგანიზაციებს გაეგზავნება თანხმობა პროცესის გაგრძელებაზე. ამ მოქმედების გაუქმება ვერ მოხერხდება.' : 'ამ მოქმედების გაუქმება ვერ მოხერხდება.')}</p>
