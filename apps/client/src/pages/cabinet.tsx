@@ -1,0 +1,714 @@
+import { calcOffer } from '@loans/shared';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { api, ApiError, Page, Ref } from '../api';
+import { OtpModal } from '../auth';
+import { orgColor, orgMark, StatusRow, useRefs, useSession } from '../session';
+import { Chevron, ErrorText, fmt, fmtCd, fmtDate, fmtDay, fmtPhone, Modal, money, useNow } from '../ui';
+
+// Customer cabinet (prototype #cabinet): active / closed applications, per-organisation statuses and offers,
+// application view, offer view with accept / decline, closing an application; profile.
+
+export interface OfferRow {
+  ID: number;
+  Amount: number;
+  Currency: string;
+  Months: number;
+  Rate: number;
+  Fee: number;
+  InsMonth: number;
+}
+export interface AppOrg {
+  ID: number;
+  UID: string;
+  Status: string;
+  StatusOn: string;
+  SentOn: string;
+  OfferOn: string | null;
+  ExpiresOn: string | null;
+  Organization: { ID: number; NameKa: string; Color: string | null };
+  Offers: OfferRow[];
+  Next: string[];
+}
+export interface App {
+  ID: number;
+  UID: string;
+  CreatedOn: string;
+  Amount: number;
+  Currency: string;
+  ProductType: { NameKa: string };
+  Pid: string;
+  FirstName: string;
+  LastName: string;
+  BirthDate: string | null;
+  Phone: string;
+  CityID: number | null;
+  DistrictID: number | null;
+  Village: string | null;
+  CreditHistory: string | null;
+  Sector: string | null;
+  Incomes: { Src: string; Amount: number }[] | null;
+  Banks: string[] | null;
+  Orgs: AppOrg[];
+}
+type Found = Page<App> & { Counts: { Active: number; Done: number } };
+
+/** Order of the status groups in a card: what needs an answer first, closed ones last. */
+const GROUP_ORDER = ['offer', 'interested', 'sent', 'accepted', 'done', 'declined', 'cancelled', 'expired'];
+const OPEN_GROUPS = ['offer', 'interested'];
+const PAGE_SIZE = 5;
+/** CSS of the prototype has no class for "expired" — it looks like "cancelled". */
+export const stCls = (k: string) => (k === 'expired' ? 'cancelled' : k);
+const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : 'შეცდომა');
+
+export const useStatus = () => {
+  const { statuses } = useRefs();
+  const st = (k: string): StatusRow | undefined => statuses.find((s) => s.Key === k);
+  return {
+    label: (k: string) => st(k)?.CustomerKa ?? k,
+    /** next status of a record that cancels it / accepts it (allowed transitions come from the API) */
+    cancelOf: (o: AppOrg) => o.Next.find((k) => st(k)?.Category === 'canceled'),
+    acceptOf: (o: AppOrg) => o.Next.find((k) => st(k)?.Category !== 'canceled'),
+  };
+};
+
+export const changeOrg = (o: AppOrg, status: string) => api<Ref>('PUT', `/client/applicationOrg/changeStatus/${o.ID}/${o.UID}`, { Status: status });
+
+export function Cabinet({ onNew, onCompare }: { onNew: () => void; onCompare: (a: App) => void }) {
+  const [view, setView] = useState<'active' | 'done' | 'profile'>('active');
+  const [page, setPage] = useState(1);
+  const state = view === 'profile' ? 'active' : view;
+  const size = state === 'done' ? PAGE_SIZE : 50;
+  const q = useQuery({
+    queryKey: ['apps', state, page],
+    queryFn: () => api<Found>('POST', `/client/application/find/${page}/${size}`, { Filter: { State: state } }),
+    refetchInterval: 15_000, // partners' answers appear without reloading (live updates come later)
+  });
+  const go = (v: typeof view) => {
+    setView(v);
+    setPage(1);
+  };
+  const counts = q.data?.Counts;
+
+  return (
+    <section className="cabinet">
+      <div className="wrap cab-layout">
+        <aside className="cab-side">
+          <nav className="cab-nav cab-nav-top">
+            <button type="button" className={view !== 'profile' ? 'on' : ''} onClick={() => go(view === 'profile' ? 'active' : view)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                <path d="M14 3v6h6M9 13h6M9 17h4" />
+              </svg>
+              განაცხადები
+            </button>
+            <button type="button" className={view === 'profile' ? 'on' : ''} onClick={() => go('profile')}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0 1 16 0" />
+              </svg>
+              პროფილი
+            </button>
+          </nav>
+          {view !== 'profile' && (
+            <nav className="cab-nav cab-nav-sub">
+              <label className="cab-radio">
+                <input type="radio" name="cabv" checked={view === 'active'} onChange={() => go('active')} />
+                <i />
+                მიმდინარე <span className="rc">{counts ? `(${counts.Active})` : ''}</span>
+              </label>
+              <label className="cab-radio">
+                <input type="radio" name="cabv" checked={view === 'done'} onChange={() => go('done')} />
+                <i />
+                დასრულებული <span className="rc">{counts ? `(${counts.Done})` : ''}</span>
+              </label>
+              <button type="button" className="btn btn-green" onClick={onNew}>
+                + ახალი განაცხადი
+              </button>
+            </nav>
+          )}
+        </aside>
+        <div className="cab-main">
+          {view === 'profile' ? (
+            <Profile />
+          ) : (
+            <div>
+              <div className="cab-top">
+                <h2 className="cab-title">{view === 'done' ? 'დასრულებული განაცხადები' : 'მიმდინარე განაცხადები'}</h2>
+                <span className="cab-count">
+                  <b>{q.data?.TotalCount ?? 0}</b>
+                </span>
+              </div>
+              <div className="cab-cards">
+                {q.data?.Items.map((a) => <AppCard key={a.ID} a={a} expanded={view === 'active'} onCompare={() => onCompare(a)} />)}
+                {q.data && !q.data.Items.length && <div className="cab-group-empty">{counts && counts.Active + counts.Done === 0 ? 'განაცხადები ჯერ არ გაგიგზავნია — შეავსე განაცხადი და აქ გამოჩნდება.' : 'ჯერ არ არის'}</div>}
+                {q.isLoading && <div className="cab-group-empty">იტვირთება…</div>}
+              </div>
+              {(q.data?.TotalPages ?? 1) > 1 && <Pager page={page} pages={q.data!.TotalPages} onPage={setPage} />}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Pager({ page, pages, onPage }: { page: number; pages: number; onPage: (p: number) => void }) {
+  const chev = (d: number) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d={d < 0 ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6'} />
+    </svg>
+  );
+  return (
+    <nav className="pager" aria-label="გვერდები">
+      <button type="button" className="pg arrow" disabled={page === 1} onClick={() => onPage(page - 1)}>
+        {chev(-1)}
+      </button>
+      {Array.from({ length: pages }, (_, i) => i + 1).map((i) => (
+        <button key={i} type="button" className={`pg${i === page ? ' on' : ''}`} disabled={i === page} onClick={() => onPage(i)}>
+          {i}
+        </button>
+      ))}
+      <button type="button" className="pg arrow" disabled={page === pages} onClick={() => onPage(page + 1)}>
+        {chev(1)}
+      </button>
+    </nav>
+  );
+}
+
+const I = {
+  eye: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
+  x: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M15 9l-6 6M9 9l6 6" />
+    </svg>
+  ),
+  compare: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 7.2A2.2 2.2 0 0 1 7.2 5h1a2.2 2.2 0 0 0 1.55-.64l.7-.7a2.2 2.2 0 0 1 3.12 0l.7.7c.42.41.97.64 1.55.64h1a2.2 2.2 0 0 1 2.2 2.2v1c0 .58.23 1.13.64 1.55l.7.7a2.2 2.2 0 0 1 0 3.12l-.7.7a2.2 2.2 0 0 0-.64 1.55v1a2.2 2.2 0 0 1-2.2 2.2h-1a2.2 2.2 0 0 0-1.55.64l-.7.7a2.2 2.2 0 0 1-3.12 0l-.7-.7a2.2 2.2 0 0 0-1.55-.64h-1a2.2 2.2 0 0 1-2.2-2.2v-1a2.2 2.2 0 0 0-.64-1.55l-.7-.7a2.2 2.2 0 0 1 0-3.12l.7-.7A2.2 2.2 0 0 0 5 8.2z" />
+      <path d="M9 15l6-6" />
+      <circle cx="9.5" cy="9.5" r="1" fill="currentColor" stroke="none" />
+      <circle cx="14.5" cy="14.5" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  ),
+};
+
+function Countdown({ o }: { o: AppOrg }) {
+  const now = useNow();
+  if (!o.ExpiresOn || !['sent', 'offer'].includes(o.Status)) return null;
+  const left = new Date(o.ExpiresOn).getTime() - now;
+  return (
+    <span className={`cd${left <= 0 ? ' over' : ''}`} title={o.Status === 'offer' ? 'დასადასტურებლად დარჩენილი დრო' : 'პასუხისთვის დარჩენილი დრო'}>
+      {fmtCd(left)}
+    </span>
+  );
+}
+
+function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onCompare: () => void }) {
+  const qc = useQueryClient();
+  const s = useStatus();
+  const [open, setOpen] = useState(expanded);
+  const [closed, setClosed] = useState<Set<string>>(new Set(GROUP_ORDER.filter((k) => !OPEN_GROUPS.includes(k))));
+  const [view, setView] = useState(false);
+  const [offer, setOffer] = useState<AppOrg | null>(null);
+  const [cancel, setCancel] = useState(false);
+  const refresh = () => qc.invalidateQueries({ queryKey: ['apps'] });
+  const isClosed = a.Orgs.every((o) => !o.Next.length);
+  const declineOrg = async (o: AppOrg) => {
+    const to = s.cancelOf(o);
+    if (!to) return;
+    try {
+      await changeOrg(o, to);
+    } finally {
+      refresh();
+    }
+  };
+
+  return (
+    <article className={`cab-card${open ? ' open' : ''}`}>
+      <div className="cab-top-row">
+        <button type="button" className="cab-sum" aria-expanded={open} onClick={() => setOpen(!open)}>
+          <span className="ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+              <path d="M14 3v6h6M9 13h6M9 17h4" />
+            </svg>
+          </span>
+          <span className="info">
+            <b>{a.ProductType.NameKa}</b>
+            <span className="who">
+              {a.FirstName} {a.LastName}
+            </span>
+          </span>
+          <span className="right">
+            <i className="amt">{money(a.Amount, a.Currency)}</i>
+            <small>{fmtDate(a.CreatedOn)}</small>
+          </span>
+        </button>
+        <div className="cab-acts">
+          <button type="button" className="cab-ico cab-compare good" aria-label="შეთავაზებები" title="შეთავაზებები" onClick={onCompare}>
+            {I.compare}
+          </button>
+          <button type="button" className="cab-ico cab-view" aria-label="ნახვა" title="ნახვა" onClick={() => setView(true)}>
+            {I.eye}
+          </button>
+          {!isClosed && (
+            <button type="button" className="cab-ico cab-cancel danger" aria-label="განაცხადის დასრულება" title="განაცხადის დასრულება" onClick={() => setCancel(true)}>
+              {I.x}
+            </button>
+          )}
+        </div>
+      </div>
+      <button type="button" className="cab-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <Chevron />
+      </button>
+      {open && (
+        <div className="cab-det">
+          {GROUP_ORDER.map((st) => {
+            const list = a.Orgs.filter((o) => o.Status === st);
+            if (!list.length) return null;
+            const isOpen = !closed.has(st);
+            const toggle = () => {
+              const n = new Set(closed);
+              if (isOpen) n.add(st);
+              else n.delete(st);
+              setClosed(n);
+            };
+            return (
+              <div key={st} className={`cab-stat${isOpen ? '' : ' closed'}`}>
+                <div className="cab-det-group" role="button" tabIndex={0} aria-expanded={isOpen} onClick={toggle} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), toggle())}>
+                  <em className={`status ${stCls(st)}`}>{s.label(st)}</em>
+                  <span className="grp-right">
+                    <span className="cnt">{list.length}</span>
+                    <span className="chev">
+                      <Chevron />
+                    </span>
+                  </span>
+                </div>
+                {isOpen && (
+                  <div className="cab-stat-list">
+                    {list.map((o) => (
+                      <div key={o.ID} className="cab-det-row">
+                        <span className="lg" style={{ ['--c' as string]: orgColor(o.Organization) }}>
+                          {orgMark(o.Organization.NameKa)}
+                        </span>
+                        <span className="nm">{o.Organization.NameKa}</span>
+                        <div className="cab-acts">
+                          <Countdown o={o} />
+                          <button type="button" className="cab-ico o-ico" title="ნახვა" aria-label="ნახვა" onClick={() => setOffer(o)}>
+                            {I.eye}
+                          </button>
+                          {s.cancelOf(o) && (
+                            <button type="button" className="cab-ico o-ico danger" title="გაუქმება" aria-label="გაუქმება" onClick={() => declineOrg(o)}>
+                              {I.x}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {view && <ViewModal a={a} onClose={() => setView(false)} />}
+      {offer && <OfferModal a={a} o={offer} onClose={() => setOffer(null)} onChanged={() => (setOffer(null), refresh())} />}
+      {cancel && (
+        <CancelModal
+          a={a}
+          onClose={() => setCancel(false)}
+          onDone={() => {
+            setCancel(false);
+            refresh();
+          }}
+        />
+      )}
+    </article>
+  );
+}
+
+function CancelModal({ a, onClose, onDone }: { a: App; onClose: () => void; onDone: () => void }) {
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  return (
+    <Modal onClose={onClose} noClose labelledBy="cancelTitle">
+      <h3 id="cancelTitle">დავასრულოთ განაცხადი?</h3>
+      <p>
+        {a.ProductType.NameKa} · {money(a.Amount, a.Currency)}
+      </p>
+      <p>ორგანიზაციები შეთავაზებებს აღარ გამოგიგზავნიან. ამ მოქმედების გაუქმება ვერ მოხერხდება.</p>
+      <div className="cancel-actions">
+        <button type="button" className="btn btn-ghost" onClick={onClose}>
+          არა
+        </button>
+        <button
+          type="button"
+          className="btn btn-danger"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            try {
+              await api('PUT', `/client/application/cancel/${a.ID}/${a.UID}`);
+              onDone();
+            } catch (e) {
+              setError(errText(e));
+              setBusy(false);
+            }
+          }}
+        >
+          დიახ, დავასრულო
+        </button>
+      </div>
+      <ErrorText error={error} />
+    </Modal>
+  );
+}
+
+/** Application as sent — read only (prototype viewModal). */
+function ViewModal({ a, onClose }: { a: App; onClose: () => void }) {
+  const { cities, districts } = useRefs();
+  const s = useStatus();
+  const total = (a.Incomes ?? []).reduce((t, i) => t + (+i.Amount || 0), 0);
+  const sec = (title: string, rows: [string, string, string?][]) => (
+    <div className="view-sec">
+      <h4>{title}</h4>
+      {rows.map(([k, v, cls], i) => (
+        <div key={i} className="view-row">
+          <span>{k}</span>
+          <b>{cls ? <em className={`status ${cls}`}>{v}</em> : v || '—'}</b>
+        </div>
+      ))}
+    </div>
+  );
+  return (
+    <Modal onClose={onClose} className="view-box" labelledBy="viewTitle">
+      <h3 id="viewTitle">
+        {a.ProductType.NameKa} · {money(a.Amount, a.Currency)}
+      </h3>
+      <p>გაგზავნილია {fmtDate(a.CreatedOn)}</p>
+      <div className="view-body">
+        {sec('საკრედიტო ისტორია', [['სტატუსი', a.CreditHistory ?? '']])}
+        {sec('ფინანსური მდგომარეობა', [
+          ['საქმიანობის სფერო', a.Sector ?? ''],
+          ...(a.Incomes ?? []).map((i): [string, string] => [i.Src, `${fmt(i.Amount)} ₾`]),
+          ['ჯამური თვიური შემოსავალი', `${fmt(total)} ₾`],
+          ['ბანკის სერვისები', (a.Banks ?? []).join(', ')],
+        ])}
+        {sec('ორგანიზაციები', a.Orgs.map((o): [string, string, string] => [o.Organization.NameKa, s.label(o.Status), stCls(o.Status)]))}
+        {sec('პირადი მონაცემები', [
+          ['პირადი ნომერი', a.Pid],
+          ['სახელი, გვარი', `${a.FirstName} ${a.LastName}`],
+          ['დაბადების თარიღი', fmtDay(a.BirthDate)],
+          ['ქალაქი', cities.find((c) => c.ID === a.CityID)?.NameKa ?? ''],
+          ['უბანი / სოფელი', districts.find((d) => d.ID === a.DistrictID)?.NameKa ?? a.Village ?? ''],
+          ['მობილური ნომერი', a.Phone ? fmtPhone(a.Phone) : ''],
+        ])}
+      </div>
+    </Modal>
+  );
+}
+
+/** One organisation's answer: offer terms, accept / decline (prototype offerModal). */
+export function OfferModal({ a, o, onClose, onChanged }: { a: App; o: AppOrg; onClose: () => void; onChanged: () => void }) {
+  const s = useStatus();
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const accept = s.acceptOf(o);
+  const decline = s.cancelOf(o);
+  const run = async (to: string) => {
+    setBusy(true);
+    try {
+      await changeOrg(o, to);
+      onChanged();
+    } catch (e) {
+      setError(errText(e));
+      setBusy(false);
+    }
+  };
+  const row = (k: string, v: string, i: number) => (
+    <div key={i} className="view-row">
+      <span>{k}</span>
+      <b>{v}</b>
+    </div>
+  );
+  return (
+    <Modal onClose={onClose} className="view-box" labelledBy="offerOrg">
+      <h3 className="offer-name" id="offerOrg">
+        {o.Organization.NameKa}
+      </h3>
+      <div className="offer-head">
+        <div className="offer-row offer-center">
+          <em className={`status ${stCls(o.Status)}`}>{s.label(o.Status)}</em>
+        </div>
+      </div>
+      <div className="view-body">
+        {o.Offers.map((t) => {
+          const c = calcOffer({ amount: t.Amount, months: t.Months, rate: t.Rate, fee: t.Fee, insMonth: t.InsMonth });
+          if (!c) return null;
+          const m = (n: number) => money(n, t.Currency);
+          return (
+            <div key={t.ID}>
+              <div className="view-sec">
+                {[
+                  ['თანხა', m(t.Amount)],
+                  ['ვადა', `${t.Months} თვე`],
+                  ['წლიური განაკვეთი', `${t.Rate}%`],
+                  ['ეფექტური პროცენტი', `${c.eff}%`],
+                  ['ერთჯერადი საკომისიოები', m(t.Fee)],
+                  ['ყოველთვიური გადასახადი', m(c.monthly)],
+                ].map(([k, v], i) => row(k, v, i))}
+              </div>
+              <div className="view-sec">
+                {[
+                  ['სულ გადასახდელი საკომისიო', m(t.Fee)],
+                  ['სულ გადასახდელი პროცენტი', m(c.interest)],
+                  ['სულ გადასახდელი დაზღვევა', m(c.insTotal)],
+                  ['სულ ძირის გარდა გადასახდელი', m(c.costTotal)],
+                  ['სულ გადასახდელი', m(c.total)],
+                ].map(([k, v], i) => row(k, v, i))}
+              </div>
+            </div>
+          );
+        })}
+        {!o.Offers.length && <p style={{ textAlign: 'center' }}>შეთავაზება ჯერ არ არის — გაგზავნილია {fmtDate(o.SentOn)}</p>}
+      </div>
+      {accept && o.Offers.length > 0 && (
+        <div className="cancel-actions">
+          {decline && (
+            <button type="button" className="btn btn-red" disabled={busy} onClick={() => run(decline)}>
+              უარი
+            </button>
+          )}
+          <button type="button" className="btn btn-green" disabled={busy} onClick={() => run(accept)}>
+            დადასტურება
+          </button>
+        </div>
+      )}
+      <ErrorText error={error} />
+    </Modal>
+  );
+}
+
+// ── profile
+
+interface ProfileData {
+  ID: number;
+  UID: string;
+  User: { Email: string | null; Phone: string | null; UserName: string | null; IsVerified: boolean };
+  Customer: { Pid: string | null; FirstName: string | null; LastName: string | null; BirthDate: string | null; CityID: number | null; DistrictID: number | null; Village: string | null } | null;
+}
+type Field = 'user' | 'phone' | 'loc' | 'pid' | 'first' | 'last' | 'dob';
+const TITLES: Record<Field, string> = {
+  user: 'მომხმარებლის სახელის შეცვლა', phone: 'მობილურის შეცვლა', loc: 'ლოკაციის შეცვლა', pid: 'პირადი ნომრის შეცვლა',
+  first: 'სახელის შეცვლა', last: 'გვარის შეცვლა', dob: 'დაბადების თარიღის შეცვლა',
+};
+
+function Profile() {
+  const { me, refresh } = useSession();
+  const { cities, districts } = useRefs();
+  const qc = useQueryClient();
+  const p = me?.Profile;
+  const q = useQuery({ queryKey: ['profile', p?.ID], queryFn: () => api<ProfileData>('GET', `/client/profile/detail/${p!.ID}/${p!.UID}`), enabled: !!p });
+  const [edit, setEdit] = useState<Field | null>(null);
+  const d = q.data;
+  if (!d) return <div className="cab-group-empty">იტვირთება…</div>;
+  const c = d.Customer;
+  const loc = [cities.find((x) => x.ID === c?.CityID)?.NameKa, districts.find((x) => x.ID === c?.DistrictID)?.NameKa ?? c?.Village].filter(Boolean).join(', ');
+  const btn = (f: Field) => (
+    <button type="button" className="btn btn-green prof-edit" onClick={() => setEdit(f)}>
+      შეცვლა
+    </button>
+  );
+  const saved = async () => {
+    setEdit(null);
+    await qc.invalidateQueries({ queryKey: ['profile'] });
+    await refresh();
+  };
+  return (
+    <div>
+      <div className="cab-panel prof-sec">
+        <h3 className="prof-h">მომხმარებელი</h3>
+        <div className="prof-info">
+          <div className="prof-row">
+            <span>ელ. ფოსტა</span>
+            <b>{d.User.Email ?? '—'}</b>
+            <i />
+          </div>
+          <div className="prof-row">
+            <span>მომხმარებლის სახელი</span>
+            <b>{d.User.UserName || d.User.Email?.split('@')[0] || '—'}</b>
+            {btn('user')}
+          </div>
+          <div className="prof-row">
+            <span>მობილური</span>
+            <b>{d.User.Phone ? fmtPhone(d.User.Phone) : '—'}</b>
+            {btn('phone')}
+          </div>
+          <div className="prof-row">
+            <span>ლოკაცია</span>
+            <b>{loc || '—'}</b>
+            {btn('loc')}
+          </div>
+        </div>
+      </div>
+      <div className="cab-panel prof-sec">
+        <h3 className="prof-h">პირადი მონაცემები</h3>
+        <div className="prof-info prof-info-2">
+          <div className="prof-row prof-row-3">
+            <span>ვერიფიცირებული</span>
+            <b className={`verify ${d.User.IsVerified ? 'yes' : 'no'}`}>{d.User.IsVerified ? 'კი' : 'არა'}</b>
+            <i />
+          </div>
+          <div className="prof-row prof-row-3">
+            <span>პირადი ნომერი</span>
+            <b>{c?.Pid || '—'}</b>
+            {btn('pid')}
+          </div>
+          <div className="prof-row prof-row-3">
+            <span>სახელი</span>
+            <b>{c?.FirstName || '—'}</b>
+            {btn('first')}
+          </div>
+          <div className="prof-row prof-row-3">
+            <span>გვარი</span>
+            <b>{c?.LastName || '—'}</b>
+            {btn('last')}
+          </div>
+          <div className="prof-row prof-row-3">
+            <span>დაბადების თარიღი</span>
+            <b>{fmtDay(c?.BirthDate)}</b>
+            {btn('dob')}
+          </div>
+        </div>
+      </div>
+      {edit && <ChangeModal field={edit} d={d} onClose={() => setEdit(null)} onSaved={saved} />}
+    </div>
+  );
+}
+
+/** Change one profile value (prototype changeModal); a new mobile is confirmed with an SMS code. */
+function ChangeModal({ field, d, onClose, onSaved }: { field: Field; d: ProfileData; onClose: () => void; onSaved: () => void }) {
+  const { cities, districts } = useRefs();
+  const c = d.Customer;
+  const [text, setText] = useState(
+    field === 'user' ? d.User.UserName ?? d.User.Email?.split('@')[0] ?? '' : field === 'pid' ? c?.Pid ?? '' : field === 'first' ? c?.FirstName ?? '' : field === 'last' ? c?.LastName ?? '' : field === 'dob' ? c?.BirthDate?.slice(0, 10) ?? '' : '',
+  );
+  const [city, setCity] = useState(c?.CityID ? String(c.CityID) : '');
+  const [district, setDistrict] = useState(c?.DistrictID ? String(c.DistrictID) : '');
+  const [village, setVillage] = useState(c?.Village ?? '');
+  const [otp, setOtp] = useState(false);
+  const [error, setError] = useState('');
+  const cityDistricts = districts.filter((x) => String(x.CityID) === city);
+  const ok =
+    field === 'phone' ? /^5\d{8}$/.test(text)
+    : field === 'pid' ? /^\d{11}$/.test(text)
+    : field === 'loc' ? !!city
+    : !!text.trim();
+
+  const save = async () => {
+    if (field === 'phone') return setOtp(true);
+    // the profile is saved as a whole: current values + the changed one
+    const body = {
+      UserName: d.User.UserName, Pid: c?.Pid ?? null, FirstName: c?.FirstName ?? null, LastName: c?.LastName ?? null, BirthDate: c?.BirthDate?.slice(0, 10) ?? null,
+      CityID: c?.CityID ?? null, DistrictID: c?.DistrictID ?? null, Village: c?.Village ?? null,
+      ...(field === 'user' ? { UserName: text.trim() } : {}),
+      ...(field === 'pid' ? { Pid: text } : {}),
+      ...(field === 'first' ? { FirstName: text.trim() } : {}),
+      ...(field === 'last' ? { LastName: text.trim() } : {}),
+      ...(field === 'dob' ? { BirthDate: text } : {}),
+      ...(field === 'loc' ? { CityID: Number(city), DistrictID: district ? Number(district) : null, Village: cityDistricts.length ? null : village.trim() || null } : {}),
+    };
+    try {
+      await api('PUT', `/client/profile/edit/${d.ID}/${d.UID}`, body);
+      onSaved();
+    } catch (e) {
+      setError(errText(e));
+    }
+  };
+
+  if (otp)
+    return (
+      <OtpModal
+        where="კოდი გაიგზავნა ნომერზე"
+        target={fmtPhone(text)}
+        send={() => api<Ref>('POST', '/client/profile/sendPhoneOtp', { Phone: text })}
+        verify={async (ref, code) => {
+          await api('PUT', `/client/profile/changePhone/${d.ID}/${d.UID}`, { Phone: text, Otp: { ID: ref.ID, UID: ref.UID, Code: code } });
+          onSaved();
+        }}
+        onClose={onClose}
+      />
+    );
+  return (
+    <Modal onClose={onClose} labelledBy="changeTitle">
+      <h3 id="changeTitle">{TITLES[field]}</h3>
+      {field === 'phone' && <p>ახალ ნომერზე SMS-ით ერთჯერადი კოდი გაიგზავნება</p>}
+      {field === 'phone' ? (
+        <div className="phone login-phone">
+          <span>+995</span>
+          <input type="tel" inputMode="numeric" maxLength={9} placeholder="5XX XXX XXX" aria-label="ახალი მობილური ნომერი" value={text} onChange={(e) => setText(e.target.value.replace(/\D/g, '').slice(0, 9))} autoFocus />
+        </div>
+      ) : field === 'loc' ? (
+        <div className="f-grid loc-grid">
+          <div className="f">
+            <label htmlFor="chCity">ქალაქი</label>
+            <select id="chCity" value={city} onChange={(e) => (setCity(e.target.value), setDistrict(''), setVillage(''))}>
+              <option value="" disabled>
+                აირჩიეთ
+              </option>
+              {cities.map((x) => (
+                <option key={x.ID} value={x.ID}>
+                  {x.NameKa}
+                </option>
+              ))}
+            </select>
+          </div>
+          {cityDistricts.length > 0 ? (
+            <div className="f">
+              <label htmlFor="chDistrict">უბანი</label>
+              <select id="chDistrict" value={district} onChange={(e) => setDistrict(e.target.value)}>
+                <option value="">აირჩიეთ</option>
+                {cityDistricts.map((x) => (
+                  <option key={x.ID} value={x.ID}>
+                    {x.NameKa}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div className="f">
+              <label htmlFor="chVillage">უბანი / სოფელი</label>
+              <input id="chVillage" value={village} disabled={!city} onChange={(e) => setVillage(e.target.value)} />
+            </div>
+          )}
+        </div>
+      ) : (
+        <input
+          className="login-email"
+          type={field === 'dob' ? 'date' : 'text'}
+          min={field === 'dob' ? '1930-01-01' : undefined}
+          max={field === 'dob' ? '2010-12-31' : undefined}
+          inputMode={field === 'pid' ? 'numeric' : 'text'}
+          maxLength={field === 'pid' ? 11 : 60}
+          placeholder={field === 'pid' ? '11 ციფრი' : ''}
+          value={text}
+          onChange={(e) => setText(field === 'pid' ? e.target.value.replace(/\D/g, '').slice(0, 11) : e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && ok && save()}
+          autoFocus
+        />
+      )}
+      <button type="button" className="btn btn-green full" disabled={!ok} onClick={save}>
+        {field === 'phone' ? 'გაგრძელება' : 'შენახვა'}
+      </button>
+      <ErrorText error={error} />
+    </Modal>
+  );
+}

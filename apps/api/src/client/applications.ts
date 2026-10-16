@@ -165,7 +165,10 @@ export class ClientApplicationService {
       this.prisma.application.count({ where: active }),
       this.prisma.application.count({ where: done }),
     ]);
-    return { items, pageNumber, pageSize, totalCount, totalPages: Math.ceil(totalCount / pageSize), counts: { active: nActive, done: nDone } };
+    const m = await this.statuses.machine();
+    // per organisation: what the customer can do next (buttons in the cabinet)
+    const withNext = items.map((a) => ({ ...a, orgs: a.orgs.map((o) => ({ ...o, next: m.nextStatuses(o.status, 'customer') })) }));
+    return { items: withNext, pageNumber, pageSize, totalCount, totalPages: Math.ceil(totalCount / pageSize), counts: { active: nActive, done: nDone } };
   }
 
   private async load(id: number, uid: string) {

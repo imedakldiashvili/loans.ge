@@ -14,7 +14,8 @@
     "test:api": "npm run build && npm run test:api -w @loans/api",
     "dev:admin": "npm run dev -w @loans/admin",
     "dev:otp": "npm run dev -w @loans/otp-viewer",
-    "dev:partner": "npm run dev -w @loans/partner"
+    "dev:partner": "npm run dev -w @loans/partner",
+    "dev:client": "npm run dev -w @loans/client"
   },
   "engines": {
     "node": ">=20"

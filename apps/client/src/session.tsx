@@ -1,0 +1,127 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { createContext, ReactNode, useContext, useEffect } from 'react';
+import { api, ApiError, findAll, setUnauthorizedHandler } from './api';
+
+// Customer session (client gateway) and the reference data the site needs (public gateway).
+
+export interface Me {
+  User: { ID: number; UID: string; Email: string | null; Phone: string | null; UserName: string | null; IsVerified: boolean };
+  Profile: { ID: number; UID: string; ProfileType: string } | null;
+}
+
+interface State {
+  me: Me | null;
+  loading: boolean;
+  refresh: () => Promise<Me | null>;
+  logout: () => Promise<void>;
+}
+const Ctx = createContext<State | null>(null);
+
+export function SessionProvider({ children }: { children: ReactNode }) {
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      try {
+        return await api<Me>('GET', '/client/auth/me');
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 401) return null;
+        throw e;
+      }
+    },
+    staleTime: Infinity,
+    retry: false,
+  });
+  useEffect(() => {
+    setUnauthorizedHandler(() => qc.setQueryData(['me'], null));
+  }, [qc]);
+  const state: State = {
+    me: q.data ?? null,
+    loading: q.isLoading,
+    refresh: async () => (await q.refetch()).data ?? null,
+    logout: async () => {
+      await api('PUT', '/client/auth/logout').catch(() => undefined);
+      qc.removeQueries({ predicate: (x) => x.queryKey[0] !== 'public' });
+      qc.setQueryData(['me'], null);
+    },
+  };
+  return <Ctx.Provider value={state}>{children}</Ctx.Provider>;
+}
+
+export const useSession = () => {
+  const c = useContext(Ctx);
+  if (!c) throw new Error('SessionProvider missing');
+  return c;
+};
+
+// ── reference data
+
+export interface Named {
+  ID: number;
+  UID: string;
+  Code: string;
+  NameKa: string;
+  NameEn: string;
+  Sort: number;
+}
+export interface City extends Named {
+  RegionID: number;
+}
+export interface District extends Named {
+  CityID: number;
+}
+export interface Currency {
+  ID: number;
+  Code: string;
+  Symbol: string;
+}
+export interface ProductType extends Named {
+  MinAmount: number;
+  MaxAmount: number;
+  AmountRanges: number[];
+  NoTerm: boolean;
+}
+export interface Org {
+  ID: number;
+  UID: string;
+  NameKa: string;
+  Category: 'bank' | 'mfo' | 'leasing' | 'lender';
+  Color: string | null;
+  IsPartner: boolean;
+  Sort: number;
+  ProductTypes: { ProductTypeID: number }[];
+}
+export interface StatusRow {
+  Key: string;
+  CustomerKa: string;
+  Category: 'progress' | 'complete' | 'canceled';
+  Sort: number;
+}
+
+const usePublic = <T,>(module: string) =>
+  useQuery<T[]>({ queryKey: ['public', module], queryFn: () => findAll<T>('public', module), staleTime: 5 * 60_000 }).data ?? [];
+
+export function useRefs() {
+  return {
+    productTypes: usePublic<ProductType>('productType'),
+    currencies: usePublic<Currency>('currency'),
+    cities: usePublic<City>('city'),
+    districts: usePublic<District>('district'),
+    sectors: usePublic<Named>('sector'),
+    incomeSources: usePublic<Named>('incomeSource'),
+    creditHistory: usePublic<Named>('creditHistory'),
+    organizations: usePublic<Org>('organization'),
+    statuses: usePublic<StatusRow>('status'),
+  };
+}
+
+export const CATEGORIES: [Org['Category'], string][] = [
+  ['bank', 'ბანკები'],
+  ['mfo', 'მიკროსაფინანსო'],
+  ['leasing', 'ლიზინგი'],
+  ['lender', 'სესხის გამცემი სუბიექტი'],
+];
+const ORG_COLORS = ['#1e63b5', '#7b4fb5', '#0f9d8a', '#c0392b', '#b8860b', '#2e7d32'];
+export const orgColor = (o: { ID: number; Color?: string | null }) => o.Color || ORG_COLORS[o.ID % ORG_COLORS.length];
+/** Short logo text: the last word of the name ("ბანკი A" → "A"). */
+export const orgMark = (name: string) => name.split(' ').pop() ?? name;

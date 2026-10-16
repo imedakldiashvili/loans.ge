@@ -1,0 +1,183 @@
+import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { api, ApiError, Ref } from './api';
+import { useSession } from './session';
+import { ErrorText, Modal } from './ui';
+
+// Login / registration (prototype loginModal + otpModal): e-mail → one-time code → session.
+// The first login creates the account (client gateway). Google / Facebook come with OAuth (later stage).
+
+const RESEND = 60;
+
+/** One-time code dialog: timer, resend, confirm. `send` (re)sends the code, `verify` checks it. */
+export function OtpModal({ where, target, send, verify, onClose }: { where: string; target: string; send: () => Promise<Ref>; verify: (ref: Ref, code: string) => Promise<void>; onClose: () => void }) {
+  const [ref, setRef] = useState<Ref | null>(null);
+  const [code, setCode] = useState('');
+  const [left, setLeft] = useState(RESEND);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
+  const started = useRef(false);
+
+  const doSend = useCallback(async () => {
+    setError('');
+    setCode('');
+    try {
+      setRef(await send());
+      setLeft(RESEND);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'კოდის გაგზავნა ვერ მოხერხდა');
+      setLeft(0);
+    }
+    input.current?.focus();
+  }, [send]);
+  useEffect(() => {
+    if (started.current) return; // StrictMode runs effects twice — send once
+    started.current = true;
+    doSend();
+  }, [doSend]);
+  useEffect(() => {
+    if (left <= 0) return;
+    const t = window.setTimeout(() => setLeft(left - 1), 1000);
+    return () => window.clearTimeout(t);
+  }, [left]);
+
+  const confirm = async () => {
+    if (!ref) return;
+    setBusy(true);
+    setError('');
+    try {
+      await verify(ref, code);
+    } catch (e) {
+      setError(e instanceof ApiError ? [e.message, ...e.details.filter((d) => d.Field !== 'Otp').map((d) => d.Message)].join(' — ') : 'შეცდომა');
+    } finally {
+      setBusy(false);
+    }
+  };
+  const ok = /^\d{4,6}$/.test(code) && !!ref;
+  return (
+    <Modal onClose={onClose} labelledBy="otpTitle">
+      <h3 id="otpTitle">შეიყვანე OTP კოდი</h3>
+      <p>
+        <span>{where}</span> <b>{target}</b>
+      </p>
+      <div className="otp-row">
+        <input
+          ref={input}
+          type="text"
+          inputMode="numeric"
+          maxLength={6}
+          placeholder="••••"
+          autoComplete="one-time-code"
+          aria-label="OTP კოდი"
+          value={code}
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          onKeyDown={(e) => e.key === 'Enter' && ok && !busy && confirm()}
+          autoFocus
+        />
+        {left > 0 ? (
+          <span className="otp-timer">
+            0{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}
+          </span>
+        ) : (
+          <button type="button" className="otp-resend" onClick={doSend}>
+            თავიდან
+            <br />
+            გაგზავნა
+          </button>
+        )}
+      </div>
+      <button type="button" className="btn btn-green full" disabled={!ok || busy} onClick={confirm}>
+        დადასტურება
+      </button>
+      <ErrorText error={error} />
+    </Modal>
+  );
+}
+
+/** Asks for login and resolves true once the session is open (false when the dialog is closed). */
+const Ctx = createContext<() => Promise<boolean>>(async () => false);
+export const useAskLogin = () => useContext(Ctx);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const { refresh } = useSession();
+  const [step, setStep] = useState<'email' | 'otp' | null>(null);
+  const [email, setEmail] = useState('');
+  const resolver = useRef<((ok: boolean) => void) | null>(null);
+
+  const ask = useCallback(() => {
+    resolver.current?.(false);
+    setEmail('');
+    setStep('email');
+    return new Promise<boolean>((res) => (resolver.current = res));
+  }, []);
+  const finish = (ok: boolean) => {
+    setStep(null);
+    resolver.current?.(ok);
+    resolver.current = null;
+  };
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const send = useCallback(() => api<Ref>('POST', '/public/auth/sendOtp', { Gateway: 'client', Login: email.trim() }), [email]);
+
+  return (
+    <Ctx.Provider value={ask}>
+      {children}
+      {step === 'email' && (
+        <Modal onClose={() => finish(false)} labelledBy="loginTitle">
+          <h3 id="loginTitle">ავტორიზაცია</h3>
+          <div className="social">
+            <button type="button" className="btn btn-social" disabled title="მალე">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.4z" />
+                <path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z" />
+                <path fill="#FBBC05" d="M6.4 14a6 6 0 0 1 0-3.9V7.5H3.1a10 10 0 0 0 0 9l3.3-2.5z" />
+                <path fill="#EA4335" d="M12 6c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.5L6.4 10C7.2 7.8 9.4 6 12 6z" />
+              </svg>
+              Google
+            </button>
+            <button type="button" className="btn btn-social" disabled title="მალე">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#1877F2" d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7.1V12h3V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.3l-.5 3.5h-2.8v8.4A12 12 0 0 0 24 12z" />
+              </svg>
+              Facebook
+            </button>
+          </div>
+          <div className="or">
+            <span>ან</span>
+          </div>
+          <p>
+            შეიყვანე ელ. ფოსტა
+            <br />
+            გამოგიგზავნით ერთჯერად კოდს
+          </p>
+          <input
+            type="email"
+            placeholder="name@example.com"
+            autoComplete="email"
+            aria-label="ელ. ფოსტა"
+            className="login-email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && valid && setStep('otp')}
+            autoFocus
+          />
+          <button type="button" className="btn btn-green full" disabled={!valid} onClick={() => setStep('otp')}>
+            კოდის გაგზავნა
+          </button>
+        </Modal>
+      )}
+      {step === 'otp' && (
+        <OtpModal
+          where="კოდი გაიგზავნა ელ. ფოსტაზე"
+          target={email.trim().toLowerCase()}
+          send={send}
+          verify={async (ref, code) => {
+            await api('POST', '/public/auth/verifyOtp', { ID: ref.ID, UID: ref.UID, Otp: code });
+            await refresh();
+            finish(true);
+          }}
+          onClose={() => finish(false)}
+        />
+      )}
+    </Ctx.Provider>
+  );
+}
