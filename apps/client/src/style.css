@@ -651,3 +651,6 @@
     .cab-nav-sub .cab-radio { justify-content: flex-start; }
     .cab-nav .cab-new { flex: none; margin-top: 10px; }
   }
+
+  /* current / closed + new application — on a white panel, like the cards */
+  .cab-nav.cab-nav-sub { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
