@@ -454,18 +454,34 @@ function ViewModal({ a, onClose }: { a: App; onClose: () => void }) {
 }
 
 /** One organisation's answer: offer terms, accept / decline (prototype offerModal). */
-/** One organisation's offer: terms and totals (answering — in the comparison). */
+/** One organisation's offer(s): terms and totals — the labels once, every offer's values in its own column. */
 export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
   const s = useStatus();
-  const row = (k: string, v: string, i: number) => (
-    <div key={i} className="view-row">
-      <span>{t(k)}</span>
-      <b>{v}</b>
-    </div>
+  const offers = o.Offers.map((of) => ({ of, c: calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth }) })).filter(
+    (x): x is { of: OfferRow; c: NonNullable<ReturnType<typeof calcOffer>> } => !!x.c,
   );
+  const many = offers.length > 1;
+  type X = (typeof offers)[number];
+  const m = (x: X, v: number) => money(v, x.of.Currency);
+  const sections: [string, (x: X) => string][][] = [
+    [
+      ['თანხა', (x) => m(x, x.of.Amount)],
+      ['ვადა', (x) => t(`${x.of.Months} თვე`)],
+      ['წლიური განაკვეთი', (x) => `${x.of.Rate}%`],
+      ['ეფექტური პროცენტი', (x) => `${x.c.eff}%`],
+      ['ერთჯერადი საკომისიოები', (x) => m(x, x.of.Fee)],
+      ['ყოველთვიური გადასახადი', (x) => m(x, x.c.monthly)],
+    ],
+    [
+      ['სულ გადასახდელი საკომისიო', (x) => m(x, x.of.Fee)],
+      ['სულ გადასახდელი პროცენტი', (x) => m(x, x.c.interest)],
+      ['სულ გადასახდელი დაზღვევა', (x) => m(x, x.c.insTotal)],
+      ['სულ ძირის გარდა გადასახდელი', (x) => m(x, x.c.costTotal)],
+      ['სულ გადასახდელი', (x) => m(x, x.c.total)],
+    ],
+  ];
   return (
-    // several offers — side by side, two columns
-    <Modal onClose={onClose} className={`view-box${o.Offers.length > 1 ? ' offer-two' : ''}`} labelledBy="offerOrg" id="offerModal">
+    <Modal onClose={onClose} className={`view-box${many ? ' offer-two' : ''}`} labelledBy="offerOrg" id="offerModal">
       <h3 className="offer-name" id="offerOrg">
         {n(o.Organization)}
       </h3>
@@ -474,41 +490,32 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
           <em className={`status ${stCls(o.Status)}`}>{s.label(o.Status)}</em>
         </div>
       </div>
-      <div className={`view-body${o.Offers.length > 1 ? ' two' : ''}`} id="offerBody">
-        {o.Offers.map((of, idx) => {
-          const c = calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth });
-          if (!c) return null;
-          const m = (v: number) => money(v, of.Currency);
-          return (
-            <div key={of.ID} className="offer-col">
-              {o.Offers.length > 1 && (
-                <h4 className={`offer-col-h${of.ChosenOn ? ' chosen' : ''}`}>
-                  {t('შეთავაზება')} {idx + 1}
-                  {of.ChosenOn ? ` · ✓ ${t('არჩეული')}` : ''}
-                </h4>
+      <div className="view-body" id="offerBody">
+        {offers.length > 0 &&
+          sections.map((rows, si) => (
+            <div key={si} className={`view-sec${many ? ' multi' : ''}`} style={many ? { ['--n' as string]: offers.length } : undefined}>
+              {/* several offers: a heading row with their numbers (the chosen one marked) */}
+              {many && si === 0 && (
+                <div className="view-row head">
+                  <span />
+                  {offers.map((x, i) => (
+                    <b key={x.of.ID} className={x.of.ChosenOn ? 'chosen' : undefined}>
+                      {t('შეთავაზება')} {i + 1}
+                      {x.of.ChosenOn ? ` · ✓ ${t('არჩეული')}` : ''}
+                    </b>
+                  ))}
+                </div>
               )}
-              <div className="view-sec">
-                {[
-                  ['თანხა', m(of.Amount)],
-                  ['ვადა', t(`${of.Months} თვე`)],
-                  ['წლიური განაკვეთი', `${of.Rate}%`],
-                  ['ეფექტური პროცენტი', `${c.eff}%`],
-                  ['ერთჯერადი საკომისიოები', m(of.Fee)],
-                  ['ყოველთვიური გადასახადი', m(c.monthly)],
-                ].map(([k, v], i) => row(k, v, i))}
-              </div>
-              <div className="view-sec">
-                {[
-                  ['სულ გადასახდელი საკომისიო', m(of.Fee)],
-                  ['სულ გადასახდელი პროცენტი', m(c.interest)],
-                  ['სულ გადასახდელი დაზღვევა', m(c.insTotal)],
-                  ['სულ ძირის გარდა გადასახდელი', m(c.costTotal)],
-                  ['სულ გადასახდელი', m(c.total)],
-                ].map(([k, v], i) => row(k, v, i))}
-              </div>
+              {rows.map(([k, v]) => (
+                <div key={k} className="view-row">
+                  <span>{t(k)}</span>
+                  {offers.map((x) => (
+                    <b key={x.of.ID}>{v(x)}</b>
+                  ))}
+                </div>
+              ))}
             </div>
-          );
-        })}
+          ))}
         {!o.Offers.length && <p style={{ textAlign: 'center' }}>{t('შეთავაზება ჯერ არ არის — გაგზავნილია')} {fmtDate(o.SentOn)}</p>}
       </div>
     </Modal>
