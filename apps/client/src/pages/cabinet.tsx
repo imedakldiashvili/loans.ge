@@ -464,7 +464,8 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
     </div>
   );
   return (
-    <Modal onClose={onClose} className="view-box" labelledBy="offerOrg" id="offerModal">
+    // several offers — side by side, two columns
+    <Modal onClose={onClose} className={`view-box${o.Offers.length > 1 ? ' offer-two' : ''}`} labelledBy="offerOrg" id="offerModal">
       <h3 className="offer-name" id="offerOrg">
         {n(o.Organization)}
       </h3>
@@ -473,13 +474,19 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
           <em className={`status ${stCls(o.Status)}`}>{s.label(o.Status)}</em>
         </div>
       </div>
-      <div className="view-body" id="offerBody">
-        {o.Offers.map((of) => {
+      <div className={`view-body${o.Offers.length > 1 ? ' two' : ''}`} id="offerBody">
+        {o.Offers.map((of, idx) => {
           const c = calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth });
           if (!c) return null;
           const m = (v: number) => money(v, of.Currency);
           return (
-            <div key={of.ID}>
+            <div key={of.ID} className="offer-col">
+              {o.Offers.length > 1 && (
+                <h4 className={`offer-col-h${of.ChosenOn ? ' chosen' : ''}`}>
+                  {t('შეთავაზება')} {idx + 1}
+                  {of.ChosenOn ? ` · ✓ ${t('არჩეული')}` : ''}
+                </h4>
+              )}
               <div className="view-sec">
                 {[
                   ['თანხა', m(of.Amount)],
