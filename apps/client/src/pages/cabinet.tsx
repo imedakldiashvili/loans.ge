@@ -499,13 +499,17 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
   return (
     <Modal onClose={onClose} className={`view-box${many ? ' offer-two' : ''}`} labelledBy="offerOrg" id="offerModal">
       <h3 className="offer-name" id="offerOrg">
+        <OrgLogo org={o.Organization} />
         {n(o.Organization)}
       </h3>
-      <div className="offer-head">
-        <div className="offer-row offer-center">
-          <em className={`status ${stCls(o.Status)}`}>{s.label(o.Status)}</em>
+      {/* one offer: its status above; several: every column has its own (first row of the table) */}
+      {!many && (
+        <div className="offer-head">
+          <div className="offer-row offer-center">
+            <em className={`status ${stCls(o.Status)}`}>{s.label(o.Status)}</em>
+          </div>
         </div>
-      </div>
+      )}
       <div className="view-body" id="offerBody">
         {/* several offers — the comparison table (same rows, the best value marked) */}
         {many && (
@@ -516,7 +520,6 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
                   <th />
                   {offers.map((x, i) => (
                     <th key={x.of.ID}>
-                      <OrgLogo org={o.Organization} />
                       {t('შეთავაზება')} {i + 1}
                       {x.of.ChosenOn ? ` · ✓` : ''}
                     </th>
@@ -524,6 +527,18 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
                 </tr>
               </thead>
               <tbody>
+                {/* status of every offer: the organisation's status; one of an accepted organisation's offers not chosen — said so */}
+                <tr className="r-st">
+                  <td>{t('სტატუსი')}</td>
+                  {offers.map((x) => {
+                    const notChosen = ['accepted', 'done'].includes(o.Status) && !x.of.ChosenOn;
+                    return (
+                      <td key={x.of.ID}>
+                        <em className={`status ${notChosen ? 'cancelled' : stCls(o.Status)}`}>{notChosen ? t('არ არის არჩეული') : s.label(o.Status)}</em>
+                      </td>
+                    );
+                  })}
+                </tr>
                 {CMP_ROWS.map(([label, val, f, best, cls]) => {
                   const vals = offers.map(val);
                   const min = Math.min(...vals);
@@ -539,18 +554,6 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
                     </tr>
                   );
                 })}
-                {/* status of every offer: the organisation's status; one of an accepted organisation's offers not chosen — said so */}
-                <tr className="r-st">
-                  <td>{t('სტატუსი')}</td>
-                  {offers.map((x) => {
-                    const notChosen = ['accepted', 'done'].includes(o.Status) && !x.of.ChosenOn;
-                    return (
-                      <td key={x.of.ID}>
-                        <em className={`status ${notChosen ? 'cancelled' : stCls(o.Status)}`}>{notChosen ? t('არ არის არჩეული') : s.label(o.Status)}</em>
-                      </td>
-                    );
-                  })}
-                </tr>
               </tbody>
             </table>
           </div>

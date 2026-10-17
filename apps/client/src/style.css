@@ -772,9 +772,12 @@
   .cab-det-row .of-terms .chosen { color: var(--green); font-weight: 600; }
   /* offer view: several offers — the comparison table */
   .modal-box.view-box.offer-two { max-width: 820px; }
-  #offerModal .cmp-wrap { margin: 0; }
+  #offerModal .cmp-wrap { margin: 18px 0 0; }
   /* offer view: status per offer — coloured text, no background (as in the card's groups) */
   #offerModal .cmp .r-st .status { background: none !important; border: 0 !important; padding: 0; white-space: normal; display: inline-block; text-decoration: none; font-size: 13px; }
   #offerModal .cmp .r-st .status.accepted { color: var(--green); }
   #offerModal .cmp .r-st .status.offer { color: var(--orange); }
   #offerModal .cmp .r-st .status.rejected, #offerModal .cmp .r-st .status.declined { color: #d9534f; }
+  /* offer view: the organisation's logo before its name */
+  #offerModal .offer-name { display: flex; align-items: center; gap: 14px; }
+  #offerModal .offer-name .lg { flex: none; width: 32px; height: 32px; border-radius: 50%; }
