@@ -489,46 +489,20 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
     (x): x is { of: OfferRow; c: NonNullable<ReturnType<typeof calcOffer>> } => !!x.c,
   );
   const many = offers.length > 1;
+  const any = offers.length > 0;
   // an offer's status: the organisation's; an accepted organisation's offer that was not chosen — "not chosen"
   const notChosen = (x: { of: OfferRow }) => ['accepted', 'done'].includes(o.Status) && !x.of.ChosenOn;
   const offerSt = (x: { of: OfferRow }) => (notChosen(x) ? 'cancelled' : stCls(o.Status));
   const offerLabel = (x: { of: OfferRow }) => (notChosen(x) ? t('არ არის არჩეული') : s.label(o.Status));
-  type X = (typeof offers)[number];
-  const m = (x: X, v: number) => money(v, x.of.Currency);
-  const sections: [string, (x: X) => string][][] = [
-    [
-      ['თანხა', (x) => m(x, x.of.Amount)],
-      ['ვადა', (x) => t(`${x.of.Months} თვე`)],
-      ['წლიური განაკვეთი', (x) => `${x.of.Rate}%`],
-      ['ეფექტური პროცენტი', (x) => `${x.c.eff}%`],
-      ['ერთჯერადი საკომისიოები', (x) => m(x, x.of.Fee)],
-      ['ყოველთვიური გადასახადი', (x) => m(x, x.c.monthly)],
-    ],
-    [
-      ['სულ გადასახდელი საკომისიო', (x) => m(x, x.of.Fee)],
-      ['სულ გადასახდელი პროცენტი', (x) => m(x, x.c.interest)],
-      ['სულ გადასახდელი დაზღვევა', (x) => m(x, x.c.insTotal)],
-      ['სულ ძირის გარდა გადასახდელი', (x) => m(x, x.c.costTotal)],
-      ['სულ გადასახდელი', (x) => m(x, x.c.total)],
-    ],
-  ];
   return (
     <Modal onClose={onClose} className={`view-box${many ? ' offer-two' : ''}`} labelledBy="offerOrg" id="offerModal">
       <h3 className="offer-name" id="offerOrg">
         <OrgLogo org={o.Organization} />
         {n(o.Organization)}
       </h3>
-      {/* one offer: its status above; several: every column has its own (first row of the table) */}
-      {!many && (
-        <div className="offer-head">
-          <div className="offer-row offer-center">
-            <em className={`status ${stCls(o.Status)}`}>{s.label(o.Status)}</em>
-          </div>
-        </div>
-      )}
       <div className="view-body" id="offerBody">
-        {/* several offers — the comparison table (same rows, the best value marked) */}
-        {many && (
+        {/* the comparison table (same rows, the best value marked) — one offer: one column */}
+        {any && (
           <div className="cmp-wrap">
             <table className="cmp" style={{ minWidth: 252 + offers.length * 160 }}>
               <thead>
@@ -571,19 +545,6 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
             </table>
           </div>
         )}
-        {/* one offer — label / value */}
-        {!many &&
-          offers.length > 0 &&
-          sections.map((rows, si) => (
-            <div key={si} className="view-sec">
-              {rows.map(([k, v]) => (
-                <div key={k} className="view-row">
-                  <span>{t(k)}</span>
-                  <b>{v(offers[0])}</b>
-                </div>
-              ))}
-            </div>
-          ))}
         {!o.Offers.length && <p style={{ textAlign: 'center' }}>{t('შეთავაზება ჯერ არ არის — გაგზავნილია')} {fmtDate(o.SentOn)}</p>}
       </div>
     </Modal>
