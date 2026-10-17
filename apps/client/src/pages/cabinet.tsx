@@ -338,9 +338,8 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                           {/* its offer(s) — on the right of the row */}
                           {o.Offers.length > 0 && (
                             <span className="of-terms">
-                              {o.Offers.map((of, i) => (
+                              {o.Offers.map((of) => (
                                 <span key={of.ID} className={of.ChosenOn ? 'chosen' : undefined} title={of.ChosenOn ? t('არჩეული') : undefined}>
-                                  {o.Offers.length > 1 ? <OfferNum o={o} of={of} i={i} /> : of.ChosenOn ? '✓ ' : ''}
                                   {money(of.Amount, of.Currency)} · {t(`${of.Months} თვე`)} · {of.Rate}%
                                 </span>
                               ))}
