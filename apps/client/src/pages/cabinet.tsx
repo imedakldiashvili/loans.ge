@@ -59,7 +59,7 @@ type Found = Page<App> & { Counts: { Active: number; Done: number } };
 
 /** Order of the status groups in a card: what needs an answer first, closed ones last. */
 const GROUP_ORDER = ['offer', 'interested', 'sent', 'accepted', 'done', 'cancelled', 'declined', 'rejected', 'withdrawn', 'expired'];
-const OPEN_GROUPS = ['offer', 'interested'];const PAGE_SIZE = 5;
+const OPEN_GROUPS = ['offer', 'accepted', 'interested'];const PAGE_SIZE = 5;
 /** CSS of the prototype has no class for "expired" — it looks like "cancelled". */
 export const stCls = (k: string) => (k === 'expired' || k === 'rejected' ? 'cancelled' : k === 'withdrawn' ? 'declined' : k);
 const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
