@@ -1,4 +1,3 @@
-import logo from '../assets/logo.png';
 
 // Shared view helpers and API row types.
 
@@ -30,7 +29,7 @@ export const OrgMark = ({ org, cls = '' }: { org?: Partial<OrgLite> | null; cls?
     </span>
   ) : (
     <span className={`olg tmp ${cls}`} title="დროებითი ლოგო (loans.ge)">
-      <img src={logo} alt="" />
+      <img src={fsUrl('default/org-logo.png')} alt="" />
     </span>
   );
 

@@ -133,15 +133,14 @@ export const orgMark = (name: string) => {
   return last.length <= 2 ? last : w.slice(0, 2).map((x) => x[0]).join('');
 };
 
-/** Organisation logo (uploaded in admin, served at /fs/…); without one — a coloured circle with the short name. */
+/** Without its own logo an organisation shows the loans.ge logo (kept at /fs/default/…). */
+export const DEFAULT_ORG_LOGO = '/fs/default/org-logo.png';
+
+/** Organisation logo (uploaded in admin, served at /fs/…); without one — the loans.ge logo. */
 export function OrgLogo({ org }: { org: { ID: number; NameKa: string; Color?: string | null; LogoPath?: string | null } }) {
-  return org.LogoPath ? (
-    <span className="lg img">
-      <img src={`/fs/${org.LogoPath}`} alt="" />
-    </span>
-  ) : (
-    <span className="lg" style={{ ['--c' as string]: orgColor(org) }}>
-      {orgMark(org.NameKa)}
+  return (
+    <span className={`lg img${org.LogoPath ? '' : ' tmp'}`} title={org.LogoPath ? undefined : 'loans.ge'}>
+      <img src={org.LogoPath ? `/fs/${org.LogoPath}` : DEFAULT_ORG_LOGO} alt="" />
     </span>
   );
 }

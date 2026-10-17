@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { randomBytes } from 'crypto';
-import { mkdir, unlink, writeFile } from 'fs/promises';
+import { copyFile, mkdir, stat, unlink, writeFile } from 'fs/promises';
 import { dirname, join, resolve } from 'path';
 import { validation } from './errors';
 
@@ -10,6 +10,16 @@ import { validation } from './errors';
 
 export const FS_ROOT = resolve(process.env.FS_ROOT ?? join(__dirname, '..', '..', 'storage', 'fs'));
 export const FS_PREFIX = '/fs/';
+/** Logo of an organisation that has none (the loans.ge logo) — always at /fs/default/org-logo.png. */
+export const DEFAULT_ORG_LOGO = 'default/org-logo.png';
+
+/** Puts the default logo into the storage if it is not there yet (a fresh server, a cleaned folder). */
+export async function ensureDefaults() {
+  const target = resolve(FS_ROOT, DEFAULT_ORG_LOGO);
+  if (await stat(target).then(() => true, () => false)) return;
+  await mkdir(dirname(target), { recursive: true });
+  await copyFile(join(__dirname, '..', '..', 'assets', 'default-org-logo.png'), target);
+}
 
 /** Images allowed as logos — detected by content, not by the file name. */
 const sniff = (b: Buffer): string | null => {

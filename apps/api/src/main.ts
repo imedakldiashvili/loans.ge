@@ -6,13 +6,14 @@ import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { setupDocs } from './docs/openapi';
-import { FS_PREFIX, FS_ROOT } from './core/files';
+import { ensureDefaults, FS_PREFIX, FS_ROOT } from './core/files';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   // URLs follow /{gateway}/{module}/{action} — no global prefix (STANDARDS.md §1)
   app.enableShutdownHooks();
   app.set('trust proxy', true);
+  await ensureDefaults();
   // uploaded files (logos): read-only, cached for good (every upload gets a new name); an SVG can never run a script
   app.useStaticAssets(FS_ROOT, {
     prefix: FS_PREFIX, maxAge: '365d', immutable: true, index: false, dotfiles: 'deny',
