@@ -515,7 +515,7 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
                 <tr>
                   <th />
                   {offers.map((x, i) => (
-                    <th key={x.of.ID} className={x.of.ChosenOn ? 'chosen' : undefined}>
+                    <th key={x.of.ID}>
                       <OrgLogo org={o.Organization} />
                       {t('შეთავაზება')} {i + 1}
                       {x.of.ChosenOn ? ` · ✓` : ''}
@@ -532,13 +532,25 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
                     <tr key={label} className={cls}>
                       <td>{t(label)}</td>
                       {vals.map((v, i) => (
-                        <td key={offers[i].of.ID} className={[mark && v === min ? 'best' : '', offers[i].of.ChosenOn ? 'chosen' : ''].filter(Boolean).join(' ') || undefined}>
+                        <td key={offers[i].of.ID} className={mark && v === min ? 'best' : undefined}>
                           {f(v, offers[i])}
                         </td>
                       ))}
                     </tr>
                   );
                 })}
+                {/* status of every offer: the organisation's status; one of an accepted organisation's offers not chosen — said so */}
+                <tr className="r-st">
+                  <td>{t('სტატუსი')}</td>
+                  {offers.map((x) => {
+                    const notChosen = ['accepted', 'done'].includes(o.Status) && !x.of.ChosenOn;
+                    return (
+                      <td key={x.of.ID}>
+                        <em className={`status ${notChosen ? 'cancelled' : stCls(o.Status)}`}>{notChosen ? t('არ არის არჩეული') : s.label(o.Status)}</em>
+                      </td>
+                    );
+                  })}
+                </tr>
               </tbody>
             </table>
           </div>
