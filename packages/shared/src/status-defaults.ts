@@ -22,7 +22,7 @@ export const DEFAULT_STATUSES: StatusDef[] = [
   S('cancelled', 7, 'canceled', null, { customerKa: 'შეთავაზება გაუქმებულია ორგანიზაციის მიერ', customerEn: 'Offer cancelled by the organisation', partner: 'შეთავაზება გააუქმა პარტნიორმა', chip: 'გააუქმა პარტნიორმა' }),
   S('withdrawn', 8, 'canceled', null, { customerKa: 'შეთავაზების გარეშე - უარყოფილი მომხმარებლის მიერ', customerEn: 'No offer — declined by the customer', partner: 'უარი თქვა მომხმარებელმა', chip: 'უარი თქვა მომხმარებელმა' }),
   S('declined', 9, 'canceled', null, { customerKa: 'შეთავაზება უარყოფილი მომხმარებლის მიერ', customerEn: 'Offer declined by the customer', partner: 'შეთავაზება უარყო მომხმარებელმა', chip: 'გააუქმა მომხმარებელმა' }),
-  S('expired', 10, 'canceled', null, { customerKa: 'განაცხადზე შეთავაზების ვადა გავიდა', customerEn: 'Offer expired', partner: 'ვადაგასული', chip: 'ვადაგასული' }, { isExpiryTarget: true }),
+  S('expired', 10, 'canceled', null, { customerKa: 'შეთავაზების ვადა გავიდა', customerEn: 'Offer expired', partner: 'ვადაგასული', chip: 'ვადაგასული' }, { isExpiryTarget: true }),
 ];
 
 const T = (from: string[], to: string, by: Actor, reasonKind: ReasonKind | null = null): TransitionDef[] =>
