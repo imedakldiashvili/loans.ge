@@ -23,6 +23,12 @@ const ICONS = {
       <path d="M8 12l3 3 5-6" />
     </svg>
   ),
+  rejected: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M15 9l-6 6M9 9l6 6" />
+    </svg>
+  ),
   waiting: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9" />
@@ -37,16 +43,23 @@ const FILLED = {
       <path d="M8 12l3 3 5-6" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
+  rejected: (
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="currentColor" />
+      <path d="M15 9l-6 6M9 9l6 6" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>
+  ),
 };
 type Kind = keyof typeof ICONS;
 const FILTERS: [Kind, string][] = [
   ['offer', 'გამოგზავნილი'],
   ['waiting', 'ველოდებით'],
+  ['rejected', 'უარყოფილი'],
 ];
-/** Filter of a record: sent an offer (waiting for the answer, or already accepted / issued) / still working on it (no offer yet);
- *  rejected / cancelled / declined / expired ones are not compared. */
+/** Filter of a record: sent an offer (waiting for the answer, or already accepted / issued) / still working on it (no offer yet) /
+ *  rejected or cancelled by the partner; the ones the customer declined or that expired are not compared. */
 const kindOf = (o: AppOrg): Kind | null =>
- o.Offers.length && ['offer', 'accepted', 'done'].includes(o.Status) ? 'offer' : ['sent', 'interested'].includes(o.Status) ? 'waiting' : null;
+  ['rejected', 'cancelled'].includes(o.Status) ? 'rejected' : o.Offers.length && ['offer', 'accepted', 'done'].includes(o.Status) ? 'offer' : ['sent', 'interested'].includes(o.Status) ? 'waiting' : null;
 
 /** Opened at /cabinet/compare/{id}/{uid} — loads the application itself (a reload or a shared link works). */
 export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: () => void }) {
@@ -59,6 +72,7 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
 function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload: () => void }) {
   const qc = useQueryClient();
   const s = useStatus();
+  // "rejected" is there, but off: its columns show only when turned on
   const [filter, setFilter] = useState<Kind[]>(['offer', 'waiting']);
   // marks: choose per organisation (several offer columns of one organisation share it), sent together;
   // once sent — back to the cabinet
@@ -70,7 +84,7 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
   const answerable = marks.answerable;
   // a chosen offer's whole column is green (each offer on its own — one organisation may have sent several)
   const chosen = (of: OfferRow | null) => (of && marks.marks.has(of.ID) ? 'chosen' : '');
-  // one column per offer; an organisation without an offer (waiting) — one empty column; the chosen ones move to the left
+  // one column per offer; an organisation without an offer (waiting / rejected) — one empty column; the chosen ones move to the left
   // counts = columns: every offer is one (an organisation may have sent several), an organisation without one — one
   const count = (k: Kind) => a.Orgs.filter((o) => kindOf(o) === k).reduce((n, o) => n + Math.max(1, o.Offers.length), 0);
   type Col = { o: AppOrg; of: OfferRow | null; key: string; c: ReturnType<typeof calcOffer> | null };
@@ -169,7 +183,7 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
                             <MarkButtons o={o} of={of} m={marks} />
                           ) : (
                             <span className={`cmp-st ${done ? 'accepted' : k}`} title={s.label(o.Status)}>
-                              {done ? FILLED.accepted : k === 'waiting' ? ICONS.waiting : ICONS.offer}
+                              {done ? FILLED.accepted : k === 'rejected' ? FILLED.rejected : k === 'waiting' ? ICONS.waiting : ICONS.offer}
                             </span>
                           )}
                         </div>

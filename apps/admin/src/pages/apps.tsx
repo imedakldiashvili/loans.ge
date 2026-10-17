@@ -227,7 +227,7 @@ function AppDialog({ app, onClose }: { app: Application; onClose: () => void }) 
 
 // ── compare page — same form as the customer site (#compare); status row at the bottom, view only
 
-// sent an offer (waiting / accepted / issued) · rejected or cancelled by the partner · still without an offer
+// sent an offer (waiting / accepted / issued) · still without an offer · rejected or cancelled by the partner (off by default)
 const CMP_F = [
   { key: 'offer', label: 'გამოგზავნილი', d: 'M12 7.5v5.5M12 16.5h.01', has: (o: { Status: string; Offers: unknown[] }) => o.Offers.length > 0 && ['offer', 'accepted', 'done'].includes(o.Status) },
   { key: 'waiting', label: 'ველოდებით', d: 'M12 7v5l3 2', has: (o: { Status: string }) => ['sent', 'interested'].includes(o.Status) },
@@ -239,7 +239,7 @@ export function ComparePage() {
   const nav = useNavigate();
   const { st } = useLookups();
   const q = useAppDetail({ ID: Number(id), UID: uid });
-  const [filter, setFilter] = useState(['offer', 'rejected', 'waiting']);
+  const [filter, setFilter] = useState(['offer', 'waiting']);
   const a = q.data;
   const list = a ? CMP_F.flatMap((f) => (filter.includes(f.key) ? a.Orgs.filter((o) => f.has(o)) : [])) : [];
   const T = list.map((o) => {
