@@ -757,8 +757,8 @@
   /* answer summary: wider — organisation rows with their terms */
   .modal-box.modal-confirm-offers { max-width: 560px; }
   /* an uploaded organisation logo in place of the coloured circle (any size the place gives it) */
-  .lg.img { background: #fff !important; border: 1px solid var(--line); overflow: hidden; padding: 2px; box-sizing: border-box; }
-  .lg.img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .lg.img { background: #fff !important; border: 1px solid var(--line); overflow: hidden; padding: 0; box-sizing: border-box; display: grid; place-items: center; }
+  .lg.img img { width: 72%; height: 72%; object-fit: contain; display: block; }
   /* a closed application where nothing was accepted */
   .cab-sum .right .app-cancelled { display: block; margin-top: 4px; font-style: normal; font-size: 12px; font-weight: 600; color: #d9534f; text-align: end; }
   /* card: an organisation's offer terms under its name */
