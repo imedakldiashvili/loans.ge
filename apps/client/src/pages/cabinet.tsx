@@ -454,7 +454,23 @@ function ViewModal({ a, onClose }: { a: App; onClose: () => void }) {
 }
 
 /** One organisation's answer: offer terms, accept / decline (prototype offerModal). */
-/** One organisation's offer(s): terms and totals — the labels once, every offer's values in its own column. */
+type CmpX = { of: OfferRow; c: NonNullable<ReturnType<typeof calcOffer>> };
+const cmpMoney = (v: number, x: CmpX) => money(v, x.of.Currency);
+/** Rows of the comparison table: label, value, format, mark the lowest, row class (as on the comparison page). */
+const CMP_ROWS: [string, (x: CmpX) => number, (v: number, x: CmpX) => string, boolean, string?][] = [
+  ['თანხა', (x) => x.of.Amount, cmpMoney, false],
+  ['ვადა', (x) => x.of.Months, (v) => t(`${v} თვე`), false],
+  ['წლიური განაკვეთი', (x) => x.of.Rate, (v) => `${v}%`, true],
+  ['ეფექტური პროცენტი', (x) => x.c.eff, (v) => `${v}%`, true],
+  ['ერთჯერადი საკომისიოები', (x) => x.of.Fee, cmpMoney, true],
+  ['ყოველთვიური გადასახადი', (x) => x.c.monthly, cmpMoney, true],
+  ['სულ გადასახდელი პროცენტი', (x) => x.c.interest, cmpMoney, true],
+  ['სულ გადასახდელი დაზღვევა', (x) => x.c.insTotal, cmpMoney, true],
+  ['სულ ძირის გარდა გადასახდელი', (x) => x.c.costTotal, cmpMoney, true],
+  ['სულ გადასახდელი', (x) => x.c.total, cmpMoney, true, 'total'],
+];
+
+/** One organisation's offer(s): one — label / value; several — the comparison table. */
 export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
   const s = useStatus();
   const offers = o.Offers.map((of) => ({ of, c: calcOffer({ amount: of.Amount, months: of.Months, rate: of.Rate, fee: of.Fee, insMonth: of.InsMonth }) })).filter(
@@ -491,27 +507,51 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
         </div>
       </div>
       <div className="view-body" id="offerBody">
-        {offers.length > 0 &&
-          sections.map((rows, si) => (
-            <div key={si} className={`view-sec${many ? ' multi' : ''}`} style={many ? { ['--n' as string]: offers.length } : undefined}>
-              {/* several offers: a heading row with their numbers (the chosen one marked) */}
-              {many && si === 0 && (
-                <div className="view-row head">
-                  <span />
+        {/* several offers — the comparison table (same rows, the best value marked) */}
+        {many && (
+          <div className="cmp-wrap">
+            <table className="cmp" style={{ minWidth: 252 + offers.length * 160 }}>
+              <thead>
+                <tr>
+                  <th />
                   {offers.map((x, i) => (
-                    <b key={x.of.ID} className={x.of.ChosenOn ? 'chosen' : undefined}>
+                    <th key={x.of.ID} className={x.of.ChosenOn ? 'chosen' : undefined}>
+                      <OrgLogo org={o.Organization} />
                       {t('შეთავაზება')} {i + 1}
-                      {x.of.ChosenOn ? ` · ✓ ${t('არჩეული')}` : ''}
-                    </b>
+                      {x.of.ChosenOn ? ` · ✓` : ''}
+                    </th>
                   ))}
-                </div>
-              )}
+                </tr>
+              </thead>
+              <tbody>
+                {CMP_ROWS.map(([label, val, f, best, cls]) => {
+                  const vals = offers.map(val);
+                  const min = Math.min(...vals);
+                  const mark = best && vals.filter((v) => v === min).length < vals.length;
+                  return (
+                    <tr key={label} className={cls}>
+                      <td>{t(label)}</td>
+                      {vals.map((v, i) => (
+                        <td key={offers[i].of.ID} className={[mark && v === min ? 'best' : '', offers[i].of.ChosenOn ? 'chosen' : ''].filter(Boolean).join(' ') || undefined}>
+                          {f(v, offers[i])}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {/* one offer — label / value */}
+        {!many &&
+          offers.length > 0 &&
+          sections.map((rows, si) => (
+            <div key={si} className="view-sec">
               {rows.map(([k, v]) => (
                 <div key={k} className="view-row">
                   <span>{t(k)}</span>
-                  {offers.map((x) => (
-                    <b key={x.of.ID}>{v(x)}</b>
-                  ))}
+                  <b>{v(offers[0])}</b>
                 </div>
               ))}
             </div>

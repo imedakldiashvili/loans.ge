@@ -770,9 +770,6 @@
   .cmp-bar .pick-bar { margin-inline-start: auto; padding: 0; border-top: 0; }
   /* card: the offer the customer chose */
   .cab-det-row .of-terms .chosen { color: var(--green); font-weight: 600; }
-  /* offer view: several offers — the labels once, every offer's values in its own column */
-  .modal-box.view-box.offer-two { max-width: 760px; }
-  .view-sec.multi .view-row { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(var(--n), minmax(0, 1fr)); gap: 12px; align-items: baseline; }
-  .view-sec.multi .view-row b { text-align: end; }
-  .view-sec.multi .view-row.head b { font-size: 13px; color: var(--fg); }
-  .view-sec.multi .view-row.head b.chosen { color: var(--green); }
+  /* offer view: several offers — the comparison table */
+  .modal-box.view-box.offer-two { max-width: 820px; }
+  #offerModal .cmp-wrap { margin: 0; }
