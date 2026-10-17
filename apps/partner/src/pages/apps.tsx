@@ -441,7 +441,7 @@ function AppDetail({ d, st, bottom }: { d: Detail; st: (k: string) => StatusRow 
         {d.Offers.length > 0 &&
           sec(
             d.Offers.length > 1 ? 'გაგზავნილი შეთავაზებები' : 'გაგზავნილი შეთავაზება',
-            <OffersRO offers={d.Offers} />,
+            <OffersRO offers={d.Offers} status={d.Status} st={st} />,
             d.OfferOn ? fmtDate(d.OfferOn) : undefined,
           )}
         {['cancelled', 'rejected'].includes(d.Status) &&
@@ -506,13 +506,27 @@ function AppDetail({ d, st, bottom }: { d: Detail; st: (k: string) => StatusRow 
   );
 }
 
-const OffersRO = ({ offers }: { offers: OfferRow[] }) => (
+/** Several offers: each one's number in a filled frame, coloured by its status (the record's; an accepted record's offer
+ *  the customer did not choose — grey). */
+const OfferNum = ({ i, status, chosen, st }: { i: number; status: string; chosen: boolean; st: (k: string) => StatusRow | undefined }) => {
+  const notChosen = ['accepted', 'done'].includes(status) && !chosen;
+  return (
+    <span className="of-num" style={{ background: notChosen ? 'var(--grey-status)' : statusColor(st(status), status) }} title={notChosen ? 'მომხმარებელმა არ აირჩია' : st(status)?.PartnerLabel}>
+      {i + 1}
+    </span>
+  );
+};
+
+const OffersRO = ({ offers, status, st }: { offers: OfferRow[]; status: string; st: (k: string) => StatusRow | undefined }) => (
   <div className="tpl ro">
-    {offers.map((t) => {
+    {offers.map((t, i) => {
       const c = calcOffer({ amount: t.Amount, months: t.Months, rate: t.Rate, fee: t.Fee, insMonth: t.InsMonth });
       return (
         <div key={t.ID} className={t.ChosenOn ? 'chosen' : undefined}>
-          <b>{t.ChosenOn ? '✓ მომხმარებელმა აირჩია' : 'შეთავაზება'}</b>
+          <b>
+            {offers.length > 1 && <OfferNum i={i} status={status} chosen={!!t.ChosenOn} st={st} />}
+            {t.ChosenOn ? '✓ მომხმარებელმა აირჩია' : 'შეთავაზება'}
+          </b>
           <em>
             {money(t.Amount, t.Currency)} · {t.Rate}% · {t.Months} თვე · თვეში <strong>{money(c?.monthly ?? 0, t.Currency)}</strong>
           </em>

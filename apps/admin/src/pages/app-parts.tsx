@@ -353,6 +353,16 @@ export function OfferTable({ app, o, st, opts = {} }: { app: Application; o: App
                 <th key={i}>
                   <OrgMark org={o.Organization} cls="cm" />
                   <span className="cmp-on">{o.Organization.NameKa}</span>
+                  {/* several offers: each one's number, coloured by its status (unchosen offer of an accepted record — grey) */}
+                  {cols.length > 1 && x.t && (
+                    <span
+                      className="of-num"
+                      style={{ background: ['accepted', 'done'].includes(o.Status) && !x.t.ChosenOn ? 'var(--grey-status)' : statusColor(s, o.Status) }}
+                      title={['accepted', 'done'].includes(o.Status) && !x.t.ChosenOn ? 'მომხმარებელმა არ აირჩია' : s?.PartnerLabel}
+                    >
+                      {i + 1}
+                    </span>
+                  )}
                   {x.t?.ChosenOn && <small className="chosen">✓ მომხმარებელმა აირჩია</small>}
                 </th>
               ))}

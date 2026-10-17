@@ -781,11 +781,14 @@
   /* offer view: the organisation's logo before its name */
   #offerModal .offer-name { display: flex; align-items: center; gap: 14px; }
   #offerModal .offer-name .lg { flex: none; width: 32px; height: 32px; border-radius: 50%; }
-  /* offer view: the offer's number in a filled frame, coloured by its status */
-  #offerModal .of-num { display: inline-grid; place-items: center; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 8px; font-size: 14px; font-weight: 700; color: #fff; background: #8a8f9f; }
-  #offerModal .of-num.offer { background: var(--orange); }
-  #offerModal .of-num.accepted { background: var(--green); }
-  #offerModal .of-num.interested { background: #1e63b5; }
-  #offerModal .of-num.done { background: var(--fg); color: var(--bg); }
-  #offerModal .of-num.rejected, #offerModal .of-num.declined { background: #d9534f; }
-  #offerModal .of-num.cancelled, #offerModal .of-num.sent { background: #8a8f9f; }
+  /* an offer's number (an organisation sent several) in a filled frame, coloured by its status */
+  .of-num { display: inline-grid; place-items: center; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 8px; font-size: 14px; font-weight: 700; font-style: normal; color: #fff; background: #8a8f9f; vertical-align: middle; }
+  .of-num.offer { background: var(--orange); }
+  .of-num.accepted { background: var(--green); }
+  .of-num.interested { background: #1e63b5; }
+  .of-num.done { background: var(--fg); color: var(--bg); }
+  .of-num.rejected, .of-num.declined { background: #d9534f; }
+  .of-num.cancelled, .of-num.sent { background: #8a8f9f; }
+  /* small next to text (card rows, the answer dialog, the comparison header) */
+  .of-terms .of-num, .cf-group .of-num, .cmp thead .of-num { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 6px; font-size: 11px; margin-inline-end: 6px; }
+  .cmp thead .of-num { margin: 4px auto 0; display: grid; width: fit-content; }

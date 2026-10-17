@@ -61,6 +61,18 @@ type Found = Page<App> & { Counts: { Active: number; Done: number } };
 const GROUP_ORDER = ['offer', 'interested', 'sent', 'accepted', 'done', 'cancelled', 'declined', 'rejected', 'withdrawn', 'expired'];
 const OPEN_GROUPS = ['offer', 'accepted', 'interested'];const PAGE_SIZE = 5;
 /** CSS of the prototype has no class for "expired" — it looks like "cancelled". */
+/** An offer's number (an organisation sent several) in a filled frame coloured by its status:
+ *  the organisation's status; an accepted organisation's offer that was not chosen — grey ("not chosen"). */
+export function OfferNum({ o, of, i }: { o: AppOrg; of: OfferRow; i: number }) {
+  const s = useStatus();
+  const notChosen = ['accepted', 'done'].includes(o.Status) && !of.ChosenOn;
+  return (
+    <span className={`of-num ${notChosen ? 'cancelled' : stCls(o.Status)}`} title={notChosen ? t('არ არის არჩეული') : s.label(o.Status)}>
+      {i + 1}
+    </span>
+  );
+}
+
 export const stCls = (k: string) => (k === 'expired' || k === 'rejected' ? 'cancelled' : k === 'withdrawn' ? 'declined' : k);
 const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
 
@@ -326,9 +338,9 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                           {/* its offer(s) — on the right of the row */}
                           {o.Offers.length > 0 && (
                             <span className="of-terms">
-                              {o.Offers.map((of) => (
+                              {o.Offers.map((of, i) => (
                                 <span key={of.ID} className={of.ChosenOn ? 'chosen' : undefined} title={of.ChosenOn ? t('არჩეული') : undefined}>
-                                  {of.ChosenOn ? '✓ ' : ''}
+                                  {o.Offers.length > 1 ? <OfferNum o={o} of={of} i={i} /> : of.ChosenOn ? '✓ ' : ''}
                                   {money(of.Amount, of.Currency)} · {t(`${of.Months} თვე`)} · {of.Rate}%
                                 </span>
                               ))}
@@ -525,9 +537,7 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
                   {offers.map((x, i) => (
                     <th key={x.of.ID}>
                       {/* the offer's number in a frame, coloured by its status */}
-                      <span className={`of-num ${offerSt(x)}`} title={offerLabel(x)}>
-                        {i + 1}
-                      </span>
+                      <OfferNum o={o} of={x.of} i={i} />
                     </th>
                   ))}
                 </tr>
@@ -675,6 +685,7 @@ export function ConfirmOffers({ accept, chosen, cancel, pending = [], busy, erro
               {/* the offer's terms (one per offer; going ahead — only the chosen ones); an organisation without an offer — none */}
               {o.Offers.filter((of) => kind === 'no' || !chosen || chosen.has(of.ID)).map((of) => (
                 <span key={of.ID} className="terms">
+                  {o.Offers.length > 1 && <OfferNum o={o} of={of} i={o.Offers.indexOf(of)} />}
                   {money(of.Amount, of.Currency)} · {t(`${of.Months} თვე`)} · {of.Rate}%
                 </span>
               ))}

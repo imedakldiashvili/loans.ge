@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { api, ApiError } from '../api';
 import { OrgLogo } from '../session';
 import { money } from '../ui';
-import { App, AppOrg, MarkBar, MarkButtons, OfferRow, useOfferMarks, useStatus } from './cabinet';
+import { App, AppOrg, MarkBar, MarkButtons, OfferNum, OfferRow, useOfferMarks, useStatus } from './cabinet';
 
 // Offers side by side (prototype #compare): one column per offer, best value highlighted,
 // filter by state (to confirm / accepted / declined); the ticked offers are accepted, the other waiting offers cancelled.
@@ -156,6 +156,8 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
                     <th key={key} className={chosen(of) || undefined}>
                       <OrgLogo org={o.Organization} />
                       {n(o.Organization)}
+                      {/* one organisation, several offers: which one */}
+                      {of && o.Offers.length > 1 && <OfferNum o={o} of={of} i={o.Offers.indexOf(of)} />}
                     </th>
                   ))}
                 </tr>
