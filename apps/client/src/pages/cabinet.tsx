@@ -477,6 +477,10 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
     (x): x is { of: OfferRow; c: NonNullable<ReturnType<typeof calcOffer>> } => !!x.c,
   );
   const many = offers.length > 1;
+  // an offer's status: the organisation's; an accepted organisation's offer that was not chosen — "not chosen"
+  const notChosen = (x: { of: OfferRow }) => ['accepted', 'done'].includes(o.Status) && !x.of.ChosenOn;
+  const offerSt = (x: { of: OfferRow }) => (notChosen(x) ? 'cancelled' : stCls(o.Status));
+  const offerLabel = (x: { of: OfferRow }) => (notChosen(x) ? t('არ არის არჩეული') : s.label(o.Status));
   type X = (typeof offers)[number];
   const m = (x: X, v: number) => money(v, x.of.Currency);
   const sections: [string, (x: X) => string][][] = [
@@ -520,8 +524,10 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
                   <th />
                   {offers.map((x, i) => (
                     <th key={x.of.ID}>
-                      {t('შეთავაზება')} {i + 1}
-                      {x.of.ChosenOn ? ` · ✓` : ''}
+                      {/* the offer's number in a frame, coloured by its status */}
+                      <span className={`of-num ${offerSt(x)}`} title={offerLabel(x)}>
+                        {i + 1}
+                      </span>
                     </th>
                   ))}
                 </tr>
@@ -530,14 +536,11 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
                 {/* status of every offer: the organisation's status; one of an accepted organisation's offers not chosen — said so */}
                 <tr className="r-st">
                   <td>{t('სტატუსი')}</td>
-                  {offers.map((x) => {
-                    const notChosen = ['accepted', 'done'].includes(o.Status) && !x.of.ChosenOn;
-                    return (
-                      <td key={x.of.ID}>
-                        <em className={`status ${notChosen ? 'cancelled' : stCls(o.Status)}`}>{notChosen ? t('არ არის არჩეული') : s.label(o.Status)}</em>
-                      </td>
-                    );
-                  })}
+                  {offers.map((x) => (
+                    <td key={x.of.ID}>
+                      <em className={`status ${offerSt(x)}`}>{offerLabel(x)}</em>
+                    </td>
+                  ))}
                 </tr>
                 {CMP_ROWS.map(([label, val, f, best, cls]) => {
                   const vals = offers.map(val);
