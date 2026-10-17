@@ -201,9 +201,9 @@
   .cat h3 { font-size: 15px; line-height: 1.25; }
   .cat header b { font-size: 13px; font-weight: 700; color: var(--orange); background: var(--orange-soft); padding: 2px 9px; border-radius: 999px; font-variant-numeric: tabular-nums; }
   .cat ul { list-style: none; margin: 0; padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 10px; min-width: 0; }
-  .cat li { display: flex; align-items: center; gap: 8px; width: 150px; padding: 6px 12px 6px 6px; font-size: 13px; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cat li { display: flex; align-items: center; gap: 8px; min-width: 150px; max-width: 100%; padding: 6px 12px 6px 6px; font-size: 14px; font-weight: 500; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cat li:hover { border-color: var(--green); }
-  .cat .lg { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--c); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+  .cat .lg { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--c); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
 
 
   /* Wizard — განაცხადის ფორმა */
