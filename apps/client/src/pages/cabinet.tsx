@@ -759,7 +759,14 @@ function Profile() {
         <h3 className="prof-h prof-h-row">
           {t('პირადი მონაცემები')}
           {/* verification — on the right of the heading */}
-          <span className={`verify-badge ${d.User.IsVerified ? 'yes' : 'no'}`}>{t(d.User.IsVerified ? 'ვერიფიცირებული' : 'არ არის ვერიფიცირებული')}</span>
+          <span className={`verify-badge ${d.User.IsVerified ? 'yes' : 'no'}`}>
+            {/* a shield: with a tick when verified, with an exclamation mark when not */}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z" />
+              <path d={d.User.IsVerified ? 'M9 12l2 2 4-4' : 'M12 8v4M12 15.5h.01'} />
+            </svg>
+            {t(d.User.IsVerified ? 'ვერიფიცირებული' : 'არ არის ვერიფიცირებული')}
+          </span>
         </h3>
         <div className="prof-info prof-info-2">
           <div className="prof-row prof-row-3">

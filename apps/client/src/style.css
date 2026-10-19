@@ -804,6 +804,7 @@
   .cab-ico.cab-state.closed-off, .cab-ico.cab-state.closed-off:hover { color: var(--muted); }
   /* profile: verification on the right of "personal data" */
   .prof-h.prof-h-row { display: flex; align-items: center; gap: 12px; }
-  .verify-badge { margin-inline-start: auto; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; }
+  .verify-badge { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 4px 10px 4px 8px; border-radius: 999px; }
+  .verify-badge svg { width: 15px; height: 15px; flex: none; }
   .verify-badge.yes { background: var(--green-soft); color: var(--green); }
   .verify-badge.no { background: var(--bg-soft); color: var(--muted); border: 1px solid var(--line); }
