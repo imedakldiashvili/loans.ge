@@ -348,9 +348,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         <Modal onClose={() => finish(false)} labelledBy="pinTitle">
           <h3 id="pinTitle">{t('ავტორიზაცია')}</h3>
           <p>
-            {t('შეიყვანე PIN-კოდი')}
-            <br />
             <b className="pin-who">{email.trim().toLowerCase()}</b>
+            <br />
+            {t('შეიყვანე PIN-კოდი')}
           </p>
           <div className="pin-form">
             <PinInput value={pin} onChange={setPin} label="PIN" autoFocus onEnter={() => void pinSignIn()} />
