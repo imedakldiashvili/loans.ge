@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { Dispatch, ReactNode, SetStateAction, useEffect, useState } from 'react';
 
 // Small shared pieces with the prototype's markup (loans-ge.html).
 
@@ -58,22 +58,50 @@ export const Chevron = ({ w = 2.5 }: { w?: number }) => (
 
 export const ErrorText = ({ error }: { error: string }) => (error ? <p className="form-err" style={{ color: 'var(--orange)', margin: '8px 0 0' }}>{error}</p> : null);
 
-/** A PIN field: digits only, 4–6, hidden. */
-export const PinInput = ({ value, onChange, label, autoFocus, onEnter }: { value: string; onChange: (v: string) => void; label: string; autoFocus?: boolean; onEnter?: () => void }) => (
-  <input
-    className="pin-input"
-    type="password"
-    inputMode="numeric"
-    autoComplete="off"
-    maxLength={6}
-    placeholder="••••"
-    aria-label={label}
-    value={value}
-    autoFocus={autoFocus}
-    onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
-    onKeyDown={(e) => e.key === 'Enter' && onEnter?.()}
-  />
-);
 /** The same rules as the API: 4–6 digits, not all the same, not in a row. */
 export const pinProblem = (p: string) =>
   !/^\d{4,6}$/.test(p) ? '4–6 ციფრი' : /^(\d)\1+$/.test(p) ? 'ერთნაირი ციფრები არ გამოდგება' : '0123456789'.includes(p) || '9876543210'.includes(p) ? 'ციფრები ზედიზედ არ გამოდგება' : '';
+
+/**
+ * The PIN's own keypad: the entered digits as dots, keys 1–9, 0 and ⌫ (no phone keyboard pops up).
+ * The computer's keyboard works too: digits, Backspace, Enter (→ onEnter).
+ */
+export function PinPad({ value, onChange, onEnter, label }: { value: string; onChange: Dispatch<SetStateAction<string>>; onEnter?: () => void; label: string }) {
+  // always from the latest value — quick taps / typing never lose a digit
+  const press = (k: string) => onChange((v) => (k === '⌫' ? v.slice(0, -1) : v.length < 6 ? v + k : v));
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (/^\d$/.test(e.key)) {
+        e.preventDefault();
+        press(e.key);
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        press('⌫');
+      } else if (e.key === 'Enter') onEnter?.();
+    };
+    document.addEventListener('keydown', key);
+    return () => document.removeEventListener('keydown', key);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onChange, onEnter]);
+  return (
+    <div className="pin-pad" role="group" aria-label={label}>
+      {/* 4–6 digits: at least four places, one more while it can grow */}
+      <div className="pin-dots" aria-live="polite" aria-label={`${value.length} / 6`}>
+        {Array.from({ length: Math.min(6, Math.max(4, value.length + (value.length >= 4 && value.length < 6 ? 1 : 0))) }, (_, i) => (
+          <i key={i} className={i < value.length ? 'on' : undefined} />
+        ))}
+      </div>
+      <div className="pin-keys">
+        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map((k, i) =>
+          k ? (
+            <button key={i} type="button" className={`pin-key${k === '⌫' ? ' back' : ''}`} aria-label={k === '⌫' ? 'წაშლა' : k} disabled={k === '⌫' && !value} onClick={() => press(k)}>
+              {k}
+            </button>
+          ) : (
+            <span key={i} />
+          ),
+        )}
+      </div>
+    </div>
+  );
+}

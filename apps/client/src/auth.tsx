@@ -2,7 +2,7 @@ import { t, useLang } from './i18n';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { api, ApiError, Ref } from './api';
 import { useSession } from './session';
-import { ErrorText, Modal, PinInput, pinProblem } from './ui';
+import { ErrorText, Modal, PinPad, pinProblem } from './ui';
 
 // Login / registration (prototype loginModal + otpModal): e-mail → one-time code → session.
 // The first login creates the account (client gateway). Google / Facebook come with OAuth (later stage).
@@ -124,6 +124,8 @@ export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, 
   const [error, setError] = useState('');
   const [code, setCode] = useState(false);
   const [busy, setBusy] = useState(false);
+  // the keypad asks twice: first the new PIN, then the same again
+  const [again, setAgain] = useState(false);
   const problem = a ? pinProblem(a) : '';
   const ready = !problem && a.length >= 4 && a === b;
   const say = (e: unknown) => setError(e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
@@ -173,16 +175,14 @@ export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, 
       <h3 id="pinSetTitle">{t(title ?? (isSet ? 'PIN-ის შეცვლა' : 'PIN-ის დაყენება'))}</h3>
       <p>{t(intro ?? 'PIN-ით შეხვალ ელ. ფოსტით ან მობილურით, კოდის გარეშე. 4–6 ციფრი.')}</p>
       <div className="pin-form">
-        <label>
-          {t('ახალი PIN')}
-          <PinInput value={a} onChange={setA} label={t('ახალი PIN')} autoFocus />
-        </label>
-        <label>
-          {t('გაიმეორე')}
-          <PinInput value={b} onChange={setB} label={t('გაიმეორე')} onEnter={() => void save()} />
-        </label>
+        <b className="pin-step">{t(again ? 'გაიმეორე PIN' : 'ახალი PIN')}</b>
+        {again ? (
+          <PinPad key="again" value={b} onChange={setB} label={t('გაიმეორე PIN')} onEnter={() => void save()} />
+        ) : (
+          <PinPad key="new" value={a} onChange={setA} label={t('ახალი PIN')} onEnter={() => a.length >= 4 && !pinProblem(a) && setAgain(true)} />
+        )}
       </div>
-      <ErrorText error={error || (problem ? t(problem) : b.length >= a.length && a.length >= 4 && a !== b ? t('PIN-ები არ ემთხვევა') : '')} />
+      <ErrorText error={error || (!again && a.length >= 4 && problem ? t(problem) : again && b.length >= a.length && a !== b ? t('PIN-ები არ ემთხვევა') : '')} />
       <div className="cancel-actions">
         {isSet && !onLater && !fresh && (
           <button type="button" className="btn btn-ghost pin-del" disabled={busy} onClick={() => void remove()}>
@@ -194,9 +194,20 @@ export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, 
             {t('მოგვიანებით')}
           </button>
         )}
-        <button type="button" className="btn btn-green" disabled={!ready || busy} onClick={() => void save()}>
-          {t(fresh ? 'შენახვა' : 'შემდეგი')}
-        </button>
+        {again && (
+          <button type="button" className="btn btn-ghost" onClick={() => (setAgain(false), setB(''))}>
+            {t('უკან')}
+          </button>
+        )}
+        {again ? (
+          <button type="button" className="btn btn-green" disabled={!ready || busy} onClick={() => void save()}>
+            {t(fresh ? 'შენახვა' : 'შემდეგი')}
+          </button>
+        ) : (
+          <button type="button" className="btn btn-green" disabled={a.length < 4 || !!problem} onClick={() => setAgain(true)}>
+            {t('შემდეგი')}
+          </button>
+        )}
       </div>
     </Modal>
   );
@@ -353,7 +364,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             {t('შეიყვანე PIN-კოდი')}
           </p>
           <div className="pin-form">
-            <PinInput value={pin} onChange={setPin} label="PIN" autoFocus onEnter={() => void pinSignIn()} />
+            <PinPad value={pin} onChange={setPin} label="PIN" onEnter={() => void pinSignIn()} />
           </div>
           <ErrorText error={pinError} />
           <button type="button" className="btn btn-green full" disabled={!pinReady || pinBusy} onClick={() => void pinSignIn()}>
