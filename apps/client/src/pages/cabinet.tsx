@@ -7,7 +7,7 @@ import { api, ApiError, Page, Ref } from '../api';
 import { OtpModal } from '../auth';
 import { addPasskey, passkeysSupported } from '../passkey';
 import { OrgLogo, StatusRow, useRefs, useSession } from '../session';
-import { Chevron, ErrorText, fmt, fmtCd, fmtDate, fmtDay, fmtPhone, Modal, money, useNow } from '../ui';
+import { Chevron, ErrorText, PasskeyIcon, fmt, fmtCd, fmtDate, fmtDay, fmtPhone, Modal, money, useNow } from '../ui';
 
 // Customer cabinet (prototype #cabinet): active / closed applications, per-organisation statuses and offers,
 // application view, offer view with accept / decline, closing an application; profile.
@@ -763,63 +763,69 @@ function Profile() {
   };
   return (
     <div>
-      <div className="cab-panel prof-sec">
-        <h3 className="prof-h prof-h-row">
-          {t('მომხმარებელი')}
-          {/* passkeys: sign in with a fingerprint / face / device PIN instead of a code */}
-          {passkeysSupported() && (
-            <button type="button" className="btn btn-ghost sm pk-add" disabled={pk.busy} onClick={() => void pk.add()}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="8" cy="9" r="4" />
-                <path d="M2 20a6 6 0 0 1 10.5-4M15 13a3 3 0 1 1 3 3v5l-1.5-1.5L18 18l-1.5-1.5L18 15" />
-              </svg>
-              {t('პასკოდის დამატება')}
-            </button>
-          )}
-        </h3>
-        <ErrorText error={pk.error} />
-        {(pk.list.data?.Items.length ?? 0) > 0 && (
-          <div className="pk-list">
-            {pk.list.data!.Items.map((k) => (
-              <div key={k.ID} className="pk-row">
-                <span className="pk-name">
-                  <b>{k.Name || t('პასკოდი')}</b>
-                  <small>
-                    {t('დამატებულია')} {fmtDate(k.CreatedOn)}
-                    {k.LastUsedOn ? ` · ${t('ბოლოს')} ${fmtDate(k.LastUsedOn)}` : ''}
-                  </small>
-                </span>
-                <button type="button" className="cab-ico danger" title={t('წაშლა')} aria-label={t('წაშლა')} onClick={() => void pk.remove(k)}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
-                  </svg>
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="prof-info">
-          <div className="prof-row">
-            <span>{t('ელ. ფოსტა')}</span>
-            <b>{d.User.Email ?? '—'}</b>
-            <i />
-          </div>
-          <div className="prof-row">
-            <span>{t('მომხმარებლის სახელი')}</span>
-            <b>{d.User.UserName || d.User.Email?.split('@')[0] || '—'}</b>
-            {btn('user')}
-          </div>
-          <div className="prof-row">
-            <span>{t('მობილური')}</span>
-            <b>{d.User.Phone ? fmtPhone(d.User.Phone) : '—'}</b>
-            {btn('phone')}
-          </div>
-          <div className="prof-row">
-            <span>{t('ლოკაცია')}</span>
-            <b>{loc || '—'}</b>
-            {btn('loc')}
+      {/* "user" and the passkey panel side by side */}
+      <div className="prof-pair">
+        <div className="cab-panel prof-sec">
+          <h3 className="prof-h">{t('მომხმარებელი')}</h3>
+          <div className="prof-info">
+            <div className="prof-row">
+              <span>{t('ელ. ფოსტა')}</span>
+              <b>{d.User.Email ?? '—'}</b>
+              <i />
+            </div>
+            <div className="prof-row">
+              <span>{t('მომხმარებლის სახელი')}</span>
+              <b>{d.User.UserName || d.User.Email?.split('@')[0] || '—'}</b>
+              {btn('user')}
+            </div>
+            <div className="prof-row">
+              <span>{t('მობილური')}</span>
+              <b>{d.User.Phone ? fmtPhone(d.User.Phone) : '—'}</b>
+              {btn('phone')}
+            </div>
+            <div className="prof-row">
+              <span>{t('ლოკაცია')}</span>
+              <b>{loc || '—'}</b>
+              {btn('loc')}
+            </div>
           </div>
         </div>
+        {/* passkeys — their own panel: sign in with a fingerprint / face / device PIN instead of a code */}
+        {passkeysSupported() && (
+          <div className="cab-panel prof-sec">
+            <h3 className="prof-h prof-h-row">
+              {t('პასკოდი')}
+              <button type="button" className="btn btn-ghost sm pk-add" disabled={pk.busy} onClick={() => void pk.add()}>
+                <PasskeyIcon />
+                {t('პასკოდის დამატება')}
+              </button>
+            </h3>
+            <p className="pk-hint">{t('შესვლა კოდის გარეშე — თითის ანაბეჭდით, სახით ან მოწყობილობის PIN-ით.')}</p>
+            <ErrorText error={pk.error} />
+            {(pk.list.data?.Items.length ?? 0) > 0 ? (
+              <div className="pk-list">
+                {pk.list.data!.Items.map((k) => (
+                  <div key={k.ID} className="pk-row">
+                    <span className="pk-name">
+                      <b>{k.Name || t('პასკოდი')}</b>
+                      <small>
+                        {t('დამატებულია')} {fmtDate(k.CreatedOn)}
+                        {k.LastUsedOn ? ` · ${t('ბოლოს')} ${fmtDate(k.LastUsedOn)}` : ''}
+                      </small>
+                    </span>
+                    <button type="button" className="cab-ico danger" title={t('წაშლა')} aria-label={t('წაშლა')} onClick={() => void pk.remove(k)}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="pk-empty">{t('პასკოდი ჯერ არ გაქვს დამატებული')}</p>
+            )}
+          </div>
+        )}
       </div>
       <div className="cab-panel prof-sec">
         <h3 className="prof-h prof-h-row">

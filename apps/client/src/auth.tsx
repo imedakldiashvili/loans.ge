@@ -3,7 +3,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, u
 import { api, ApiError, Ref } from './api';
 import { passkeysSupported, signInWithPasskey } from './passkey';
 import { useSession } from './session';
-import { ErrorText, Modal } from './ui';
+import { ErrorText, Modal, PasskeyIcon } from './ui';
 
 // Login / registration (prototype loginModal + otpModal): e-mail → one-time code → session.
 // The first login creates the account (client gateway). Google / Facebook come with OAuth (later stage).
@@ -147,10 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           {passkeysSupported() && (
             <>
               <button type="button" className="btn btn-passkey full" disabled={pkBusy} onClick={() => void passkey()}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="8" cy="9" r="4" />
-                  <path d="M2 20a6 6 0 0 1 10.5-4M15 13a3 3 0 1 1 3 3v5l-1.5-1.5L18 18l-1.5-1.5L18 15" />
-                </svg>
+                <PasskeyIcon />
                 {t('პასკოდით შესვლა')}
               </button>
               <ErrorText error={pkError} />

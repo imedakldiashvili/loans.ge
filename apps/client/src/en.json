@@ -293,5 +293,7 @@
  "ეს პასკოდი უკვე დამატებულია": "This passkey is already added",
  "გაუქმდა": "Cancelled",
  "გაუქმდა ან დრო ამოიწურა": "Cancelled or timed out",
- "წაშლა": "Delete"
+ "წაშლა": "Delete",
+ "შესვლა კოდის გარეშე — თითის ანაბეჭდით, სახით ან მოწყობილობის PIN-ით.": "Sign in without a code — with a fingerprint, your face or the device PIN.",
+ "პასკოდი ჯერ არ გაქვს დამატებული": "No passkey added yet"
 }
