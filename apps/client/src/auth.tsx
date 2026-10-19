@@ -1,6 +1,7 @@
 import { t, useLang } from './i18n';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { api, ApiError, Ref } from './api';
+import { passkeysSupported, signInWithPasskey } from './passkey';
 import { useSession } from './session';
 import { ErrorText, Modal } from './ui';
 
@@ -119,6 +120,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resolver.current = null;
   };
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  // sign in with a passkey (added earlier in the profile) — no e-mail, no code
+  const [pkBusy, setPkBusy] = useState(false);
+  const [pkError, setPkError] = useState('');
+  const passkey = async () => {
+    setPkBusy(true);
+    setPkError('');
+    try {
+      await signInWithPasskey();
+      await refresh();
+      finish(true);
+    } catch (e) {
+      setPkError(e instanceof ApiError || e instanceof Error ? e.message : t('შეცდომა'));
+    } finally {
+      setPkBusy(false);
+    }
+  };
   const send = useCallback(() => api<Ref>('POST', '/public/auth/sendOtp', { Gateway: 'client', Login: email.trim() }), [email]);
 
   return (
@@ -127,6 +144,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {step === 'email' && (
         <Modal onClose={() => finish(false)} labelledBy="loginTitle">
           <h3 id="loginTitle">{t('ავტორიზაცია')}</h3>
+          {passkeysSupported() && (
+            <>
+              <button type="button" className="btn btn-passkey full" disabled={pkBusy} onClick={() => void passkey()}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="8" cy="9" r="4" />
+                  <path d="M2 20a6 6 0 0 1 10.5-4M15 13a3 3 0 1 1 3 3v5l-1.5-1.5L18 18l-1.5-1.5L18 15" />
+                </svg>
+                {t('პასკოდით შესვლა')}
+              </button>
+              <ErrorText error={pkError} />
+            </>
+          )}
           <div className="social">
             <button type="button" className="btn btn-social" disabled title={t('მალე')}>
               <svg viewBox="0 0 24 24" aria-hidden="true">

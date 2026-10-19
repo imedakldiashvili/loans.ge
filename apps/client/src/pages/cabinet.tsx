@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, ApiError, Page, Ref } from '../api';
 import { OtpModal } from '../auth';
+import { addPasskey, passkeysSupported } from '../passkey';
 import { OrgLogo, StatusRow, useRefs, useSession } from '../session';
 import { Chevron, ErrorText, fmt, fmtCd, fmtDate, fmtDay, fmtPhone, Modal, money, useNow } from '../ui';
 
@@ -707,7 +708,39 @@ const TITLES: Record<Field, string> = {
   first: 'სახელის შეცვლა', last: 'გვარის შეცვლა', dob: 'დაბადების თარიღის შეცვლა',
 };
 
+interface PasskeyRow {
+  ID: number;
+  UID: string;
+  Name: string | null;
+  CreatedOn: string;
+  LastUsedOn: string | null;
+}
+/** The account's passkeys: list, add (the device creates the key), remove. */
+function usePasskeys() {
+  const list = useQuery({ queryKey: ['passkeys'], queryFn: () => api<Page<PasskeyRow>>('POST', '/client/passkey/find/1/50', {}) });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const run = async (fn: () => Promise<unknown>) => {
+    setBusy(true);
+    setError('');
+    try {
+      await fn();
+      await list.refetch();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('შეცდომა'));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return {
+    list, busy, error,
+    add: () => run(addPasskey),
+    remove: (k: PasskeyRow) => (confirm(t('წავშალოთ პასკოდი?')) ? run(() => api('DELETE', `/client/passkey/delete/${k.ID}/${k.UID}`)) : Promise.resolve()),
+  };
+}
+
 function Profile() {
+  const pk = usePasskeys();
   const { me, refresh } = useSession();
   const { cities, districts } = useRefs();
   const qc = useQueryClient();
@@ -731,7 +764,40 @@ function Profile() {
   return (
     <div>
       <div className="cab-panel prof-sec">
-        <h3 className="prof-h">{t('მომხმარებელი')}</h3>
+        <h3 className="prof-h prof-h-row">
+          {t('მომხმარებელი')}
+          {/* passkeys: sign in with a fingerprint / face / device PIN instead of a code */}
+          {passkeysSupported() && (
+            <button type="button" className="btn btn-ghost sm pk-add" disabled={pk.busy} onClick={() => void pk.add()}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="8" cy="9" r="4" />
+                <path d="M2 20a6 6 0 0 1 10.5-4M15 13a3 3 0 1 1 3 3v5l-1.5-1.5L18 18l-1.5-1.5L18 15" />
+              </svg>
+              {t('პასკოდის დამატება')}
+            </button>
+          )}
+        </h3>
+        <ErrorText error={pk.error} />
+        {(pk.list.data?.Items.length ?? 0) > 0 && (
+          <div className="pk-list">
+            {pk.list.data!.Items.map((k) => (
+              <div key={k.ID} className="pk-row">
+                <span className="pk-name">
+                  <b>{k.Name || t('პასკოდი')}</b>
+                  <small>
+                    {t('დამატებულია')} {fmtDate(k.CreatedOn)}
+                    {k.LastUsedOn ? ` · ${t('ბოლოს')} ${fmtDate(k.LastUsedOn)}` : ''}
+                  </small>
+                </span>
+                <button type="button" className="cab-ico danger" title={t('წაშლა')} aria-label={t('წაშლა')} onClick={() => void pk.remove(k)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="prof-info">
           <div className="prof-row">
             <span>{t('ელ. ფოსტა')}</span>

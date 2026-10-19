@@ -169,4 +169,23 @@ forget('client');
 ok((await call('POST', '/client/application/find/1/10', {})).status === 401, 'no session → 401');
 
 await prisma.$disconnect();
+
+// ── passkeys: what can be checked without a device (the browser creates and signs the key)
+await login('client', `passkey.${stamp}@example.com`);
+const ro = await call('POST', '/client/passkey/registerOptions');
+const regOpts = ro.json?.Data?.OptionsJson && JSON.parse(ro.json.Data.OptionsJson);
+ok(ro.status === 200 && regOpts.challenge && regOpts.rp.id === 'localhost' && regOpts.authenticatorSelection.residentKey === 'required', 'passkey: registration options (challenge, site, a key the device keeps)', ro.json);
+ok((await call('POST', '/client/passkey/register', { ResponseJson: '{"id":"x"}' })).status === 400, 'passkey: an invalid answer → 400');
+ok((await call('POST', '/client/passkey/register', { ResponseJson: '{"id":"x"}' })).status === 400, 'passkey: the challenge is used up — again → 400');
+const list = await call('POST', '/client/passkey/find/1/50', {});
+ok(list.status === 200 && list.json.Data.TotalCount === 0, 'passkey: list (none yet)');
+ok((await call('DELETE', '/client/passkey/delete/999999/00000000-0000-0000-0000-000000000000')).status === 404, "passkey: someone else's / unknown → 404");
+const lo = await call('POST', '/public/auth/passkeyOptions', {});
+ok(lo.status === 200 && lo.json.Data.ChallengeID && JSON.parse(lo.json.Data.OptionsJson).rpId === 'localhost', 'passkey sign-in: options with a challenge id');
+const unknownKey = JSON.stringify({ id: 'AAAA', rawId: 'AAAA', type: 'public-key', response: { clientDataJSON: 'e30', authenticatorData: 'AA', signature: 'AA' }, clientExtensionResults: {} });
+ok((await call('POST', '/public/auth/passkeyLogin', { ChallengeID: lo.json.Data.ChallengeID, ResponseJson: unknownKey })).status === 401, 'passkey sign-in: an unknown passkey → 401');
+ok((await call('POST', '/public/auth/passkeyLogin', { ChallengeID: lo.json.Data.ChallengeID, ResponseJson: unknownKey })).status === 400, 'passkey sign-in: the challenge is used up → 400');
+forget('client');
+ok((await call('POST', '/client/passkey/registerOptions')).status === 401, 'passkey: adding needs a signed-in customer (401)');
+
 done();

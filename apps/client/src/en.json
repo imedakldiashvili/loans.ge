@@ -283,5 +283,15 @@
  "ველოდებით": "Waiting",
  "გაუქმებული": "Cancelled",
  "არ არის არჩეული": "Not chosen",
- "არ არის ვერიფიცირებული": "Not verified"
+ "არ არის ვერიფიცირებული": "Not verified",
+ "პასკოდით შესვლა": "Sign in with a passkey",
+ "პასკოდის დამატება": "Add a passkey",
+ "პასკოდი": "Passkey",
+ "დამატებულია": "Added",
+ "ბოლოს": "last used",
+ "წავშალოთ პასკოდი?": "Delete this passkey?",
+ "ეს პასკოდი უკვე დამატებულია": "This passkey is already added",
+ "გაუქმდა": "Cancelled",
+ "გაუქმდა ან დრო ამოიწურა": "Cancelled or timed out",
+ "წაშლა": "Delete"
 }
