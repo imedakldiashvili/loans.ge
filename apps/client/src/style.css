@@ -840,3 +840,7 @@
   .code-boxes { display: flex; justify-content: center; gap: 10px; }
   .code-boxes span { width: 46px; height: 54px; display: grid; place-items: center; border: 2px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--fg); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .code-boxes span.next { border-color: var(--green); }
+  /* the paste key (bottom left): a copied code / PIN */
+  .pin-key.paste { display: grid; place-items: center; color: var(--muted); }
+  .pin-key.paste svg { width: 22px; height: 22px; }
+  .pin-key.paste.err { color: #d9534f; }

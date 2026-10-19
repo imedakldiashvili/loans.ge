@@ -84,10 +84,32 @@ export function PinPad({ value, onChange, onEnter, label, length, digits = false
         press('⌫');
       } else if (e.key === 'Enter') onEnter?.();
     };
+    // a copied code / PIN: Ctrl+V — only its digits, up to the length
+    const paste = (e: ClipboardEvent) => {
+      const d = (e.clipboardData?.getData('text') ?? '').replace(/\D/g, '').slice(0, length);
+      if (!d) return;
+      e.preventDefault();
+      onChange(d);
+    };
     document.addEventListener('keydown', key);
-    return () => document.removeEventListener('keydown', key);
+    document.addEventListener('paste', paste);
+    return () => {
+      document.removeEventListener('keydown', key);
+      document.removeEventListener('paste', paste);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onChange, onEnter]);
+  }, [onChange, onEnter, length]);
+  // the paste key (phones have no Ctrl+V): reads the clipboard — the browser may ask for permission
+  const [pasteErr, setPasteErr] = useState(false);
+  const pasteKey = async () => {
+    try {
+      const d = (await navigator.clipboard.readText()).replace(/\D/g, '').slice(0, length);
+      if (d) onChange(d);
+      setPasteErr(!d);
+    } catch {
+      setPasteErr(true);
+    }
+  };
   return (
     <div className="pin-pad" role="group" aria-label={label}>
       {/* exactly as many places as the PIN has digits */}
@@ -113,7 +135,12 @@ export function PinPad({ value, onChange, onEnter, label, length, digits = false
               {k}
             </button>
           ) : (
-            <span key={i} />
+            <button key={i} type="button" className={`pin-key paste${pasteErr ? ' err' : ''}`} title="ჩასმა" aria-label="ჩასმა" onClick={() => void pasteKey()}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="8" y="3" width="8" height="4" rx="1" />
+                <path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2" />
+              </svg>
+            </button>
           ),
         )}
       </div>
