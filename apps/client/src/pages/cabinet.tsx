@@ -4,9 +4,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, ApiError, Page, Ref } from '../api';
-import { OtpModal, PinIcon } from '../auth';
+import { OtpModal, PinIcon, PinModal } from '../auth';
 import { OrgLogo, StatusRow, useRefs, useSession } from '../session';
-import { Chevron, ErrorText, PinInput, pinProblem, fmt, fmtCd, fmtDate, fmtDay, fmtPhone, Modal, money, useNow } from '../ui';
+import { Chevron, ErrorText, fmt, fmtCd, fmtDate, fmtDay, fmtPhone, Modal, money, useNow } from '../ui';
 
 // Customer cabinet (prototype #cabinet): active / closed applications, per-organisation statuses and offers,
 // application view, offer view with accept / decline, closing an application; profile.
@@ -706,69 +706,6 @@ const TITLES: Record<Field, string> = {
   user: 'მომხმარებლის სახელის შეცვლა', phone: 'მობილურის შეცვლა', loc: 'ლოკაციის შეცვლა', pid: 'პირადი ნომრის შეცვლა',
   first: 'სახელის შეცვლა', last: 'გვარის შეცვლა', dob: 'დაბადების თარიღის შეცვლა',
 };
-
-/** Set / change the site PIN: the PIN twice, then the code sent to the account's e-mail (or mobile); remove it too. */
-function PinModal({ isSet, onClose, onDone }: { isSet: boolean; onClose: () => void; onDone: () => void }) {
-  const [a, setA] = useState('');
-  const [b, setB] = useState('');
-  const [error, setError] = useState('');
-  const [code, setCode] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const problem = a ? pinProblem(a) : '';
-  const ready = !problem && a.length >= 4 && a === b;
-  const remove = async () => {
-    if (!confirm(t('წავშალოთ PIN-კოდი?'))) return;
-    setBusy(true);
-    try {
-      await api('PUT', '/client/pin/remove');
-      onDone();
-    } catch (e) {
-      setError(errText(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-  if (code)
-    return (
-      <OtpModal
-        where="კოდი გაიგზავნა"
-        target=""
-        send={() => api<Ref>('POST', '/client/pin/sendOtp')}
-        verify={async (ref, otp) => {
-          await api('PUT', '/client/pin/set', { Pin: a, Otp: { ID: ref.ID, UID: ref.UID, Code: otp } });
-          onDone();
-        }}
-        onClose={onClose}
-      />
-    );
-  return (
-    <Modal onClose={onClose} labelledBy="pinSetTitle" className="pin-box">
-      <h3 id="pinSetTitle">{t(isSet ? 'PIN-ის შეცვლა' : 'PIN-ის დაყენება')}</h3>
-      <p>{t('PIN-ით შეხვალ ელ. ფოსტით ან მობილურით, კოდის გარეშე. 4–6 ციფრი.')}</p>
-      <div className="pin-form">
-        <label>
-          {t('ახალი PIN')}
-          <PinInput value={a} onChange={setA} label={t('ახალი PIN')} autoFocus />
-        </label>
-        <label>
-          {t('გაიმეორე')}
-          <PinInput value={b} onChange={setB} label={t('გაიმეორე')} onEnter={() => ready && setCode(true)} />
-        </label>
-      </div>
-      <ErrorText error={error || (problem ? t(problem) : b.length >= a.length && a.length >= 4 && a !== b ? t('PIN-ები არ ემთხვევა') : '')} />
-      <div className="cancel-actions">
-        {isSet && (
-          <button type="button" className="btn btn-ghost pin-del" disabled={busy} onClick={() => void remove()}>
-            {t('წაშლა')}
-          </button>
-        )}
-        <button type="button" className="btn btn-green" disabled={!ready || busy} onClick={() => setCode(true)}>
-          {t('შემდეგი')}
-        </button>
-      </div>
-    </Modal>
-  );
-}
 
 function Profile() {
   const pin = useQuery({ queryKey: ['pin'], queryFn: () => api<{ IsSet: boolean; SetOn: string | null }>('GET', '/client/pin/status') });

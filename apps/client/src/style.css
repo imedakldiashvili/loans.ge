@@ -817,5 +817,7 @@
   .pin-form label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
   .pin-input { width: 100%; height: 46px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); font: inherit; font-size: 22px; letter-spacing: 8px; text-align: center; }
   .pin-input:focus { outline: none; border-color: var(--green); }
-  .pin-back { display: block; margin: 10px auto 0; font-size: 13px; color: var(--muted); }
+  .pin-links { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; font-size: 13px; }
+  .pin-links .linkbtn { color: var(--muted); }
+  .pin-links .linkbtn:hover { color: var(--green); }
   .pin-del { color: #d9534f; margin-inline-end: auto; }

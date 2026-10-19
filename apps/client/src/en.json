@@ -300,5 +300,8 @@
  "ერთნაირი ციფრები არ გამოდგება": "Not all the same digit",
  "ციფრები ზედიზედ არ გამოდგება": "Not digits in a row",
  "შემდეგი": "Next",
- "წაშლა": "Delete"
+ "წაშლა": "Delete",
+ "PIN დაგავიწყდა?": "Forgot your PIN?",
+ "მოგვიანებით": "Later",
+ "შემდეგ ჯერზე შეხვალ ელ. ფოსტით და PIN-ით, კოდის გარეშე. 4–6 ციფრი.": "Next time sign in with your e-mail and PIN, no code. 4–6 digits."
 }

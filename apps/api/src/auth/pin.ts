@@ -14,6 +14,8 @@ import { SessionService } from './session.service';
 
 // The site PIN for customers: sign in with e-mail / mobile + a 4–6 digit PIN instead of a one-time code.
 //   set / change:  POST /client/pin/sendOtp (a code to the account's e-mail, or mobile) → PUT /client/pin/set { Pin, Otp }
+//   right after signing in with a code (that session, under 10 min old) the PIN is set / reset without another code
+//   ("forgot the PIN" = sign in with a code, then a new PIN); a session opened with the PIN itself always needs the code
 //   remove:        PUT /client/pin/remove            status: GET /client/pin/status
 //   sign in:       POST /public/auth/pinLogin { Login, Pin } (sets the session cookie)
 // Only a scrypt hash is kept. 5 wrong PINs in a row lock it for 15 minutes; the answer never tells
@@ -29,7 +31,8 @@ const pinField = z
   .regex(/^\d{4,6}$/, '4–6 ციფრი')
   .refine((p) => !/^(\d)\1+$/.test(p), 'ერთნაირი ციფრები არ გამოდგება')
   .refine((p) => !'0123456789'.includes(p) && !'9876543210'.includes(p), 'ციფრები ზედიზედ არ გამოდგება');
-const setBody = z.object({ pin: pinField, otp: z.object({ id: z.coerce.bigint(), uid: z.string().uuid(), code: z.string().trim().regex(/^\d{4,6}$/) }) });
+const setBody = z.object({ pin: pinField, otp: z.object({ id: z.coerce.bigint(), uid: z.string().uuid(), code: z.string().trim().regex(/^\d{4,6}$/) }).nullable().default(null) });
+const FRESH_MS = 10 * 60_000;
 const loginBody = z.object({ login: z.string().trim().min(3), pin: z.string().trim() });
 
 const hashPin = async (pin: string) => {
@@ -68,10 +71,16 @@ export class PinService {
     throw validation([{ field: 'Login', message: 'ანგარიშს ელ. ფოსტა ან მობილური არ აქვს' }]);
   }
 
-  async set(userId: bigint, body: unknown) {
+  async set(userId: bigint, sessionId: bigint, body: unknown) {
     const d = parse(setBody, body);
-    const ch = await this.otp.verify(d.otp.id, d.otp.uid, d.otp.code);
-    if (ch.purpose !== `pin:${userId}`) throw validation([{ field: 'Otp', message: 'კოდი ამ მოქმედებას არ ეკუთვნის' }]);
+    if (d.otp) {
+      const ch = await this.otp.verify(d.otp.id, d.otp.uid, d.otp.code);
+      if (ch.purpose !== `pin:${userId}`) throw validation([{ field: 'Otp', message: 'კოდი ამ მოქმედებას არ ეკუთვნის' }]);
+    } else {
+      // no code: only in a session just opened with a code (the user has proven the e-mail / mobile right now)
+      const sess = await this.prisma.session.findUnique({ where: { id: sessionId }, select: { createdOn: true, via: true } });
+      if (!sess || sess.via !== 'otp' || Date.now() - sess.createdOn.getTime() > FRESH_MS) throw validation([{ field: 'Otp', message: 'დაადასტურე კოდით' }]);
+    }
     await this.prisma.user.update({ where: { id: userId }, data: { pinHash: await hashPin(d.pin), pinSetOn: new Date(), pinFails: 0, pinLockedUntil: null, updatedBy: userId, updatedOn: new Date() } });
     return this.status(userId);
   }
@@ -102,7 +111,7 @@ export class PinService {
     const profile = (await this.auth.eligibleProfiles(user.id, 'client'))[0];
     if (!profile) throw WRONG();
     await this.prisma.user.update({ where: { id: user.id }, data: { pinFails: 0, pinLockedUntil: null, lastLoginOn: now } });
-    const opened = await this.sessions.open('client', user.id, profile.id, meta);
+    const opened = await this.sessions.open('client', user.id, profile.id, meta, 'pin');
     const ctx = currentContext();
     if (ctx) Object.assign(ctx, { userId: user.id, userProfileId: profile.id, actorType: 'user' });
     return { user, opened };
@@ -125,7 +134,8 @@ export class ClientPinController {
 
   @Put('set')
   set(@Req() req: AuthedRequest, @Body() body: unknown) {
-    return this.svc.set(userAuth(req).userId, body);
+    const a = userAuth(req);
+    return this.svc.set(a.userId, a.sessionId, body);
   }
 
   @Put('remove')

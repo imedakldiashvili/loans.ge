@@ -453,6 +453,8 @@ model Session {
   gateway       String
   tokenHash     String      @unique @map("token_hash")
   userAgent     String?     @map("user_agent")
+  /// how it was opened: otp (a one-time code) | pin — a fresh code session may set / reset the PIN without another code
+  via           String      @default("otp")
   ip            String?
   expiresOn     DateTime    @map("expires_on") @db.Timestamptz(3)
 

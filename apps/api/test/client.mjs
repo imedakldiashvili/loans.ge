@@ -179,12 +179,15 @@ const pinOtp = async () => {
   return { ID: r.json.Data.ID, UID: r.json.Data.UID, Code: await otpFromLog(pinEmail) };
 };
 const po = await pinOtp();
-ok((await call('PUT', '/client/pin/set', { Pin: '4826' })).status === 400, 'PIN: without the code → 400');
 ok((await call('PUT', '/client/pin/set', { Pin: '1111', Otp: po })).status === 400, 'PIN: all the same digits → 400');
 ok((await call('PUT', '/client/pin/set', { Pin: '1234', Otp: po })).status === 400, 'PIN: digits in a row → 400');
 ok((await call('PUT', '/client/pin/set', { Pin: '48a6', Otp: po })).status === 400, 'PIN: not digits → 400');
+// the first PIN right after signing in with a code — no second code
+const firstPin = await call('PUT', '/client/pin/set', { Pin: '5937' });
+ok(firstPin.status === 200 && firstPin.json.Data.IsSet, 'PIN: the first one right after the code sign-in — no second code', firstPin.json);
+ok((await call('PUT', '/client/pin/set', { Pin: '6281' })).status === 200, 'PIN: right after the code sign-in it can be changed / reset without a second code');
 const set = await call('PUT', '/client/pin/set', { Pin: '4826', Otp: po });
-ok(set.status === 200 && set.json.Data.IsSet && set.json.Data.SetOn, 'PIN: set (confirmed with the code)', set.json);
+ok(set.status === 200 && set.json.Data.IsSet && set.json.Data.SetOn, 'PIN: changed (confirmed with the code)', set.json);
 const stored = await prisma.user.findFirst({ where: { email: pinEmail } });
 ok(stored.pinHash.startsWith('scrypt$') && !stored.pinHash.includes('4826'), 'PIN: only a scrypt hash is kept');
 forget('client');
@@ -196,12 +199,16 @@ ok(good.status === 200 && /lg_client=/.test(good.headers.get('set-cookie') ?? ''
 setCookie('client', good.headers.get('set-cookie').split(';')[0]);
 ok((await call('GET', '/client/auth/me')).json?.Data?.User?.Email === pinEmail, 'PIN sign-in: the session is this account');
 ok((await prisma.user.findFirst({ where: { email: pinEmail } })).pinFails === 0, 'PIN sign-in: a success clears the wrong attempts');
+ok((await call('PUT', '/client/pin/set', { Pin: '6281' })).status === 400, 'PIN: a session opened with the PIN — changing it needs the code');
 forget('client');
 for (let i = 0; i < 5; i++) await pinLogin('9999');
 ok((await pinLogin('4826')).status === 429, 'PIN: locked after 5 wrong ones (even the right PIN → 429)');
 await prisma.user.update({ where: { email: pinEmail }, data: { pinLockedUntil: null } });
 setCookie('client', good.headers.get('set-cookie').split(';')[0]);
 ok((await call('PUT', '/client/pin/remove')).json?.Data?.IsSet === false, 'PIN: removed');
+// a session older than 10 minutes: even the first PIN needs the code
+await prisma.session.updateMany({ where: { user: { email: pinEmail } }, data: { createdOn: new Date(Date.now() - 11 * 60_000) } });
+ok((await call('PUT', '/client/pin/set', { Pin: '5937' })).status === 400, 'PIN: an older session — the first PIN needs the code too');
 forget('client');
 ok((await pinLogin('4826')).status === 401, 'PIN sign-in: no PIN any more → 401');
 ok((await call('GET', '/client/pin/status')).status === 401, 'PIN: the settings need a signed-in customer (401)');

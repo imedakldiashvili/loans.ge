@@ -2,7 +2,7 @@ import { t, useLang } from './i18n';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { api, ApiError, Ref } from './api';
 import { useSession } from './session';
-import { ErrorText, Modal, PinInput } from './ui';
+import { ErrorText, Modal, PinInput, pinProblem } from './ui';
 
 // Login / registration (prototype loginModal + otpModal): e-mail → one-time code → session.
 // The first login creates the account (client gateway). Google / Facebook come with OAuth (later stage).
@@ -104,13 +104,112 @@ export const PinIcon = () => (
   </svg>
 );
 
+/**
+ * Set / change / remove the site PIN: the PIN twice, then (unless the session was just opened with a code) the code
+ * sent to the account's e-mail. After a code sign-in it is offered right away ("later" — skip).
+ */
+export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, onLater }: {
+  isSet: boolean;
+  /** the session was just opened with a code — no second code */
+  fresh?: boolean;
+  title?: string;
+  intro?: string;
+  onClose: () => void;
+  onDone: () => void;
+  /** "later" instead of closing (the offer after signing in) */
+  onLater?: () => void;
+}) {
+  const [a, setA] = useState('');
+  const [b, setB] = useState('');
+  const [error, setError] = useState('');
+  const [code, setCode] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const problem = a ? pinProblem(a) : '';
+  const ready = !problem && a.length >= 4 && a === b;
+  const say = (e: unknown) => setError(e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
+  const save = async () => {
+    if (!ready || busy) return;
+    if (!fresh) return setCode(true);
+    setBusy(true);
+    setError('');
+    try {
+      await api('PUT', '/client/pin/set', { Pin: a });
+      onDone();
+    } catch (e) {
+      // the fresh window is over — confirm with a code after all
+      if (e instanceof ApiError && e.status === 400 && e.details.some((d) => d.Field === 'Otp')) setCode(true);
+      else say(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const remove = async () => {
+    if (!confirm(t('წავშალოთ PIN-კოდი?'))) return;
+    setBusy(true);
+    try {
+      await api('PUT', '/client/pin/remove');
+      onDone();
+    } catch (e) {
+      say(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+  if (code)
+    return (
+      <OtpModal
+        where="კოდი გაიგზავნა"
+        target=""
+        send={() => api<Ref>('POST', '/client/pin/sendOtp')}
+        verify={async (ref, otp) => {
+          await api('PUT', '/client/pin/set', { Pin: a, Otp: { ID: ref.ID, UID: ref.UID, Code: otp } });
+          onDone();
+        }}
+        onClose={onClose}
+      />
+    );
+  return (
+    <Modal onClose={onLater ?? onClose} labelledBy="pinSetTitle" className="pin-box">
+      <h3 id="pinSetTitle">{t(title ?? (isSet ? 'PIN-ის შეცვლა' : 'PIN-ის დაყენება'))}</h3>
+      <p>{t(intro ?? 'PIN-ით შეხვალ ელ. ფოსტით ან მობილურით, კოდის გარეშე. 4–6 ციფრი.')}</p>
+      <div className="pin-form">
+        <label>
+          {t('ახალი PIN')}
+          <PinInput value={a} onChange={setA} label={t('ახალი PIN')} autoFocus />
+        </label>
+        <label>
+          {t('გაიმეორე')}
+          <PinInput value={b} onChange={setB} label={t('გაიმეორე')} onEnter={() => void save()} />
+        </label>
+      </div>
+      <ErrorText error={error || (problem ? t(problem) : b.length >= a.length && a.length >= 4 && a !== b ? t('PIN-ები არ ემთხვევა') : '')} />
+      <div className="cancel-actions">
+        {isSet && !onLater && !fresh && (
+          <button type="button" className="btn btn-ghost pin-del" disabled={busy} onClick={() => void remove()}>
+            {t('წაშლა')}
+          </button>
+        )}
+        {onLater && (
+          <button type="button" className="btn btn-ghost" onClick={onLater}>
+            {t('მოგვიანებით')}
+          </button>
+        )}
+        <button type="button" className="btn btn-green" disabled={!ready || busy} onClick={() => void save()}>
+          {t(fresh ? 'შენახვა' : 'შემდეგი')}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
 const Ctx = createContext<() => Promise<boolean>>(async () => false);
 export const useAskLogin = () => useContext(Ctx);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { refresh } = useSession();
   useLang(); // dialogs follow the language switch
-  const [step, setStep] = useState<'email' | 'otp' | 'pin' | null>(null);
+  const [step, setStep] = useState<'email' | 'otp' | 'pin' | 'setpin' | null>(null);
+
   const [email, setEmail] = useState('');
   const resolver = useRef<((ok: boolean) => void) | null>(null);
 
@@ -221,10 +320,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           <button type="button" className="btn btn-green full" disabled={!pinReady || pinBusy} onClick={() => void pinSignIn()}>
             {t('შესვლა')}
           </button>
-          <button type="button" className="linkbtn pin-back" onClick={() => setStep('email')}>
-            {t('კოდით შესვლა')}
-          </button>
+          <div className="pin-links">
+            <button
+              type="button"
+              className="linkbtn"
+              onClick={() => {
+                // forgot the PIN: sign in with a code (a new PIN is set in the profile)
+                if (login.includes('@')) setEmail(login.trim());
+                setStep('email');
+              }}
+            >
+              {t('PIN დაგავიწყდა?')}
+            </button>
+            <button type="button" className="linkbtn" onClick={() => setStep('email')}>
+              {t('კოდით შესვლა')}
+            </button>
+          </div>
         </Modal>
+      )}
+      {step === 'setpin' && (
+        <PinModal
+          isSet={false}
+          fresh
+          title="PIN-ის დაყენება"
+          intro="შემდეგ ჯერზე შეხვალ ელ. ფოსტით და PIN-ით, კოდის გარეშე. 4–6 ციფრი."
+          onClose={() => finish(true)}
+          onDone={() => finish(true)}
+          onLater={() => finish(true)}
+        />
       )}
       {step === 'otp' && (
         <OtpModal
@@ -234,7 +357,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           verify={async (ref, code) => {
             await api('POST', '/public/auth/verifyOtp', { ID: ref.ID, UID: ref.UID, Otp: code });
             await refresh();
-            finish(true);
+            // no PIN yet — offer to set one now, while the code session is fresh
+            const st = await api<{ IsSet: boolean }>('GET', '/client/pin/status').catch(() => null);
+            if (st && !st.IsSet) setStep('setpin');
+            else finish(true);
           }}
           onClose={() => finish(false)}
         />

@@ -10,12 +10,12 @@ export class SessionService {
   constructor(private readonly prisma: PrismaService) {}
 
   /** Opens a session; only the hash of the token is stored. */
-  async open(gateway: AuthGateway, userId: bigint, userProfileId: bigint, meta: { ip?: string; userAgent?: string }) {
+  async open(gateway: AuthGateway, userId: bigint, userProfileId: bigint, meta: { ip?: string; userAgent?: string }, via: 'otp' | 'pin' = 'otp') {
     const token = randomBytes(32).toString('base64url');
     const session = await this.prisma.session.create({
       data: {
         gateway, userId, userProfileId, tokenHash: hash(token), createdBy: userId,
-        ip: meta.ip ?? null, userAgent: meta.userAgent ?? null,
+        ip: meta.ip ?? null, userAgent: meta.userAgent ?? null, via,
         expiresOn: new Date(Date.now() + SESSION_HOURS[gateway] * 3600_000),
       },
     });
