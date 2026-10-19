@@ -797,6 +797,8 @@
   /* card: the application's state icon (not clickable) */
   .cab-ico.cab-state { cursor: default; border-color: transparent; background: transparent; }
   .cab-ico.cab-state:hover { border-color: transparent; }
-  .cab-ico.cab-state.running, .cab-ico.cab-state.running:hover { color: var(--orange); }
+  /* in progress: the timer is the "end the application" button */
+  .cab-ico.cab-timer { color: var(--orange); }
+  .cab-ico.cab-timer:hover { border-color: #d9534f; color: #d9534f; }
   .cab-ico.cab-state.closed, .cab-ico.cab-state.closed:hover { color: var(--green); }
   .cab-ico.cab-state.closed-off, .cab-ico.cab-state.closed-off:hover { color: var(--muted); }

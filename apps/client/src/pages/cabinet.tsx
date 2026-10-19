@@ -299,13 +299,14 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           <button type="button" className="cab-ico cab-view" aria-label={t('ნახვა')} title={t('ნახვა')} onClick={() => setView(true)}>
             {I.eye}
           </button>
-          {/* the application's state — an icon, not a button: in progress (timer) / closed (OK; cancelled — grey) */}
-          <span className={`cab-ico cab-state ${isClosed ? (isCancelled ? 'closed-off' : 'closed') : 'running'}`} role="img" aria-label={t(isClosed ? (isCancelled ? 'გაუქმებული' : 'დასრულებული') : 'მიმდინარე')} title={t(isClosed ? (isCancelled ? 'გაუქმებული' : 'დასრულებული') : 'მიმდინარე')}>
-            {isClosed ? I.ok : I.timer}
-          </span>
-          {!isClosed && (
-            <button type="button" className="cab-ico cab-cancel danger" aria-label={t('განაცხადის დასრულება')} title={t('განაცხადის დასრულება')} onClick={() => setCancel(true)}>
-              {I.x}
+          {/* in progress: the timer — clicking it ends the application; closed: OK, just an icon (cancelled — grey) */}
+          {isClosed ? (
+            <span className={`cab-ico cab-state ${isCancelled ? 'closed-off' : 'closed'}`} role="img" aria-label={t(isCancelled ? 'გაუქმებული' : 'დასრულებული')} title={t(isCancelled ? 'გაუქმებული' : 'დასრულებული')}>
+              {I.ok}
+            </span>
+          ) : (
+            <button type="button" className="cab-ico cab-timer" aria-label={t('განაცხადის დასრულება')} title={t('განაცხადის დასრულება')} onClick={() => setCancel(true)}>
+              {I.timer}
             </button>
           )}
         </div>
