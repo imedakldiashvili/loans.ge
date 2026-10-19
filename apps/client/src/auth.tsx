@@ -377,9 +377,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             <PinPad value={pin} onChange={setPin} length={pinLen} label="PIN" onEnter={() => void pinSignIn()} />
           </div>
           <ErrorText error={pinError} />
-          <button type="button" className="btn btn-green full" disabled={!pinReady || pinBusy} onClick={() => void pinSignIn()}>
-            {t('შესვლა')}
-          </button>
+          {/* no button: the last digit signs in by itself */}
+          {pinBusy && <p className="pin-wait">{t('მოწმდება…')}</p>}
           <div className="pin-links">
             {/* forgot the PIN: a one-time code to the same e-mail (a new PIN is set in the profile) */}
             <button type="button" className="linkbtn" onClick={() => setStep('otp')}>

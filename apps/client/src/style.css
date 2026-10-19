@@ -830,3 +830,4 @@
   .pin-key.back { font-size: 20px; color: var(--muted); }
   .pin-key.back:disabled { opacity: .35; cursor: default; }
   .pin-step { font-size: 14px; color: var(--fg); text-align: center; }
+  .pin-wait { margin: 4px 0 0; font-size: 13px; color: var(--muted); text-align: center; }
