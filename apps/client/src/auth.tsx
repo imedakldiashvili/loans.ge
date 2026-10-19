@@ -253,6 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resolver.current?.(false);
     // a remembered PIN account: straight to the PIN field (if it still has a PIN)
     const known = remembered();
+    setCodeOnly(false);
     setEmail(known);
     setPin('');
     setPinError('');
@@ -277,8 +278,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   // e-mail first: an account with a PIN gets the PIN field, the others the one-time code
   const [checking, setChecking] = useState(false);
+  // "another e-mail" was chosen — that one signs in with the code only
+  const [codeOnly, setCodeOnly] = useState(false);
   const next = async () => {
     if (!valid || checking) return;
+    if (codeOnly) return setStep('otp');
     setChecking(true);
     try {
       const m = await api<{ Pin: boolean; Length: number | null }>('POST', '/public/auth/loginMethod', { Login: email.trim() });
@@ -389,9 +393,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               type="button"
               className="linkbtn"
               onClick={() => {
-                // not me — forget the remembered e-mail on this device
+                // not me — forget the remembered e-mail on this device; the other e-mail signs in with a code
                 remember(null);
                 setEmail('');
+                setCodeOnly(true);
                 setStep('email');
               }}
             >
