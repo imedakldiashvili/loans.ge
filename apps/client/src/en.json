@@ -306,5 +306,7 @@
  "მოწმდება…": "Checking…",
  "ახალი კოდი": "New code in",
  "კოდის თავიდან გაგზავნა": "Send the code again",
- "სხვა მომხმარებლით": "Another user"
+ "სხვა მომხმარებლით": "Another user",
+ "შეიყვანე ახალი PIN-კოდი — ძველი ჩანაცვლდება.": "Enter a new PIN — it replaces the old one.",
+ "შემდეგ ჯერზე შეხვალ ელ. ფოსტით და PIN-ით, კოდის გარეშე.": "Next time sign in with your e-mail and PIN, no code."
 }

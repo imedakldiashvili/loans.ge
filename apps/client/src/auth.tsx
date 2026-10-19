@@ -233,6 +233,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { refresh } = useSession();
   useLang(); // dialogs follow the language switch
   const [step, setStep] = useState<'email' | 'otp' | 'pin' | 'setpin' | null>(null);
+  // the account already had a PIN (the form after the code replaces it)
+  const [hadPin, setHadPin] = useState(false);
 
   const [email, setEmail] = useState('');
   const resolver = useRef<((ok: boolean) => void) | null>(null);
@@ -395,10 +397,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       )}
       {step === 'setpin' && (
         <PinModal
-          isSet={false}
+          isSet={hadPin}
           fresh
-          title="PIN-ის დაყენება"
-          intro="შემდეგ ჯერზე შეხვალ ელ. ფოსტით და PIN-ით, კოდის გარეშე. 4–6 ციფრი."
+          title={hadPin ? 'ახალი PIN' : 'PIN-ის დაყენება'}
+          intro={hadPin ? 'შეიყვანე ახალი PIN-კოდი — ძველი ჩანაცვლდება.' : 'შემდეგ ჯერზე შეხვალ ელ. ფოსტით და PIN-ით, კოდის გარეშე.'}
           onClose={() => finish(true)}
           onDone={() => (remember(email.trim().toLowerCase()), finish(true))}
           onLater={() => finish(true)}
@@ -412,10 +414,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           verify={async (ref, code) => {
             await api('POST', '/public/auth/verifyOtp', { ID: ref.ID, UID: ref.UID, Otp: code });
             await refresh();
-            // no PIN yet — offer to set one now, while the code session is fresh
+            // after the code: the PIN form, while the code session is fresh — a first PIN, or a new one (forgot it)
             const st = await api<{ IsSet: boolean }>('GET', '/client/pin/status').catch(() => null);
-            if (st && !st.IsSet) setStep('setpin');
-            else finish(true);
+            if (st) {
+              setHadPin(st.IsSet);
+              setStep('setpin');
+            } else finish(true);
           }}
           onClose={() => finish(false)}
         />
