@@ -58,17 +58,22 @@ export const Chevron = ({ w = 2.5 }: { w?: number }) => (
 
 export const ErrorText = ({ error }: { error: string }) => (error ? <p className="form-err" style={{ color: 'var(--orange)', margin: '8px 0 0' }}>{error}</p> : null);
 
-/** The same rules as the API: 4–6 digits, not all the same, not in a row. */
-export const pinProblem = (p: string) =>
-  !/^\d{4,6}$/.test(p) ? '4–6 ციფრი' : /^(\d)\1+$/.test(p) ? 'ერთნაირი ციფრები არ გამოდგება' : '0123456789'.includes(p) || '9876543210'.includes(p) ? 'ციფრები ზედიზედ არ გამოდგება' : '';
+/** The same rules as the API: exactly `len` digits, not all the same, not in a row. */
+export const pinProblem = (p: string, len: number) =>
+  !new RegExp(`^\\d{${len}}$`).test(p) ? `${len} ციფრი` : /^(\d)\1+$/.test(p) ? 'ერთნაირი ციფრები არ გამოდგება' : '0123456789'.includes(p) || '9876543210'.includes(p) ? 'ციფრები ზედიზედ არ გამოდგება' : '';
 
 /**
  * The PIN's own keypad: the entered digits as dots, keys 1–9, 0 and ⌫ (no phone keyboard pops up).
  * The computer's keyboard works too: digits, Backspace, Enter (→ onEnter).
  */
-export function PinPad({ value, onChange, onEnter, label }: { value: string; onChange: Dispatch<SetStateAction<string>>; onEnter?: () => void; label: string }) {
+export function PinPad({ value, onChange, onEnter, label, length }: { value: string; onChange: Dispatch<SetStateAction<string>>; onEnter?: () => void; label: string; length: number }) {
   // always from the latest value — quick taps / typing never lose a digit
-  const press = (k: string) => onChange((v) => (k === '⌫' ? v.slice(0, -1) : v.length < 6 ? v + k : v));
+  const press = (k: string) => onChange((v) => (k === '⌫' ? v.slice(0, -1) : v.length < length ? v + k : v));
+  // the last digit → on by itself (sign in / next step)
+  useEffect(() => {
+    if (value.length === length) onEnter?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, length]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (/^\d$/.test(e.key)) {
@@ -85,9 +90,9 @@ export function PinPad({ value, onChange, onEnter, label }: { value: string; onC
   }, [onChange, onEnter]);
   return (
     <div className="pin-pad" role="group" aria-label={label}>
-      {/* 4–6 digits: at least four places, one more while it can grow */}
-      <div className="pin-dots" aria-live="polite" aria-label={`${value.length} / 6`}>
-        {Array.from({ length: Math.min(6, Math.max(4, value.length + (value.length >= 4 && value.length < 6 ? 1 : 0))) }, (_, i) => (
+      {/* exactly as many places as the PIN has digits */}
+      <div className="pin-dots" aria-live="polite" aria-label={`${value.length} / ${length}`}>
+        {Array.from({ length }, (_, i) => (
           <i key={i} className={i < value.length ? 'on' : undefined} />
         ))}
       </div>

@@ -190,6 +190,12 @@ ok((await call('PUT', '/client/pin/set', { Pin: '6281' })).status === 200, 'PIN:
 const set = await call('PUT', '/client/pin/set', { Pin: '4826', Otp: po });
 ok(set.status === 200 && set.json.Data.IsSet && set.json.Data.SetOn, 'PIN: changed (confirmed with the code)', set.json);
 ok((await call('POST', '/public/auth/loginMethod', { Login: pinEmail })).json?.Data?.Pin === true, 'login dialog: a PIN is set → the PIN field');
+// the length (admin setting): a new PIN must have exactly that many digits; an existing PIN keeps its own
+await prisma.setting.updateMany({ where: { key: 'pin' }, data: { value: { length: 6 } } });
+ok((await call('GET', '/client/pin/status')).json?.Data?.Length === 6, 'PIN length: the setting reaches the set form (6)');
+ok((await call('PUT', '/client/pin/set', { Pin: '4826' })).status === 400, 'PIN length 6: a 4-digit PIN → 400');
+ok((await call('POST', '/public/auth/loginMethod', { Login: pinEmail })).json?.Data?.Length === 4, 'PIN length: the existing 4-digit PIN keeps its length at sign-in');
+await prisma.setting.updateMany({ where: { key: 'pin' }, data: { value: { length: 4 } } });
 const stored = await prisma.user.findFirst({ where: { email: pinEmail } });
 ok(stored.pinHash.startsWith('scrypt$') && !stored.pinHash.includes('4826'), 'PIN: only a scrypt hash is kept');
 forget('client');

@@ -126,8 +126,15 @@ export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, 
   const [busy, setBusy] = useState(false);
   // the keypad asks twice: first the new PIN, then the same again
   const [again, setAgain] = useState(false);
-  const problem = a ? pinProblem(a) : '';
-  const ready = !problem && a.length >= 4 && a === b;
+  // how many digits a new PIN has (admin → settings → PIN)
+  const [len, setLen] = useState(4);
+  useEffect(() => {
+    void api<{ Length: number }>('GET', '/client/pin/status')
+      .then((s) => setLen(s.Length || 4))
+      .catch(() => undefined);
+  }, []);
+  const problem = a ? pinProblem(a, len) : '';
+  const ready = !problem && a.length === len && a === b;
   const say = (e: unknown) => setError(e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
   const save = async () => {
     if (!ready || busy) return;
@@ -177,12 +184,12 @@ export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, 
       <div className="pin-form">
         <b className="pin-step">{t(again ? 'გაიმეორე PIN' : 'ახალი PIN')}</b>
         {again ? (
-          <PinPad key="again" value={b} onChange={setB} label={t('გაიმეორე PIN')} onEnter={() => void save()} />
+          <PinPad key="again" value={b} onChange={setB} length={len} label={t('გაიმეორე PIN')} onEnter={() => void save()} />
         ) : (
-          <PinPad key="new" value={a} onChange={setA} label={t('ახალი PIN')} onEnter={() => a.length >= 4 && !pinProblem(a) && setAgain(true)} />
+          <PinPad key="new" value={a} onChange={setA} length={len} label={t('ახალი PIN')} onEnter={() => a.length === len && !pinProblem(a, len) && setAgain(true)} />
         )}
       </div>
-      <ErrorText error={error || (!again && a.length >= 4 && problem ? t(problem) : again && b.length >= a.length && a !== b ? t('PIN-ები არ ემთხვევა') : '')} />
+      <ErrorText error={error || (!again && a.length === len && problem ? t(problem) : again && b.length === len && a !== b ? t('PIN-ები არ ემთხვევა') : '')} />
       <div className="cancel-actions">
         {isSet && !onLater && !fresh && (
           <button type="button" className="btn btn-ghost pin-del" disabled={busy} onClick={() => void remove()}>
@@ -204,7 +211,7 @@ export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, 
             {t(fresh ? 'შენახვა' : 'შემდეგი')}
           </button>
         ) : (
-          <button type="button" className="btn btn-green" disabled={a.length < 4 || !!problem} onClick={() => setAgain(true)}>
+          <button type="button" className="btn btn-green" disabled={a.length !== len || !!problem} onClick={() => setAgain(true)}>
             {t('შემდეგი')}
           </button>
         )}
@@ -251,8 +258,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPinError('');
     setStep(known ? 'pin' : 'email');
     if (known)
-      void api<{ Pin: boolean }>('POST', '/public/auth/loginMethod', { Login: known })
+      void api<{ Pin: boolean; Length: number | null }>('POST', '/public/auth/loginMethod', { Login: known })
         .then((m) => {
+          if (m.Length) setPinLen(m.Length);
           if (!m.Pin) {
             remember(null);
             setStep((s) => (s === 'pin' ? 'email' : s));
@@ -273,8 +281,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!valid || checking) return;
     setChecking(true);
     try {
-      const m = await api<{ Pin: boolean }>('POST', '/public/auth/loginMethod', { Login: email.trim() });
+      const m = await api<{ Pin: boolean; Length: number | null }>('POST', '/public/auth/loginMethod', { Login: email.trim() });
       if (m.Pin) {
+        setPinLen(m.Length ?? 4);
         setPin('');
         setPinError('');
         setStep('pin');
@@ -287,9 +296,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   // the site PIN (set in the profile): PIN only — the e-mail is the one typed above
   const [pin, setPin] = useState('');
+  const [pinLen, setPinLen] = useState(4);
   const [pinBusy, setPinBusy] = useState(false);
   const [pinError, setPinError] = useState('');
-  const pinReady = /^\d{4,6}$/.test(pin);
+  const pinReady = pin.length === pinLen;
   const pinSignIn = async () => {
     if (!pinReady || pinBusy) return;
     setPinBusy(true);
@@ -364,7 +374,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             {t('შეიყვანე PIN-კოდი')}
           </p>
           <div className="pin-form">
-            <PinPad value={pin} onChange={setPin} label="PIN" onEnter={() => void pinSignIn()} />
+            <PinPad value={pin} onChange={setPin} length={pinLen} label="PIN" onEnter={() => void pinSignIn()} />
           </div>
           <ErrorText error={pinError} />
           <button type="button" className="btn btn-green full" disabled={!pinReady || pinBusy} onClick={() => void pinSignIn()}>

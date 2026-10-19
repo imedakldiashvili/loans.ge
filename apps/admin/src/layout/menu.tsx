@@ -55,6 +55,7 @@ export const MENU: MenuGroup[] = [
       { path: '/settings/statuses', label: 'სტატუსები', count: 'status' },
       { path: '/settings/transitions', label: 'გადასვლები', count: 'statusTransition' },
       { path: '/settings/otp', label: 'OTP პარამეტრები' },
+      { path: '/settings/pin', label: 'PIN-კოდი' },
       { path: '/settings/notify', label: 'შეტყობინებები' },
     ],
   },

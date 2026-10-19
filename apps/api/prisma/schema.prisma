@@ -316,6 +316,8 @@ model User {
   /// the site PIN (customers sign in with e-mail / mobile + PIN): scrypt hash, never the PIN itself
   pinHash        String?   @map("pin_hash")
   pinSetOn       DateTime? @map("pin_set_on") @db.Timestamptz(3)
+  /// how many digits this user's PIN has (the setting may change later; the user keeps theirs until a new PIN)
+  pinLength      Int?      @map("pin_length")
   /// wrong PINs in a row; at 5 the PIN is locked for 15 minutes
   pinFails       Int       @default(0) @map("pin_fails")
   pinLockedUntil DateTime? @map("pin_locked_until") @db.Timestamptz(3)

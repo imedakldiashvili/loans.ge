@@ -17,6 +17,7 @@ export function SettingsPage() {
   if (key === 'transitions') return <TransitionsPage />;
   if (key === 'otp') return <OtpPage />;
   if (key === 'notify') return <NotifyPage />;
+  if (key === 'pin') return <PinPage />;
   return <StatusesPage />;
 }
 
@@ -585,6 +586,60 @@ function NotifyPage() {
               </td>
             </tr>
           ))
+        )}
+      </DataTable>
+    </ListPage>
+  );
+}
+
+// ── the customers' site PIN: how many digits
+function PinPage() {
+  const { canWrite } = useAuth();
+  const toast = useToast();
+  const q = useFind<{ ID: number; UID: string; Key: string; Value: { length: number } }>('setting', 1, 10, { Filter: { Search: 'pin' } });
+  const act = useRowActions('setting');
+  const writable = canWrite('setting');
+  const s = q.data?.Items.find((x) => x.Key === 'pin');
+  const length = s?.Value?.length ?? 4;
+  const set = async (n: number) => {
+    try {
+      await act.save(s ?? null, { Key: 'pin', Value: { length: n } });
+      toast('შენახულია');
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : 'შეცდომა');
+    }
+  };
+  return (
+    <ListPage
+      title="პარამეტრები · PIN-კოდი"
+      desc="მომხმარებლის PIN-კოდი (შესვლა ელ.ფოსტით და PIN-ით). სიგრძე ეხება ახალ და შეცვლილ PIN-ებს — უკვე დაყენებული PIN თავის სიგრძეს ინარჩუნებს, სანამ მომხმარებელი არ შეცვლის."
+    >
+      <DataTable
+        head={
+          <tr>
+            <th>პარამეტრი</th>
+            <th className="w3">მნიშვნელობა</th>
+          </tr>
+        }
+      >
+        {q.isLoading ? (
+          <StateRow span={2} loading />
+        ) : (
+          <tr>
+            <td>
+              <b style={{ fontWeight: 600 }}>PIN-ის სიგრძე</b>
+              <span className="sub">რამდენი ციფრი — კლავიატურაზე ზუსტად ამდენი წერტილი ჩანს</span>
+            </td>
+            <td>
+              <select aria-label="PIN-ის სიგრძე" value={length} disabled={!writable} onChange={(e) => void set(Number(e.target.value))}>
+                {[4, 5, 6].map((n) => (
+                  <option key={n} value={n}>
+                    {n} ციფრი
+                  </option>
+                ))}
+              </select>
+            </td>
+          </tr>
         )}
       </DataTable>
     </ListPage>

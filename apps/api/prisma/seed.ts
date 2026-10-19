@@ -153,6 +153,8 @@ async function main() {
         },
       },
       { key: 'contacts', value: { phone: data.settings.phone, email: data.settings.email } },
+      // the customers' site PIN: how many digits
+      { key: 'pin', value: { length: 4 } },
     ],
   });
 

@@ -26,12 +26,16 @@ const KEY_LEN = 32;
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60_000;
 
-const pinField = z
-  .string()
-  .regex(/^\d{4,6}$/, '4–6 ციფრი')
-  .refine((p) => !/^(\d)\1+$/.test(p), 'ერთნაირი ციფრები არ გამოდგება')
-  .refine((p) => !'0123456789'.includes(p) && !'9876543210'.includes(p), 'ციფრები ზედიზედ არ გამოდგება');
-const setBody = z.object({ pin: pinField, otp: z.object({ id: z.coerce.bigint(), uid: z.string().uuid(), code: z.string().trim().regex(/^\d{4,6}$/) }).nullable().default(null) });
+/** A new PIN: exactly \`len\` digits (admin → settings → PIN), not all the same, not in a row. */
+const pinField = (len: number) =>
+  z
+    .string()
+    .regex(new RegExp(`^\\d{${len}}$`), `${len} ციფრი`)
+    .refine((p) => !/^(\d)\1+$/.test(p), 'ერთნაირი ციფრები არ გამოდგება')
+    .refine((p) => !'0123456789'.includes(p) && !'9876543210'.includes(p), 'ციფრები ზედიზედ არ გამოდგება');
+const setBody = (len: number) =>
+  z.object({ pin: pinField(len), otp: z.object({ id: z.coerce.bigint(), uid: z.string().uuid(), code: z.string().trim().regex(/^\d{4,6}$/) }).nullable().default(null) });
+const DEFAULT_LENGTH = 4;
 const FRESH_MS = 10 * 60_000;
 const loginBody = z.object({ login: z.string().trim().min(3), pin: z.string().trim() });
 
@@ -58,9 +62,17 @@ export class PinService {
     private readonly sessions: SessionService,
   ) {}
 
+  /** How many digits a new PIN has (admin setting "pin"). */
+  async pinLength() {
+    const s = await this.prisma.setting.findFirst({ where: { key: 'pin', isDeleted: false } });
+    const n = Number((s?.value as { length?: number } | null)?.length);
+    return n >= 4 && n <= 6 ? n : DEFAULT_LENGTH;
+  }
+
+  /** IsSet / SetOn / Length — the length of a new PIN (the keypad of the set form). */
   async status(userId: bigint) {
     const u = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { pinSetOn: true, pinHash: true, pinLockedUntil: true } });
-    return { isSet: !!u.pinHash, setOn: u.pinSetOn, lockedUntil: u.pinLockedUntil && u.pinLockedUntil > new Date() ? u.pinLockedUntil : null };
+    return { isSet: !!u.pinHash, setOn: u.pinSetOn, length: await this.pinLength(), lockedUntil: u.pinLockedUntil && u.pinLockedUntil > new Date() ? u.pinLockedUntil : null };
   }
 
   /** Setting a PIN is confirmed with a code to the account's e-mail (or mobile when there is none). */
@@ -72,7 +84,8 @@ export class PinService {
   }
 
   async set(userId: bigint, sessionId: bigint, body: unknown) {
-    const d = parse(setBody, body);
+    const len = await this.pinLength();
+    const d = parse(setBody(len), body);
     if (d.otp) {
       const ch = await this.otp.verify(d.otp.id, d.otp.uid, d.otp.code);
       if (ch.purpose !== `pin:${userId}`) throw validation([{ field: 'Otp', message: 'კოდი ამ მოქმედებას არ ეკუთვნის' }]);
@@ -81,12 +94,12 @@ export class PinService {
       const sess = await this.prisma.session.findUnique({ where: { id: sessionId }, select: { createdOn: true, via: true } });
       if (!sess || sess.via !== 'otp' || Date.now() - sess.createdOn.getTime() > FRESH_MS) throw validation([{ field: 'Otp', message: 'დაადასტურე კოდით' }]);
     }
-    await this.prisma.user.update({ where: { id: userId }, data: { pinHash: await hashPin(d.pin), pinSetOn: new Date(), pinFails: 0, pinLockedUntil: null, updatedBy: userId, updatedOn: new Date() } });
+    await this.prisma.user.update({ where: { id: userId }, data: { pinHash: await hashPin(d.pin), pinLength: len, pinSetOn: new Date(), pinFails: 0, pinLockedUntil: null, updatedBy: userId, updatedOn: new Date() } });
     return this.status(userId);
   }
 
   async remove(userId: bigint) {
-    await this.prisma.user.update({ where: { id: userId }, data: { pinHash: null, pinSetOn: null, pinFails: 0, pinLockedUntil: null, updatedBy: userId, updatedOn: new Date() } });
+    await this.prisma.user.update({ where: { id: userId }, data: { pinHash: null, pinLength: null, pinSetOn: null, pinFails: 0, pinLockedUntil: null, updatedBy: userId, updatedOn: new Date() } });
     return this.status(userId);
   }
 
@@ -94,8 +107,9 @@ export class PinService {
   async method(body: unknown) {
     const { login } = parse(z.object({ login: z.string().trim().min(3) }), body);
     const { channel, target } = parseLogin(login);
-    const user = await this.prisma.user.findFirst({ where: { isDeleted: false, isEnable: true, ...(channel === 'email' ? { email: target } : { phone: target }) }, select: { pinHash: true } });
-    return { pin: !!user?.pinHash };
+    const user = await this.prisma.user.findFirst({ where: { isDeleted: false, isEnable: true, ...(channel === 'email' ? { email: target } : { phone: target }) }, select: { pinHash: true, pinLength: true } });
+    // the keypad shows as many places as this user's PIN has
+    return { pin: !!user?.pinHash, length: user?.pinHash ? (user.pinLength ?? DEFAULT_LENGTH) : null };
   }
 
   async login(body: unknown, meta: { ip?: string; userAgent?: string }) {

@@ -43,6 +43,8 @@ const SETTING_VALUES: Record<string, z.ZodTypeAny> = {
   contacts: z.object({ phone: z.string().trim().min(1), email: z.string().trim().email() }),
   // who gets e-mail / SMS about applications (the bell and browser notifications are always on)
   notify: z.object({ staffEmail: z.boolean(), staffSms: z.boolean(), customerEmail: z.boolean(), customerSms: z.boolean() }),
+  // the customers' site PIN: how many digits a new / changed PIN has (existing PINs keep theirs)
+  pin: z.object({ length: z.number().int().min(4).max(6) }),
 };
 
 const configs: CrudConfig[] = [
