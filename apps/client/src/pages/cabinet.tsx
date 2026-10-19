@@ -271,6 +271,8 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           <span className="info">
             <b>{n(a.ProductType)}</b>
             <span className="who">
+              {/* personal number before the name (as in the partner cabinet) */}
+              {a.Pid ? `${a.Pid} · ` : ''}
               {a.FirstName} {a.LastName}
             </span>
             <small className="when">
