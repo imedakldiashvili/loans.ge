@@ -212,6 +212,18 @@ const I = {
       <path d="M15 9l-6 6M9 9l6 6" />
     </svg>
   ),
+  timer: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="13" r="8" />
+      <path d="M12 9v4l2.5 2M9.5 2.5h5" />
+    </svg>
+  ),
+  ok: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 12l3 3 5-6" />
+    </svg>
+  ),
   compare: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M5 7.2A2.2 2.2 0 0 1 7.2 5h1a2.2 2.2 0 0 0 1.55-.64l.7-.7a2.2 2.2 0 0 1 3.12 0l.7.7c.42.41.97.64 1.55.64h1a2.2 2.2 0 0 1 2.2 2.2v1c0 .58.23 1.13.64 1.55l.7.7a2.2 2.2 0 0 1 0 3.12l-.7.7a2.2 2.2 0 0 0-.64 1.55v1a2.2 2.2 0 0 1-2.2 2.2h-1a2.2 2.2 0 0 0-1.55.64l-.7.7a2.2 2.2 0 0 1-3.12 0l-.7-.7a2.2 2.2 0 0 0-1.55-.64h-1a2.2 2.2 0 0 1-2.2-2.2v-1a2.2 2.2 0 0 0-.64-1.55l-.7-.7a2.2 2.2 0 0 1 0-3.12l.7-.7A2.2 2.2 0 0 0 5 8.2z" />
@@ -288,6 +300,10 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           <button type="button" className="cab-ico cab-view" aria-label={t('ნახვა')} title={t('ნახვა')} onClick={() => setView(true)}>
             {I.eye}
           </button>
+          {/* the application's state — an icon, not a button: in progress (timer) / closed (OK; cancelled — grey) */}
+          <span className={`cab-ico cab-state ${isClosed ? (isCancelled ? 'closed-off' : 'closed') : 'running'}`} role="img" aria-label={t(isClosed ? (isCancelled ? 'გაუქმებული' : 'დასრულებული') : 'მიმდინარე')} title={t(isClosed ? (isCancelled ? 'გაუქმებული' : 'დასრულებული') : 'მიმდინარე')}>
+            {isClosed ? I.ok : I.timer}
+          </span>
           {!isClosed && (
             <button type="button" className="cab-ico cab-cancel danger" aria-label={t('განაცხადის დასრულება')} title={t('განაცხადის დასრულება')} onClick={() => setCancel(true)}>
               {I.x}

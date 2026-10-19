@@ -794,3 +794,9 @@
   .cmp thead .of-num { margin: 4px auto 0; display: grid; width: fit-content; }
   /* comparison: choose / status under the organisation's name */
   .cmp thead .acts { display: flex; justify-content: center; margin: 8px auto 0; }
+  /* card: the application's state icon (not clickable) */
+  .cab-ico.cab-state { cursor: default; border-color: transparent; background: transparent; }
+  .cab-ico.cab-state:hover { border-color: transparent; }
+  .cab-ico.cab-state.running, .cab-ico.cab-state.running:hover { color: var(--orange); }
+  .cab-ico.cab-state.closed, .cab-ico.cab-state.closed:hover { color: var(--green); }
+  .cab-ico.cab-state.closed-off, .cab-ico.cab-state.closed-off:hover { color: var(--muted); }
