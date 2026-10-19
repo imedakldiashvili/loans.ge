@@ -147,3 +147,29 @@ export function PinPad({ value, onChange, onEnter, label, length, digits = false
     </div>
   );
 }
+
+/** Short messages at the bottom of the screen (errors of the PIN / code forms). Shown by the <Toaster /> in main.tsx. */
+let pushToast: ((text: string) => void) | null = null;
+export const toast = (text: string) => pushToast?.(text);
+export function Toaster() {
+  const [list, setList] = useState<{ id: number; text: string }[]>([]);
+  useEffect(() => {
+    pushToast = (text) => {
+      const id = Date.now() + Math.random();
+      setList((l) => [...l, { id, text }]);
+      window.setTimeout(() => setList((l) => l.filter((x) => x.id !== id)), 3500);
+    };
+    return () => {
+      pushToast = null;
+    };
+  }, []);
+  return (
+    <div className="toasts" role="status" aria-live="polite">
+      {list.map((x) => (
+        <div key={x.id} className="toast">
+          {x.text}
+        </div>
+      ))}
+    </div>
+  );
+}

@@ -19,7 +19,7 @@ ok((await call('POST', '/public/auth/sendOtp', { Gateway: 'partner', Login: 'sal
 
 // ── operator: wrong code, resend limit, login
 const s1 = await call('POST', '/public/auth/sendOtp', { Gateway: 'admin', Login: 'operator@loans.ge' });
-ok(s1.status === 200 && Object.keys(s1.json.Data).join() === 'ID,UID', 'sendOtp → { ID, UID }');
+ok(s1.status === 200 && Object.keys(s1.json.Data).join() === 'ID,UID,Length' && s1.json.Data.Length >= 4, 'sendOtp → { ID, UID, Length } (the code itself is never returned)');
 const again = await call('POST', '/public/auth/sendOtp', { Gateway: 'admin', Login: 'operator@loans.ge' });
 ok(again.status === 429 && again.json.Error.Code === 'RATE_LIMITED', 'resend before the interval → 429');
 const code = await otpFromLog('operator@loans.ge');

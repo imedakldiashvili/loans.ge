@@ -34,7 +34,12 @@ const pinField = (len: number) =>
     .refine((p) => !/^(\d)\1+$/.test(p), 'ერთნაირი ციფრები არ გამოდგება')
     .refine((p) => !'0123456789'.includes(p) && !'9876543210'.includes(p), 'ციფრები ზედიზედ არ გამოდგება');
 const setBody = (len: number) =>
-  z.object({ pin: pinField(len), otp: z.object({ id: z.coerce.bigint(), uid: z.string().uuid(), code: z.string().trim().regex(/^\d{4,6}$/) }).nullable().default(null) });
+  z.object({
+    pin: pinField(len),
+    otp: z.object({ id: z.coerce.bigint(), uid: z.string().uuid(), code: z.string().trim().regex(/^\d{4,6}$/) }).nullable().default(null),
+    /** changing a PIN: the current one proves it is the owner (instead of a code) */
+    currentPin: z.string().trim().optional(),
+  });
 const DEFAULT_LENGTH = 4;
 const FRESH_MS = 10 * 60_000;
 const loginBody = z.object({ login: z.string().trim().min(3), pin: z.string().trim() });
@@ -69,10 +74,13 @@ export class PinService {
     return n >= 4 && n <= 6 ? n : DEFAULT_LENGTH;
   }
 
-  /** IsSet / SetOn / Length — the length of a new PIN (the keypad of the set form). */
+  /** IsSet / SetOn / Length (a new PIN) / CurrentLength (the PIN the user has — asked first when changing it). */
   async status(userId: bigint) {
-    const u = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { pinSetOn: true, pinHash: true, pinLockedUntil: true } });
-    return { isSet: !!u.pinHash, setOn: u.pinSetOn, length: await this.pinLength(), lockedUntil: u.pinLockedUntil && u.pinLockedUntil > new Date() ? u.pinLockedUntil : null };
+    const u = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { pinSetOn: true, pinHash: true, pinLength: true, pinLockedUntil: true } });
+    return {
+      isSet: !!u.pinHash, setOn: u.pinSetOn, length: await this.pinLength(), currentLength: u.pinHash ? (u.pinLength ?? DEFAULT_LENGTH) : null,
+      lockedUntil: u.pinLockedUntil && u.pinLockedUntil > new Date() ? u.pinLockedUntil : null,
+    };
   }
 
   /** Setting a PIN is confirmed with a code to the account's e-mail (or mobile when there is none). */
@@ -83,10 +91,30 @@ export class PinService {
     throw validation([{ field: 'Login', message: 'ანგარიშს ელ. ფოსტა ან მობილური არ აქვს' }]);
   }
 
+  /** The PIN the user has (changing it): wrong ones count towards the same lock as at sign-in. */
+  async checkCurrent(userId: bigint, pin: string) {
+    const u = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { pinHash: true, pinFails: true, pinLockedUntil: true } });
+    const now = new Date();
+    if (u.pinLockedUntil && u.pinLockedUntil > now) {
+      const min = Math.ceil((u.pinLockedUntil.getTime() - now.getTime()) / 60_000);
+      throw new AppError('RATE_LIMITED', `PIN დროებით დაბლოკილია\nსცადე ${min} წუთში ან შედი კოდით`);
+    }
+    if (!u.pinHash || !(await checkPin(pin, u.pinHash))) {
+      if (u.pinHash) {
+        const fails = u.pinFails + 1;
+        await this.prisma.user.update({ where: { id: userId }, data: fails >= MAX_FAILS ? { pinFails: 0, pinLockedUntil: new Date(now.getTime() + LOCK_MS) } : { pinFails: fails } });
+      }
+      throw validation([{ field: 'CurrentPin', message: 'მიმდინარე PIN არასწორია' }], 'მიმდინარე PIN არასწორია');
+    }
+  }
+
   async set(userId: bigint, sessionId: bigint, body: unknown) {
     const len = await this.pinLength();
     const d = parse(setBody(len), body);
-    if (d.otp) {
+    if (d.currentPin !== undefined) {
+      // changing it: the current PIN instead of a code
+      await this.checkCurrent(userId, d.currentPin);
+    } else if (d.otp) {
       const ch = await this.otp.verify(d.otp.id, d.otp.uid, d.otp.code);
       if (ch.purpose !== `pin:${userId}`) throw validation([{ field: 'Otp', message: 'კოდი ამ მოქმედებას არ ეკუთვნის' }]);
     } else {
@@ -153,6 +181,14 @@ export class ClientPinController {
   @Post('sendOtp')
   sendOtp(@Req() req: AuthedRequest) {
     return this.svc.sendOtp(userAuth(req).userId);
+  }
+
+  /** Changing a PIN, step one: is this the current PIN? (the form moves on only when it is) */
+  @Post('check')
+  async check(@Req() req: AuthedRequest, @Body() body: unknown) {
+    const { currentPin } = parse(z.object({ currentPin: z.string().trim() }), body);
+    await this.svc.checkCurrent(userAuth(req).userId, currentPin);
+    return { ok: true };
   }
 
   @Put('set')

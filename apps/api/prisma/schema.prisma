@@ -409,6 +409,8 @@ model CustomerDetail {
   cityId        BigInt?     @map("city_id")
   districtId    BigInt?     @map("district_id")
   village       String?
+  /// the identity (personal number, name) is confirmed — not the same as user.isVerified (a contact confirmed with a code)
+  isVerified    Boolean     @default(false) @map("is_verified")
 
   @@map("customer_detail")
 }

@@ -67,9 +67,12 @@ export class ClientProfileService {
     const now = new Date();
     const by = p.userId;
     const data = { pid: d.pid, firstName: d.firstName, lastName: d.lastName, birthDate: d.birthDate, cityId: d.cityId, districtId: d.districtId, village: d.village };
+    // a changed identity is no longer verified
+    const c = p.customer;
+    const identityChanged = !!c && (c.pid !== d.pid || c.firstName !== d.firstName || c.lastName !== d.lastName);
     await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.user.update({ where: { id: p.userId }, data: { userName: d.userName, updatedBy: by, updatedOn: now } });
-      await tx.customerDetail.upsert({ where: { userProfileId: p.id }, create: { userProfileId: p.id, createdBy: by, ...data }, update: { ...data, updatedBy: by, updatedOn: now } });
+      await tx.customerDetail.upsert({ where: { userProfileId: p.id }, create: { userProfileId: p.id, createdBy: by, ...data }, update: { ...data, ...(identityChanged ? { isVerified: false } : {}), updatedBy: by, updatedOn: now } });
     });
     return { id: p.id, uid: p.uid };
   }

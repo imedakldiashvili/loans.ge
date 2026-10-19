@@ -2,7 +2,7 @@ import { t, useLang } from './i18n';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { api, ApiError, Ref } from './api';
 import { useSession } from './session';
-import { ErrorText, Modal, PinPad, pinProblem } from './ui';
+import { ErrorText, Modal, PinPad, pinProblem, toast } from './ui';
 
 // Login / registration (prototype loginModal + otpModal): e-mail → one-time code → session.
 // The first login creates the account (client gateway). Google / Facebook come with OAuth (later stage).
@@ -93,77 +93,86 @@ export const PinIcon = () => (
 );
 
 /**
- * Set / change / remove the site PIN: the PIN twice, then (unless the session was just opened with a code) the code
- * sent to the account's e-mail. After a code sign-in it is offered right away ("later" — skip).
+ * Set / change the site PIN on the keypad, step by step — a full entry moves on by itself:
+ *   changing it: the current PIN (checked) → the new one → again;  setting it: the new one → again.
+ * An error shows in a toast and the step stays. A first PIN outside a fresh code session is confirmed with a code.
  */
 export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, onLater }: {
   isSet: boolean;
-  /** the session was just opened with a code — no second code */
+  /** the session was just opened with a code — no second code, no current PIN */
   fresh?: boolean;
   title?: string;
   intro?: string;
   onClose: () => void;
   onDone: () => void;
-  /** "later" instead of closing (the offer after signing in) */
+  /** closing = "later" (the offer after signing in) */
   onLater?: () => void;
 }) {
+  const changing = isSet && !fresh;
+  const [step, setStep] = useState<'current' | 'new' | 'again'>(changing ? 'current' : 'new');
+  const [cur, setCur] = useState('');
   const [a, setA] = useState('');
   const [b, setB] = useState('');
-  const [error, setError] = useState('');
   const [code, setCode] = useState(false);
   const [busy, setBusy] = useState(false);
-  // the keypad asks twice: first the new PIN, then the same again
-  const [again, setAgain] = useState(false);
-  // how many digits a new PIN has (admin → settings → PIN)
+  // how many digits: a new PIN (admin → settings → PIN), the current one (the user's own)
   const [len, setLen] = useState(4);
+  const [curLen, setCurLen] = useState(4);
   useEffect(() => {
-    void api<{ Length: number }>('GET', '/client/pin/status')
-      .then((s) => setLen(s.Length || 4))
+    void api<{ Length: number; CurrentLength: number | null }>('GET', '/client/pin/status')
+      .then((s) => {
+        setLen(s.Length || 4);
+        setCurLen(s.CurrentLength || 4);
+      })
       .catch(() => undefined);
   }, []);
-  const problem = a ? pinProblem(a, len) : '';
-  const ready = !problem && a.length === len && a === b;
-  const say = (e: unknown) => setError(e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
-  // the first PIN typed in full → asked again (a weak one stays, with its reason)
-  const first = () => {
-    if (a.length === len && !pinProblem(a, len)) {
-      setError('');
-      setAgain(true);
-    }
-  };
-  // the repeat typed in full: the same → saved; different → start over
-  const save = async () => {
-    if (b.length !== len || busy) return;
-    if (a !== b) {
-      setError(t('PIN-ები არ ემთხვევა — სცადე თავიდან'));
-      setA('');
-      setB('');
-      setAgain(false);
-      return;
-    }
-    if (!ready) return;
-    if (!fresh) return setCode(true);
+  const fail = (e: unknown) => toast(e instanceof ApiError ? e.message : t('შეცდომა'));
+
+  // step one (changing): the current PIN — on only when it is right
+  const checkCurrent = async () => {
+    if (cur.length !== curLen || busy) return;
     setBusy(true);
-    setError('');
     try {
-      await api('PUT', '/client/pin/set', { Pin: a });
-      onDone();
+      await api('POST', '/client/pin/check', { CurrentPin: cur });
+      setStep('new');
     } catch (e) {
-      // the fresh window is over — confirm with a code after all
-      if (e instanceof ApiError && e.status === 400 && e.details.some((d) => d.Field === 'Otp')) setCode(true);
-      else say(e);
+      fail(e);
+      setCur('');
     } finally {
       setBusy(false);
     }
   };
-  const remove = async () => {
-    if (!confirm(t('წავშალოთ PIN-კოდი?'))) return;
+  // the new PIN — a weak one stays (with its reason)
+  const first = () => {
+    if (a.length !== len) return;
+    const problem = pinProblem(a, len);
+    if (problem) {
+      toast(t(problem));
+      setA('');
+      return;
+    }
+    setStep('again');
+  };
+  // again — the same → saved; different → asked again
+  const save = async () => {
+    if (b.length !== len || busy) return;
+    if (a !== b) {
+      toast(t('PIN-ები არ ემთხვევა — გაიმეორე'));
+      setB('');
+      return;
+    }
+    if (!changing && !fresh) return setCode(true);
     setBusy(true);
     try {
-      await api('PUT', '/client/pin/remove');
+      await api('PUT', '/client/pin/set', changing ? { Pin: a, CurrentPin: cur } : { Pin: a });
       onDone();
     } catch (e) {
-      say(e);
+      // the fresh window is over — confirm with a code after all
+      if (!changing && e instanceof ApiError && e.status === 400 && e.details.some((d) => d.Field === 'Otp')) setCode(true);
+      else {
+        fail(e);
+        setB('');
+      }
     } finally {
       setBusy(false);
     }
@@ -181,29 +190,19 @@ export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, 
         onClose={onClose}
       />
     );
+  const label = step === 'current' ? 'მიმდინარე PIN' : step === 'new' ? 'ახალი PIN' : 'გაიმეორე PIN';
   return (
     <Modal onClose={onLater ?? onClose} labelledBy="pinSetTitle" className="pin-box">
       <h3 id="pinSetTitle">{t(title ?? (isSet ? 'PIN-ის შეცვლა' : 'PIN-ის დაყენება'))}</h3>
-      <p>{t(intro ?? 'PIN-ით შეხვალ ელ. ფოსტით ან მობილურით, კოდის გარეშე. 4–6 ციფრი.')}</p>
+      <p>{t(intro ?? 'PIN-ით შეხვალ ელ. ფოსტით ან მობილურით, კოდის გარეშე.')}</p>
       <div className="pin-form">
-        <b className="pin-step">{t(again ? 'გაიმეორე PIN' : 'ახალი PIN')}</b>
-        {again ? (
-          <PinPad key="again" value={b} onChange={setB} length={len} label={t('გაიმეორე PIN')} onEnter={() => void save()} />
-        ) : (
-          <PinPad key="new" value={a} onChange={setA} length={len} label={t('ახალი PIN')} onEnter={first} />
-        )}
+        <b className="pin-step">{t(label)}</b>
+        {step === 'current' && <PinPad key="current" value={cur} onChange={setCur} length={curLen} label={t(label)} onEnter={() => void checkCurrent()} />}
+        {step === 'new' && <PinPad key="new" value={a} onChange={setA} length={len} label={t(label)} onEnter={first} />}
+        {step === 'again' && <PinPad key="again" value={b} onChange={setB} length={len} label={t(label)} onEnter={() => void save()} />}
       </div>
-      <p className={`pin-msg${error || (!again && a.length === len && problem) ? ' err' : ''}`}>
-        {error || (!again && a.length === len && problem ? t(problem) : busy ? t('მოწმდება…') : '')}
-      </p>
-      {/* no buttons: a full PIN moves on by itself; only "remove" when changing it in the profile */}
-      {isSet && !onLater && !fresh && (
-        <div className="cancel-actions">
-          <button type="button" className="btn btn-ghost pin-del" disabled={busy} onClick={() => void remove()}>
-            {t('წაშლა')}
-          </button>
-        </div>
-      )}
+      {/* errors go to a toast; this fixed line only says "checking…" (the dialog does not grow) */}
+      <p className="pin-msg">{busy ? t('მოწმდება…') : ''}</p>
     </Modal>
   );
 }

@@ -148,7 +148,7 @@ ok(seen4.find((x) => x.ID === Number(offers4[1].id)).ChosenOn && !seen4.find((x)
 // ── profile
 const edit = await call('PUT', `/client/profile/edit/${me.Profile.ID}/${me.Profile.UID}`, { UserName: 'tester', Pid: '01001012345', FirstName: 'ტესტი', LastName: 'კლიენტი', BirthDate: '1990-05-01', CityID: Number(city.id), DistrictID: null, Village: null });
 const prof2 = (await call('GET', `/client/profile/detail/${me.Profile.ID}/${me.Profile.UID}`)).json.Data;
-ok(edit.status === 200 && prof2.User.UserName === 'tester' && prof2.Customer.FirstName === 'ტესტი', 'profile edit');
+ok(edit.status === 200 && prof2.User.UserName === 'tester' && prof2.Customer.FirstName === 'ტესტი' && prof2.Customer.IsVerified === false, 'profile edit (a changed name → not verified)');
 ok((await call('PUT', `/client/profile/edit/${me.Profile.ID}/${me.Profile.UID}`, { Pid: '123' })).status === 400, 'profile: personal number 11 digits');
 const newPhone = `5${String(Number(stamp) + 1).padStart(8, '0').slice(-8)}`;
 const ps = await call('POST', '/client/profile/sendPhoneOtp', { Phone: newPhone });
@@ -208,6 +208,16 @@ setCookie('client', good.headers.get('set-cookie').split(';')[0]);
 ok((await call('GET', '/client/auth/me')).json?.Data?.User?.Email === pinEmail, 'PIN sign-in: the session is this account');
 ok((await prisma.user.findFirst({ where: { email: pinEmail } })).pinFails === 0, 'PIN sign-in: a success clears the wrong attempts');
 ok((await call('PUT', '/client/pin/set', { Pin: '6281' })).status === 400, 'PIN: a session opened with the PIN — changing it needs the code');
+// changing it with the current PIN instead of a code
+const cur = await call('GET', '/client/pin/status');
+ok(cur.json?.Data?.CurrentLength === 4, 'PIN: the status tells the current PIN length (asked first when changing)');
+const wrongCur = await call('PUT', '/client/pin/set', { Pin: '6281', CurrentPin: '9999' });
+ok(wrongCur.status === 400 && wrongCur.json.Error.Details.some((d) => d.Field === 'CurrentPin'), 'PIN change: a wrong current PIN → 400');
+ok((await prisma.user.findFirst({ where: { email: pinEmail } })).pinFails === 1, 'PIN change: a wrong current PIN counts towards the lock');
+ok((await call('POST', '/client/pin/check', { CurrentPin: '9999' })).status === 400, 'PIN change, step one: a wrong current PIN → 400 (the form stays)');
+ok((await call('POST', '/client/pin/check', { CurrentPin: '4826' })).json?.Data?.Ok === true, 'PIN change, step one: the right current PIN → on to the new one');
+ok((await call('PUT', '/client/pin/set', { Pin: '6281', CurrentPin: '4826' })).status === 200, 'PIN change: the right current PIN → changed without a code');
+ok((await call('PUT', '/client/pin/set', { Pin: '4826', CurrentPin: '6281' })).status === 200, 'PIN change: and back');
 forget('client');
 for (let i = 0; i < 5; i++) await pinLogin('9999');
 ok((await pinLogin('4826')).status === 429, 'PIN: locked after 5 wrong ones (even the right PIN → 429)');
