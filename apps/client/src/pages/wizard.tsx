@@ -1,9 +1,9 @@
 import { n, t, up } from '../i18n';
 import { useEffect, useState } from 'react';
-import { api, ApiError, Ref } from '../api';
+import { api, Ref } from '../api';
 import { OtpModal, useAskLogin } from '../auth';
 import { CATEGORIES, OrgLogo, useRefs, useSession } from '../session';
-import { Chevron, ErrorText, fmt, fmtPhone, money } from '../ui';
+import { Chevron, fmt, fmtPhone, money } from '../ui';
 import { Start } from './home';
 
 // Application wizard (prototype #wizard): credit history → sector → incomes → banks → organisations → personal data.
@@ -32,8 +32,6 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
   const [open, setOpen] = useState<Set<string>>(new Set());
   const [p, setP] = useState({ pid: '', first: '', last: '', dob: '', city: '', district: '', village: '', phone: '' });
   const [otp, setOtp] = useState(false);
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
   const pt = start.productType;
 
   const total = Object.values(incomes).reduce((t, v) => t + (Number(v) || 0), 0);
@@ -89,24 +87,13 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
     ...(code ? { Otp: { ID: code.ref.ID, UID: code.ref.UID, Code: code.code } } : {}),
   });
   const sent = (ref: Ref) => onSent({ ref, amount: money(start.amount, start.currency), loan: n(pt), orgs: orgs.length });
-  const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
 
   const next = async () => {
     if (!valid(step)) return;
     if (step < STEPS) return setStep(step + 1);
     if (!me && !(await askLogin())) return;
-    setError('');
-    // the account's own phone is already confirmed — otherwise an SMS code first
-    const own = (me ?? (await api<{ User: { Phone: string | null } }>('GET', '/client/auth/me'))).User.Phone === p.phone;
-    if (!own) return setOtp(true);
-    setBusy(true);
-    try {
-      sent(await api<Ref>('POST', '/client/application/add', body()));
-    } catch (e) {
-      setError(errText(e));
-    } finally {
-      setBusy(false);
-    }
+    // before sending: an SMS code to the application's phone — every time, also the account's own phone
+    setOtp(true);
   };
 
   const nav = (cls: string) => (
@@ -129,7 +116,7 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
           ))}
         </ol>
       )}
-      <button type="button" className="btn btn-green" disabled={!valid(step) || busy} onClick={next}>
+      <button type="button" className="btn btn-green" disabled={!valid(step)} onClick={next}>
         <span>{t(step === STEPS ? 'გაგზავნა' : 'გაგრძელება')}</span>
         {cls === 'head' && (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -363,7 +350,6 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
                     </div>
                   </div>
                 </div>
-                <ErrorText error={error} />
               </div>
             </div>
           )}

@@ -27,6 +27,15 @@ ok(me.Profile?.ProfileType === 'customer', 'client: customer profile');
 const city = await prisma.city.findFirst({ where: { nameKa: 'თბილისი' } });
 const district = await prisma.district.findFirst({ where: { cityId: city.id } });
 const otherCityDistrict = await prisma.district.findFirst({ where: { NOT: { cityId: city.id } } });
+/** The application with a fresh SMS code for its phone (waits out the resend interval of the previous one). */
+const withCode = async (b) => {
+  for (let i = 0; i < 15; i++) {
+    const r = await call('POST', '/client/application/sendPhoneOtp', { Phone: b.Phone });
+    if (r.status === 200) return { ...b, Otp: { ID: r.json.Data.ID, UID: r.json.Data.UID, Code: await otpFromLog(b.Phone) } };
+    await new Promise((x) => setTimeout(x, 1000));
+  }
+  throw new Error('no SMS code');
+};
 const body = {
   ProductTypeID: Number(pt.id), Amount: 5000, Currency: 'GEL', CreditHistory: 'პოზიტიური', Sector: 'კერძო სექტორი',
   Incomes: [{ Src: 'ხელფასი', Amount: 2500 }], Banks: ['ბანკი A'], OrganizationIDs: accepting.slice(0, 2).map((o) => o.ID),
@@ -51,9 +60,11 @@ ok(u.phone === phone, 'confirmed phone saved on the account');
 const prof = (await call('GET', `/client/profile/detail/${me.Profile.ID}/${me.Profile.UID}`)).json.Data;
 ok(prof.Customer?.Pid === body.Pid && prof.Customer.FirstName === 'ტესტ' && prof.Customer.CityID === Number(city.id), 'profile filled from the first application', prof);
 
-// a second application with the account's own phone needs no code
-const add2 = await call('POST', '/client/application/add', { ...body, Amount: 7000, OrganizationIDs: [accepting[0].ID] });
-ok(add2.status === 200, 'second application with the account phone: no code needed', add2.json);
+// every application needs its own code — also with the account's own phone
+ok((await call('POST', '/client/application/add', { ...body, Amount: 7000, OrganizationIDs: [accepting[0].ID] })).status === 400, 'second application with the account phone, no code → 400');
+ok((await call('POST', '/client/application/add', { ...body, Amount: 7000, OrganizationIDs: [accepting[0].ID], Otp: { ID: s.json.Data.ID, UID: s.json.Data.UID, Code: code } })).status !== 200, 'a used code does not work again');
+const add2 = await call('POST', '/client/application/add', await withCode({ ...body, Amount: 7000, OrganizationIDs: [accepting[0].ID] }));
+ok(add2.status === 200, 'second application with the account phone and a new code', add2.json);
 
 // ── my applications
 const active = (await call('POST', '/client/application/find/1/10', { Filter: { State: 'active' } })).json.Data;
@@ -89,7 +100,7 @@ const counts = (await call('POST', '/client/application/find/1/10', { Filter: { 
 ok(counts.Counts.Active === 1 && counts.Counts.Done === 1 && counts.Items[0].ID === app.ID, 'closed application moves to "done"', counts.Counts);
 
 // ── the customer's answer: offers marked "choose" / "cancel" change together on "send"; unmarked ones stay
-const add3 = await call('POST', '/client/application/add', { ...body, Amount: 8000, OrganizationIDs: accepting.slice(0, 3).map((o) => o.ID) });
+const add3 = await call('POST', '/client/application/add', await withCode({ ...body, Amount: 8000, OrganizationIDs: accepting.slice(0, 3).map((o) => o.ID) }));
 const app3 = (await call('GET', `/client/application/detail/${add3.json.Data.ID}/${add3.json.Data.UID}`)).json.Data;
 const [p1, p2, p3] = app3.Orgs;
 const makeOffer = async (o) => {
@@ -118,7 +129,7 @@ ok(s3[p2.ID].status === 'declined' && !s3[p2.ID].contactsOpenedOn, '→ cancelle
 if (p3) ok(s3[p3.ID].status === 'withdrawn', 'an organisation that had not sent its offer yet is cancelled too (withdrawn)');
 
 // one organisation, two offers: the customer chooses one of them (OfferIDs)
-const add4 = await call('POST', '/client/application/add', { ...body, Amount: 9000, OrganizationIDs: accepting.slice(0, 1).map((o) => o.ID) });
+const add4 = await call('POST', '/client/application/add', await withCode({ ...body, Amount: 9000, OrganizationIDs: accepting.slice(0, 1).map((o) => o.ID) }));
 const app4 = (await call('GET', `/client/application/detail/${add4.json.Data.ID}/${add4.json.Data.UID}`)).json.Data;
 const [q1] = app4.Orgs;
 await makeOffer(q1);

@@ -36,7 +36,7 @@ const waitUp = async () => {
     try {
       if ((await fetch(`${base}/public/system/health`)).ok) return;
     } catch {}
-    if (i > 50) throw new Error('API did not start — see ' + log);
+    if (i > 150) throw new Error('API did not start (30 s) — see ' + log);
     await new Promise((r) => setTimeout(r, 200));
   }
 };

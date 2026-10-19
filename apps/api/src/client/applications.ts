@@ -100,12 +100,10 @@ export class ClientApplicationService {
     const phone = phoneOf(d.phone);
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
 
-    // the phone must be confirmed: either the account's own phone or an SMS code sent for this application
-    if (user.phone !== phone) {
-      if (!d.otp) throw validation([{ field: 'Otp', message: 'დაადასტურე მობილური ნომერი კოდით' }]);
-      const ch = await this.otp.verify(d.otp.id, d.otp.uid, d.otp.code);
-      if (ch.purpose !== `apply:${userId}` || ch.target !== phone) throw validation([{ field: 'Otp', message: 'კოდი ამ ნომერს არ ეკუთვნის' }]);
-    }
+    // the phone is confirmed with an SMS code sent for this application — every time, also the account's own phone
+    if (!d.otp) throw validation([{ field: 'Otp', message: 'დაადასტურე მობილური ნომერი კოდით' }]);
+    const ch = await this.otp.verify(d.otp.id, d.otp.uid, d.otp.code);
+    if (ch.purpose !== `apply:${userId}` || ch.target !== phone) throw validation([{ field: 'Otp', message: 'კოდი ამ ნომერს არ ეკუთვნის' }]);
 
     const pt = await this.prisma.productType.findFirst({ where: { id: d.productTypeId, isDeleted: false, isEnable: true } });
     if (!pt) throw validation([{ field: 'ProductTypeID', message: 'პროდუქტი ვერ მოიძებნა' }]);
