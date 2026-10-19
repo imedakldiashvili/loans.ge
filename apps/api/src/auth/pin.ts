@@ -119,7 +119,8 @@ export class PinService {
     const now = new Date();
     if (user?.pinLockedUntil && user.pinLockedUntil > now) {
       const min = Math.ceil((user.pinLockedUntil.getTime() - now.getTime()) / 60_000);
-      throw new AppError('RATE_LIMITED', `PIN დროებით დაბლოკილია — სცადე ${min} წუთში ან შედი კოდით`);
+      // two lines in the login dialog
+      throw new AppError('RATE_LIMITED', `PIN დროებით დაბლოკილია\nსცადე ${min} წუთში ან შედი კოდით`);
     }
     const ok = await checkPin(d.pin, user?.pinHash ?? DUMMY);
     if (!user || !user.pinHash || !ok) {
