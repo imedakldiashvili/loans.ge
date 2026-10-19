@@ -756,13 +756,12 @@ function Profile() {
         </div>
       </div>
       <div className="cab-panel prof-sec">
-        <h3 className="prof-h">{t('პირადი მონაცემები')}</h3>
+        <h3 className="prof-h prof-h-row">
+          {t('პირადი მონაცემები')}
+          {/* verification — on the right of the heading */}
+          <span className={`verify-badge ${d.User.IsVerified ? 'yes' : 'no'}`}>{t(d.User.IsVerified ? 'ვერიფიცირებული' : 'არ არის ვერიფიცირებული')}</span>
+        </h3>
         <div className="prof-info prof-info-2">
-          <div className="prof-row prof-row-3">
-            <span>{t('ვერიფიცირებული')}</span>
-            <b className={`verify ${d.User.IsVerified ? 'yes' : 'no'}`}>{t(d.User.IsVerified ? 'კი' : 'არა')}</b>
-            <i />
-          </div>
           <div className="prof-row prof-row-3">
             <span>{t('პირადი ნომერი')}</span>
             <b>{c?.Pid || '—'}</b>
