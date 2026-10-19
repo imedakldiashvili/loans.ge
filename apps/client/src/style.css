@@ -819,4 +819,4 @@
   .pin-links .linkbtn { color: var(--muted); }
   .pin-links .linkbtn:hover { color: var(--green); }
   .pin-del { color: #d9534f; margin-inline-end: auto; }
-  .pin-who { color: var(--fg); font-weight: 600; }
+  .pin-who { display: inline-block; margin-bottom: 4px; color: var(--fg); font-size: 17px; font-weight: 700; }
