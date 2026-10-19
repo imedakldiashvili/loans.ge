@@ -792,3 +792,5 @@
   /* small next to text (card rows, the answer dialog, the comparison header) */
   .of-terms .of-num, .cf-group .of-num, .cmp thead .of-num { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 6px; font-size: 11px; margin-inline-end: 6px; }
   .cmp thead .of-num { margin: 4px auto 0; display: grid; width: fit-content; }
+  /* comparison: choose / status under the organisation's name */
+  .cmp thead .acts { display: flex; justify-content: center; margin: 8px auto 0; }

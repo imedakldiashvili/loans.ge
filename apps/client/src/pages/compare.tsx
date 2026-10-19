@@ -114,6 +114,17 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
     );
   };
   const m = (v: number) => money(v, a.Currency);
+  /** A column's action: ✓ choose for an offer waiting for the answer, otherwise the status icon. */
+  const action = (o: AppOrg, of: OfferRow | null) => {
+    const k = kindOf(o);
+    const done = ['accepted', 'done'].includes(o.Status);
+    if (k === 'offer' && of && answerable.includes(o)) return <MarkButtons o={o} of={of} m={marks} />;
+    return (
+      <span className={`cmp-st ${done ? 'accepted' : k}`} title={s.label(o.Status)}>
+        {done ? FILLED.accepted : k === 'rejected' ? FILLED.rejected : k === 'waiting' ? ICONS.waiting : ICONS.offer}
+      </span>
+    );
+  };
 
   return (
     <section className="partners compare">
@@ -158,6 +169,8 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
                       {n(o.Organization)}
                       {/* one organisation, several offers: which one */}
                       {of && o.Offers.length > 1 && <OfferNum o={o} of={of} i={o.Offers.indexOf(of)} />}
+                      {/* choose (a waiting offer) or the status icon — under the name */}
+                      <div className="acts">{action(o, of)}</div>
                     </th>
                   ))}
                 </tr>
@@ -173,26 +186,6 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
                 {row('სულ გადასახდელი დაზღვევა', (x) => x.c?.insTotal, m, true)}
                 {row('სულ ძირის გარდა გადასახდელი', (x) => x.c?.costTotal, m, true)}
                 {row('სულ გადასახდელი', (x) => x.c?.total, m, true, 'total')}
-                <tr>
-                  <td />
-                  {cols.map(({ o, of, key }) => {
-                    const k = kindOf(o);
-                    const done = ['accepted', 'done'].includes(o.Status);
-                    return (
-                      <td key={key} className={chosen(of) || undefined}>
-                        <div className="acts">
-                          {k === 'offer' && of && answerable.includes(o) ? (
-                            <MarkButtons o={o} of={of} m={marks} />
-                          ) : (
-                            <span className={`cmp-st ${done ? 'accepted' : k}`} title={s.label(o.Status)}>
-                              {done ? FILLED.accepted : k === 'rejected' ? FILLED.rejected : k === 'waiting' ? ICONS.waiting : ICONS.offer}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    );
-                  })}
-                </tr>
               </tbody>
             </table>
           </div>
