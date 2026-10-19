@@ -376,9 +376,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           <div className="pin-form">
             <PinPad value={pin} onChange={setPin} length={pinLen} label="PIN" onEnter={() => void pinSignIn()} />
           </div>
-          <ErrorText error={pinError} />
-          {/* no button: the last digit signs in by itself */}
-          {pinBusy && <p className="pin-wait">{t('მოწმდება…')}</p>}
+          {/* one fixed line for the error / "checking…" — the dialog does not grow when it shows */}
+          <p className={`pin-msg${pinError ? ' err' : ''}`} role={pinError ? 'alert' : undefined}>
+            {pinError || (pinBusy ? t('მოწმდება…') : '')}
+          </p>
           <div className="pin-links">
             {/* forgot the PIN: a one-time code to the same e-mail (a new PIN is set in the profile) */}
             <button type="button" className="linkbtn" onClick={() => setStep('otp')}>
