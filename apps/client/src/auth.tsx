@@ -202,6 +202,24 @@ export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, 
   );
 }
 
+/** The e-mail of an account that signs in with a PIN, remembered on this device (storage may be off — then nothing is remembered). */
+const REMEMBER = 'lg.pinLogin';
+const remembered = () => {
+  try {
+    return localStorage.getItem(REMEMBER) ?? '';
+  } catch {
+    return '';
+  }
+};
+const remember = (email: string | null) => {
+  try {
+    if (email) localStorage.setItem(REMEMBER, email);
+    else localStorage.removeItem(REMEMBER);
+  } catch {
+    /* storage unavailable */
+  }
+};
+
 const Ctx = createContext<() => Promise<boolean>>(async () => false);
 export const useAskLogin = () => useContext(Ctx);
 
@@ -215,8 +233,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const ask = useCallback(() => {
     resolver.current?.(false);
-    setEmail('');
-    setStep('email');
+    // a remembered PIN account: straight to the PIN field (if it still has a PIN)
+    const known = remembered();
+    setEmail(known);
+    setPin('');
+    setPinError('');
+    setStep(known ? 'pin' : 'email');
+    if (known)
+      void api<{ Pin: boolean }>('POST', '/public/auth/loginMethod', { Login: known })
+        .then((m) => {
+          if (!m.Pin) {
+            remember(null);
+            setStep((s) => (s === 'pin' ? 'email' : s));
+          }
+        })
+        .catch(() => undefined);
     return new Promise<boolean>((res) => (resolver.current = res));
   }, []);
   const finish = (ok: boolean) => {
@@ -254,6 +285,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPinError('');
     try {
       await api('POST', '/public/auth/pinLogin', { Login: email.trim(), Pin: pin });
+      remember(email.trim().toLowerCase());
       await refresh();
       finish(true);
     } catch (e) {
@@ -332,7 +364,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             <button type="button" className="linkbtn" onClick={() => setStep('otp')}>
               {t('PIN დაგავიწყდა?')}
             </button>
-            <button type="button" className="linkbtn" onClick={() => setStep('email')}>
+            <button
+              type="button"
+              className="linkbtn"
+              onClick={() => {
+                // not me — forget the remembered e-mail on this device
+                remember(null);
+                setEmail('');
+                setStep('email');
+              }}
+            >
               {t('სხვა ელ. ფოსტა')}
             </button>
           </div>
@@ -345,7 +386,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           title="PIN-ის დაყენება"
           intro="შემდეგ ჯერზე შეხვალ ელ. ფოსტით და PIN-ით, კოდის გარეშე. 4–6 ციფრი."
           onClose={() => finish(true)}
-          onDone={() => finish(true)}
+          onDone={() => (remember(email.trim().toLowerCase()), finish(true))}
           onLater={() => finish(true)}
         />
       )}
