@@ -206,12 +206,6 @@ const I = {
       <circle cx="12" cy="12" r="3" />
     </svg>
   ),
-  x: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M15 9l-6 6M9 9l6 6" />
-    </svg>
-  ),
   timer: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="13" r="8" />
@@ -370,8 +364,9 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                             {I.eye}
                           </button>
                           {!can && s.cancelOf(o) && (
-                            <button type="button" className="cab-ico o-ico danger" title={t('გაუქმება')} aria-label={t('გაუქმება')} onClick={() => declineOrg(o)}>
-                              {I.x}
+                            // the timer icon cancels this organisation's record (as the card's timer ends the application)
+                            <button type="button" className="cab-ico o-ico cab-timer" title={t('გაუქმება')} aria-label={t('გაუქმება')} onClick={() => declineOrg(o)}>
+                              {I.timer}
                             </button>
                           )}
                         </div>
