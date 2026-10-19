@@ -72,8 +72,8 @@ export function Compare({ id, uid, onBack }: { id: number; uid: string; onBack: 
 function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload: () => void }) {
   const qc = useQueryClient();
   const s = useStatus();
-  // "rejected" is there, but off: its columns show only when turned on
-  const [filter, setFilter] = useState<Kind[]>(['offer', 'waiting']);
+  // "waiting" and "rejected" are there, but off: their columns show only when turned on
+  const [filter, setFilter] = useState<Kind[]>(['offer']);
   // marks: choose per organisation (several offer columns of one organisation share it), sent together;
   // once sent — back to the cabinet
   const marks = useOfferMarks(a, () => {
