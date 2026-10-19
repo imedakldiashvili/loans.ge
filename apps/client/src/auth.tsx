@@ -388,7 +388,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setStep('email');
               }}
             >
-              {t('სხვა ელ. ფოსტა')}
+              {t('სხვა მომხმარებლით')}
             </button>
           </div>
         </Modal>

@@ -302,9 +302,9 @@
  "შემდეგ ჯერზე შეხვალ ელ. ფოსტით და PIN-ით, კოდის გარეშე. 4–6 ციფრი.": "Next time sign in with your e-mail and PIN, no code. 4–6 digits.",
  "შეხვალ PIN-ით ან ერთჯერადი კოდით": "You sign in with your PIN or a one-time code",
  "შეიყვანე PIN-კოდი": "Enter your PIN",
- "სხვა ელ. ფოსტა": "Another e-mail",
  "გაიმეორე PIN": "Repeat the PIN",
  "მოწმდება…": "Checking…",
  "ახალი კოდი": "New code in",
- "კოდის თავიდან გაგზავნა": "Send the code again"
+ "კოდის თავიდან გაგზავნა": "Send the code again",
+ "სხვა მომხმარებლით": "Another user"
 }
