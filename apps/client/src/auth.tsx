@@ -124,8 +124,24 @@ export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, 
   const problem = a ? pinProblem(a, len) : '';
   const ready = !problem && a.length === len && a === b;
   const say = (e: unknown) => setError(e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
+  // the first PIN typed in full → asked again (a weak one stays, with its reason)
+  const first = () => {
+    if (a.length === len && !pinProblem(a, len)) {
+      setError('');
+      setAgain(true);
+    }
+  };
+  // the repeat typed in full: the same → saved; different → start over
   const save = async () => {
-    if (!ready || busy) return;
+    if (b.length !== len || busy) return;
+    if (a !== b) {
+      setError(t('PIN-ები არ ემთხვევა — სცადე თავიდან'));
+      setA('');
+      setB('');
+      setAgain(false);
+      return;
+    }
+    if (!ready) return;
     if (!fresh) return setCode(true);
     setBusy(true);
     setError('');
@@ -174,36 +190,20 @@ export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, 
         {again ? (
           <PinPad key="again" value={b} onChange={setB} length={len} label={t('გაიმეორე PIN')} onEnter={() => void save()} />
         ) : (
-          <PinPad key="new" value={a} onChange={setA} length={len} label={t('ახალი PIN')} onEnter={() => a.length === len && !pinProblem(a, len) && setAgain(true)} />
+          <PinPad key="new" value={a} onChange={setA} length={len} label={t('ახალი PIN')} onEnter={first} />
         )}
       </div>
-      <ErrorText error={error || (!again && a.length === len && problem ? t(problem) : again && b.length === len && a !== b ? t('PIN-ები არ ემთხვევა') : '')} />
-      <div className="cancel-actions">
-        {isSet && !onLater && !fresh && (
+      <p className={`pin-msg${error || (!again && a.length === len && problem) ? ' err' : ''}`}>
+        {error || (!again && a.length === len && problem ? t(problem) : busy ? t('მოწმდება…') : '')}
+      </p>
+      {/* no buttons: a full PIN moves on by itself; only "remove" when changing it in the profile */}
+      {isSet && !onLater && !fresh && (
+        <div className="cancel-actions">
           <button type="button" className="btn btn-ghost pin-del" disabled={busy} onClick={() => void remove()}>
             {t('წაშლა')}
           </button>
-        )}
-        {onLater && (
-          <button type="button" className="btn btn-ghost" onClick={onLater}>
-            {t('მოგვიანებით')}
-          </button>
-        )}
-        {again && (
-          <button type="button" className="btn btn-ghost" onClick={() => (setAgain(false), setB(''))}>
-            {t('უკან')}
-          </button>
-        )}
-        {again ? (
-          <button type="button" className="btn btn-green" disabled={!ready || busy} onClick={() => void save()}>
-            {t(fresh ? 'შენახვა' : 'შემდეგი')}
-          </button>
-        ) : (
-          <button type="button" className="btn btn-green" disabled={a.length !== len || !!problem} onClick={() => setAgain(true)}>
-            {t('შემდეგი')}
-          </button>
-        )}
-      </div>
+        </div>
+      )}
     </Modal>
   );
 }
