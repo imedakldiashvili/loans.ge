@@ -836,3 +836,7 @@
   .otp-again { margin-top: 6px; font-size: 13px; color: var(--muted); text-align: center; }
   .otp-again .otp-timer { position: static; transform: none; display: inline-block; font-size: 13px; }
   .otp-again .linkbtn { color: var(--green); font-weight: 600; }
+  /* the one-time code: one box per digit, the digits shown */
+  .code-boxes { display: flex; justify-content: center; gap: 10px; }
+  .code-boxes span { width: 46px; height: 54px; display: grid; place-items: center; border: 2px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--fg); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .code-boxes span.next { border-color: var(--green); }

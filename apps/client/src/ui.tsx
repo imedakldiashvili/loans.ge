@@ -66,7 +66,7 @@ export const pinProblem = (p: string, len: number) =>
  * The PIN's own keypad: the entered digits as dots, keys 1–9, 0 and ⌫ (no phone keyboard pops up).
  * The computer's keyboard works too: digits, Backspace, Enter (→ onEnter).
  */
-export function PinPad({ value, onChange, onEnter, label, length }: { value: string; onChange: Dispatch<SetStateAction<string>>; onEnter?: () => void; label: string; length: number }) {
+export function PinPad({ value, onChange, onEnter, label, length, digits = false }: { value: string; onChange: Dispatch<SetStateAction<string>>; onEnter?: () => void; label: string; length: number; /** show the digits in boxes (a one-time code) instead of dots (a PIN) */ digits?: boolean }) {
   // always from the latest value — quick taps / typing never lose a digit
   const press = (k: string) => onChange((v) => (k === '⌫' ? v.slice(0, -1) : v.length < length ? v + k : v));
   // the last digit → on by itself (sign in / next step)
@@ -91,11 +91,21 @@ export function PinPad({ value, onChange, onEnter, label, length }: { value: str
   return (
     <div className="pin-pad" role="group" aria-label={label}>
       {/* exactly as many places as the PIN has digits */}
-      <div className="pin-dots" aria-live="polite" aria-label={`${value.length} / ${length}`}>
-        {Array.from({ length }, (_, i) => (
-          <i key={i} className={i < value.length ? 'on' : undefined} />
-        ))}
-      </div>
+      {digits ? (
+        <div className="code-boxes" aria-live="polite" aria-label={`${value.length} / ${length}`}>
+          {Array.from({ length }, (_, i) => (
+            <span key={i} className={i === value.length ? 'next' : undefined}>
+              {value[i] ?? ''}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div className="pin-dots" aria-live="polite" aria-label={`${value.length} / ${length}`}>
+          {Array.from({ length }, (_, i) => (
+            <i key={i} className={i < value.length ? 'on' : undefined} />
+          ))}
+        </div>
+      )}
       <div className="pin-keys">
         {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map((k, i) =>
           k ? (

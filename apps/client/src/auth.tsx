@@ -63,7 +63,7 @@ export function OtpModal({ where, target, send, verify, onClose }: { where: stri
       </p>
       {/* the same keypad as the PIN */}
       <div className="pin-form">
-        <PinPad value={code} onChange={setCode} length={len} label={t('OTP კოდი')} onEnter={() => void confirm()} />
+        <PinPad value={code} onChange={setCode} length={len} digits label={t('OTP კოდი')} onEnter={() => void confirm()} />
       </div>
       {/* one fixed place for the error / "checking…" (the dialog does not grow) */}
       <p className={`pin-msg${error ? ' err' : ''}`} role={error ? 'alert' : undefined}>
