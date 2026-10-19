@@ -832,3 +832,7 @@
   .pin-step { font-size: 14px; color: var(--fg); text-align: center; }
   .modal .pin-msg { min-height: 36px; margin: 4px 0 0; font-size: 13px; line-height: 18px; color: var(--muted); text-align: center; white-space: pre-line; }
   .modal .pin-msg.err { color: #d9534f; }
+  /* the one-time code: resend under the keypad */
+  .otp-again { margin-top: 6px; font-size: 13px; color: var(--muted); text-align: center; }
+  .otp-again .otp-timer { position: static; transform: none; display: inline-block; font-size: 13px; }
+  .otp-again .linkbtn { color: var(--green); font-weight: 600; }

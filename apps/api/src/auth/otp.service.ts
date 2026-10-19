@@ -54,7 +54,8 @@ export class OtpService {
     else await this.email.send(target, 'loans.ge — ერთჯერადი კოდი', text);
     // test environments only (DEV_OUTBOX=true): keep a copy for the OTP viewer
     await this.outbox.record({ channel, target, purpose, code, text, expiresOn: row.expiresOn, challengeUid: row.uid });
-    return { id: row.id, uid: row.uid };
+    // the length — the keypad shows as many places
+    return { id: row.id, uid: row.uid, length: cfg.len };
   }
 
   /** Checks the code; on success the challenge is consumed and returned. */

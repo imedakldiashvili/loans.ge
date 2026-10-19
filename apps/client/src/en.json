@@ -304,5 +304,7 @@
  "შეიყვანე PIN-კოდი": "Enter your PIN",
  "სხვა ელ. ფოსტა": "Another e-mail",
  "გაიმეორე PIN": "Repeat the PIN",
- "მოწმდება…": "Checking…"
+ "მოწმდება…": "Checking…",
+ "ახალი კოდი": "New code in",
+ "კოდის თავიდან გაგზავნა": "Send the code again"
 }

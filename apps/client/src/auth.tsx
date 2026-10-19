@@ -11,12 +11,11 @@ const RESEND = 60;
 
 /** One-time code dialog: timer, resend, confirm. `send` (re)sends the code, `verify` checks it. */
 export function OtpModal({ where, target, send, verify, onClose }: { where: string; target: string; send: () => Promise<Ref>; verify: (ref: Ref, code: string) => Promise<void>; onClose: () => void }) {
-  const [ref, setRef] = useState<Ref | null>(null);
+  const [ref, setRef] = useState<(Ref & { Length?: number }) | null>(null);
   const [code, setCode] = useState('');
   const [left, setLeft] = useState(RESEND);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const input = useRef<HTMLInputElement>(null);
   const started = useRef(false);
 
   const doSend = useCallback(async () => {
@@ -29,7 +28,6 @@ export function OtpModal({ where, target, send, verify, onClose }: { where: stri
       setError(e instanceof ApiError ? e.message : t('კოდის გაგზავნა ვერ მოხერხდა'));
       setLeft(0);
     }
-    input.current?.focus();
   }, [send]);
   useEffect(() => {
     if (started.current) return; // StrictMode runs effects twice — send once
@@ -42,56 +40,46 @@ export function OtpModal({ where, target, send, verify, onClose }: { where: stri
     return () => window.clearTimeout(t);
   }, [left]);
 
+  // the code's length (OTP settings); the last digit confirms by itself
+  const len = ref?.Length ?? 4;
   const confirm = async () => {
-    if (!ref) return;
+    if (!ref || busy || code.length !== len) return;
     setBusy(true);
     setError('');
     try {
       await verify(ref, code);
     } catch (e) {
       setError(e instanceof ApiError ? [e.message, ...e.details.filter((d) => d.Field !== 'Otp').map((d) => d.Message)].join(' — ') : t('შეცდომა'));
+      setCode('');
     } finally {
       setBusy(false);
     }
   };
-  const ok = /^\d{4,6}$/.test(code) && !!ref;
   return (
     <Modal onClose={onClose} labelledBy="otpTitle">
       <h3 id="otpTitle">{t('შეიყვანე OTP კოდი')}</h3>
       <p>
         <span>{where}</span> <b>{target}</b>
       </p>
-      <div className="otp-row">
-        <input
-          ref={input}
-          id="otp"
-          type="text"
-          inputMode="numeric"
-          maxLength={6}
-          placeholder="••••"
-          autoComplete="one-time-code"
-          aria-label={t('OTP კოდი')}
-          value={code}
-          onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-          onKeyDown={(e) => e.key === 'Enter' && ok && !busy && confirm()}
-          autoFocus
-        />
+      {/* the same keypad as the PIN */}
+      <div className="pin-form">
+        <PinPad value={code} onChange={setCode} length={len} label={t('OTP კოდი')} onEnter={() => void confirm()} />
+      </div>
+      {/* one fixed place for the error / "checking…" (the dialog does not grow) */}
+      <p className={`pin-msg${error ? ' err' : ''}`} role={error ? 'alert' : undefined}>
+        {error || (busy ? t('მოწმდება…') : '')}
+      </p>
+      <div className="otp-again">
         {left > 0 ? (
           <span className="otp-timer">
-            0{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}
+            {t('ახალი კოდი')} 0{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}
           </span>
         ) : (
-          <button type="button" className="otp-resend" onClick={doSend}>
-            {t('თავიდან')}
-            <br />
-            {t('გაგზავნა')}
+          <button type="button" className="linkbtn" onClick={doSend}>
+            {t('კოდის თავიდან გაგზავნა')}
           </button>
         )}
       </div>
-      <button type="button" className="btn btn-green full" disabled={!ok || busy} onClick={confirm}>
-        {t('დადასტურება')}
-      </button>
-      <ErrorText error={error} />
     </Modal>
   );
 }
