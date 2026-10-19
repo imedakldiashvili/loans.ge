@@ -308,16 +308,21 @@ model User {
   deletedBy BigInt?   @map("deleted_by")
   deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
 
-  email       String?   @unique
-  phone       String?   @unique
-  userName    String?   @map("user_name")
-  isVerified  Boolean   @default(false) @map("is_verified")
-  lastLoginOn DateTime? @map("last_login_on") @db.Timestamptz(3)
+  email          String?   @unique
+  phone          String?   @unique
+  userName       String?   @map("user_name")
+  isVerified     Boolean   @default(false) @map("is_verified")
+  lastLoginOn    DateTime? @map("last_login_on") @db.Timestamptz(3)
+  /// the site PIN (customers sign in with e-mail / mobile + PIN): scrypt hash, never the PIN itself
+  pinHash        String?   @map("pin_hash")
+  pinSetOn       DateTime? @map("pin_set_on") @db.Timestamptz(3)
+  /// wrong PINs in a row; at 5 the PIN is locked for 15 minutes
+  pinFails       Int       @default(0) @map("pin_fails")
+  pinLockedUntil DateTime? @map("pin_locked_until") @db.Timestamptz(3)
 
   profiles UserProfile[]
   oauth    OauthIdentity[]
   sessions Session[]
-  passkeys Passkey[]
 
   @@map("user")
 }
@@ -941,37 +946,4 @@ model WebhookDelivery {
   @@index([status, nextAttemptOn])
   @@index([organizationId, createdOn])
   @@map("webhook_delivery")
-}
-
-/// A passkey (WebAuthn credential) of a user: signs in without a code — fingerprint / face / device PIN.
-/// Only the public key is stored; the private key never leaves the user's device.
-model Passkey {
-  id        BigInt    @id @default(autoincrement())
-  uid       String    @unique @default(uuid()) @db.Uuid
-  isEnable  Boolean   @default(true) @map("is_enable")
-  createdBy BigInt?   @map("created_by")
-  createdOn DateTime  @default(now()) @map("created_on") @db.Timestamptz(3)
-  updatedBy BigInt?   @map("updated_by")
-  updatedOn DateTime? @map("updated_on") @db.Timestamptz(3)
-  isDeleted Boolean   @default(false) @map("is_deleted")
-  deletedBy BigInt?   @map("deleted_by")
-  deletedOn DateTime? @map("deleted_on") @db.Timestamptz(3)
-
-  userId       BigInt    @map("user_id")
-  user         User      @relation(fields: [userId], references: [id])
-  /// credential id (base64url)
-  credentialId String    @unique @map("credential_id")
-  publicKey    Bytes     @map("public_key")
-  /// signature counter (0 for most passkeys)
-  counter      BigInt    @default(0)
-  transports   String[]
-  /// singleDevice | multiDevice (synced, e.g. iCloud / Google)
-  deviceType   String?   @map("device_type")
-  backedUp     Boolean   @default(false) @map("backed_up")
-  /// a label for the list, e.g. "Windows · Chrome"
-  name         String?
-  lastUsedOn   DateTime? @map("last_used_on") @db.Timestamptz(3)
-
-  @@index([userId])
-  @@map("passkey")
 }

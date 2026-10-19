@@ -1,9 +1,8 @@
 import { t, useLang } from './i18n';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { api, ApiError, Ref } from './api';
-import { passkeysSupported, signInWithPasskey } from './passkey';
 import { useSession } from './session';
-import { ErrorText, Modal, PasskeyIcon } from './ui';
+import { ErrorText, Modal, PinInput } from './ui';
 
 // Login / registration (prototype loginModal + otpModal): e-mail → one-time code → session.
 // The first login creates the account (client gateway). Google / Facebook come with OAuth (later stage).
@@ -98,13 +97,20 @@ export function OtpModal({ where, target, send, verify, onClose }: { where: stri
 }
 
 /** Asks for login and resolves true once the session is open (false when the dialog is closed). */
+/** The PIN symbol: a small keypad. */
+export const PinIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="pin-icon">
+    {[5, 12, 19].flatMap((y) => [5, 12, 19].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="2.2" />))}
+  </svg>
+);
+
 const Ctx = createContext<() => Promise<boolean>>(async () => false);
 export const useAskLogin = () => useContext(Ctx);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { refresh } = useSession();
   useLang(); // dialogs follow the language switch
-  const [step, setStep] = useState<'email' | 'otp' | null>(null);
+  const [step, setStep] = useState<'email' | 'otp' | 'pin' | null>(null);
   const [email, setEmail] = useState('');
   const resolver = useRef<((ok: boolean) => void) | null>(null);
 
@@ -120,20 +126,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resolver.current = null;
   };
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  // sign in with a passkey (added earlier in the profile) — no e-mail, no code
-  const [pkBusy, setPkBusy] = useState(false);
-  const [pkError, setPkError] = useState('');
-  const passkey = async () => {
-    setPkBusy(true);
-    setPkError('');
+  // sign in with the site PIN (set earlier in the profile): e-mail or mobile + PIN, no code
+  const [login, setLogin] = useState('');
+  const [pin, setPin] = useState('');
+  const [pinBusy, setPinBusy] = useState(false);
+  const [pinError, setPinError] = useState('');
+  const pinReady = login.trim().length >= 3 && /^\d{4,6}$/.test(pin);
+  const pinSignIn = async () => {
+    if (!pinReady || pinBusy) return;
+    setPinBusy(true);
+    setPinError('');
     try {
-      await signInWithPasskey();
+      await api('POST', '/public/auth/pinLogin', { Login: login.trim(), Pin: pin });
       await refresh();
       finish(true);
     } catch (e) {
-      setPkError(e instanceof ApiError || e instanceof Error ? e.message : t('შეცდომა'));
+      setPinError(e instanceof ApiError ? e.message : t('შეცდომა'));
+      setPin('');
     } finally {
-      setPkBusy(false);
+      setPinBusy(false);
     }
   };
   const send = useCallback(() => api<Ref>('POST', '/public/auth/sendOtp', { Gateway: 'client', Login: email.trim() }), [email]);
@@ -144,15 +155,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {step === 'email' && (
         <Modal onClose={() => finish(false)} labelledBy="loginTitle">
           <h3 id="loginTitle">{t('ავტორიზაცია')}</h3>
-          {passkeysSupported() && (
-            <>
-              <button type="button" className="btn btn-passkey full" disabled={pkBusy} onClick={() => void passkey()}>
-                <PasskeyIcon />
-                {t('პასკოდით შესვლა')}
-              </button>
-              <ErrorText error={pkError} />
-            </>
-          )}
+          <button type="button" className="btn btn-pin full" onClick={() => (setPinError(''), setPin(''), setLogin(email), setStep('pin'))}>
+            <PinIcon />
+            {t('PIN-ით შესვლა')}
+          </button>
           <div className="social">
             <button type="button" className="btn btn-social" disabled title={t('მალე')}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -191,6 +197,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           />
           <button type="button" className="btn btn-green full" disabled={!valid} onClick={() => setStep('otp')}>
             {t('კოდის გაგზავნა')}
+          </button>
+        </Modal>
+      )}
+      {step === 'pin' && (
+        <Modal onClose={() => finish(false)} labelledBy="pinTitle">
+          <h3 id="pinTitle">{t('PIN-ით შესვლა')}</h3>
+          <p>{t('შეიყვანე ელ. ფოსტა ან მობილური და PIN-კოდი')}</p>
+          <div className="pin-form">
+            <input
+              type="text"
+              placeholder={t('ელ. ფოსტა ან მობილური')}
+              autoComplete="username"
+              aria-label={t('ელ. ფოსტა ან მობილური')}
+              className="login-email"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
+              autoFocus={!login}
+            />
+            <PinInput value={pin} onChange={setPin} label="PIN" autoFocus={!!login} onEnter={() => void pinSignIn()} />
+          </div>
+          <ErrorText error={pinError} />
+          <button type="button" className="btn btn-green full" disabled={!pinReady || pinBusy} onClick={() => void pinSignIn()}>
+            {t('შესვლა')}
+          </button>
+          <button type="button" className="linkbtn pin-back" onClick={() => setStep('email')}>
+            {t('კოდით შესვლა')}
           </button>
         </Modal>
       )}

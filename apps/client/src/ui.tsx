@@ -58,12 +58,22 @@ export const Chevron = ({ w = 2.5 }: { w?: number }) => (
 
 export const ErrorText = ({ error }: { error: string }) => (error ? <p className="form-err" style={{ color: 'var(--orange)', margin: '8px 0 0' }}>{error}</p> : null);
 
-/** The passkey symbol (a person and a key — as the passkey icon of browsers / FIDO), used on every passkey button. */
-export const PasskeyIcon = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" className="pk-icon">
-    <circle cx="9" cy="7.5" r="4" fill="currentColor" />
-    <path d="M1.5 20.5c0-3.9 3.4-7 7.5-7 1.7 0 3.3.5 4.5 1.4v5.6z" fill="currentColor" />
-    <circle cx="18.5" cy="10.5" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
-    <path d="M18.5 13.5v8M18.5 17.5h2.5M18.5 20h2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
+/** A PIN field: digits only, 4–6, hidden. */
+export const PinInput = ({ value, onChange, label, autoFocus, onEnter }: { value: string; onChange: (v: string) => void; label: string; autoFocus?: boolean; onEnter?: () => void }) => (
+  <input
+    className="pin-input"
+    type="password"
+    inputMode="numeric"
+    autoComplete="off"
+    maxLength={6}
+    placeholder="••••"
+    aria-label={label}
+    value={value}
+    autoFocus={autoFocus}
+    onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+    onKeyDown={(e) => e.key === 'Enter' && onEnter?.()}
+  />
 );
+/** The same rules as the API: 4–6 digits, not all the same, not in a row. */
+export const pinProblem = (p: string) =>
+  !/^\d{4,6}$/.test(p) ? '4–6 ციფრი' : /^(\d)\1+$/.test(p) ? 'ერთნაირი ციფრები არ გამოდგება' : '0123456789'.includes(p) || '9876543210'.includes(p) ? 'ციფრები ზედიზედ არ გამოდგება' : '';

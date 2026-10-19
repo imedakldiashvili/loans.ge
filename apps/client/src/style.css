@@ -808,20 +808,14 @@
   .verify-badge svg { width: 15px; height: 15px; flex: none; }
   .verify-badge.yes { background: var(--green-soft); color: var(--green); }
   .verify-badge.no { background: var(--bg-soft); color: var(--muted); border: 1px solid var(--line); }
-  /* passkeys: login button, profile list */
-  .btn-passkey { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 4px 0 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-weight: 600; }
-  .btn-passkey:hover { border-color: var(--green); color: var(--green); }
-  .btn-passkey svg, .pk-add svg { width: 20px; height: 20px; }
-  .pk-add { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; font-size: 13px; font-weight: 600; }
-  .pk-list { display: grid; gap: 6px; margin: 4px 0 12px; }
-  .pk-row { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-soft); }
-  .pk-name { display: grid; gap: 2px; min-width: 0; margin-inline-end: auto; }
-  .pk-name b { font-size: 14px; color: var(--fg); }
-  .pk-name small { font-size: 12px; color: var(--muted); }
-  .pk-hint { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
-  .pk-empty { margin: 0; padding: 12px; border: 1px dashed var(--line); border-radius: 8px; font-size: 13px; color: var(--muted); text-align: center; }
-  /* profile: "user" and passkeys side by side (stacked on narrow screens) */
-  .prof-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-  .prof-pair > .prof-sec { margin: 0; }
-  .prof-pair + .prof-sec { margin-top: 16px; }
-  @media (max-width: 900px) { .prof-pair { grid-template-columns: minmax(0, 1fr); } }
+  /* site PIN: login button, profile button, the PIN form */
+  .btn-pin { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 4px 0 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-weight: 600; }
+  .btn-pin:hover { border-color: var(--green); color: var(--green); }
+  .pin-icon { width: 16px; height: 16px; flex: none; }
+  .pin-btn { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; font-size: 13px; font-weight: 600; }
+  .pin-form { display: grid; gap: 10px; margin: 0 0 12px; text-align: start; }
+  .pin-form label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+  .pin-input { width: 100%; height: 46px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); font: inherit; font-size: 22px; letter-spacing: 8px; text-align: center; }
+  .pin-input:focus { outline: none; border-color: var(--green); }
+  .pin-back { display: block; margin: 10px auto 0; font-size: 13px; color: var(--muted); }
+  .pin-del { color: #d9534f; margin-inline-end: auto; }

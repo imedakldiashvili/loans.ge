@@ -2,7 +2,7 @@
 // accept / decline per organisation, closing the whole application, profile, isolation between customers.
 // Usage: node test/client.mjs [baseUrl] [apiLogFile]
 import { PrismaClient } from '@prisma/client';
-import { call, done, forget, login, ok, otpFromLog } from './lib.mjs';
+import { call, done, forget, login, ok, otpFromLog, setCookie } from './lib.mjs';
 
 const prisma = new PrismaClient();
 const stamp = Date.now().toString().slice(-8);
@@ -170,22 +170,40 @@ ok((await call('POST', '/client/application/find/1/10', {})).status === 401, 'no
 
 await prisma.$disconnect();
 
-// ── passkeys: what can be checked without a device (the browser creates and signs the key)
-await login('client', `passkey.${stamp}@example.com`);
-const ro = await call('POST', '/client/passkey/registerOptions');
-const regOpts = ro.json?.Data?.OptionsJson && JSON.parse(ro.json.Data.OptionsJson);
-ok(ro.status === 200 && regOpts.challenge && regOpts.rp.id === 'localhost' && regOpts.authenticatorSelection.residentKey === 'required', 'passkey: registration options (challenge, site, a key the device keeps)', ro.json);
-ok((await call('POST', '/client/passkey/register', { ResponseJson: '{"id":"x"}' })).status === 400, 'passkey: an invalid answer → 400');
-ok((await call('POST', '/client/passkey/register', { ResponseJson: '{"id":"x"}' })).status === 400, 'passkey: the challenge is used up — again → 400');
-const list = await call('POST', '/client/passkey/find/1/50', {});
-ok(list.status === 200 && list.json.Data.TotalCount === 0, 'passkey: list (none yet)');
-ok((await call('DELETE', '/client/passkey/delete/999999/00000000-0000-0000-0000-000000000000')).status === 404, "passkey: someone else's / unknown → 404");
-const lo = await call('POST', '/public/auth/passkeyOptions', {});
-ok(lo.status === 200 && lo.json.Data.ChallengeID && JSON.parse(lo.json.Data.OptionsJson).rpId === 'localhost', 'passkey sign-in: options with a challenge id');
-const unknownKey = JSON.stringify({ id: 'AAAA', rawId: 'AAAA', type: 'public-key', response: { clientDataJSON: 'e30', authenticatorData: 'AA', signature: 'AA' }, clientExtensionResults: {} });
-ok((await call('POST', '/public/auth/passkeyLogin', { ChallengeID: lo.json.Data.ChallengeID, ResponseJson: unknownKey })).status === 401, 'passkey sign-in: an unknown passkey → 401');
-ok((await call('POST', '/public/auth/passkeyLogin', { ChallengeID: lo.json.Data.ChallengeID, ResponseJson: unknownKey })).status === 400, 'passkey sign-in: the challenge is used up → 400');
+// ── site PIN: set with a code to the account's e-mail, sign in with e-mail + PIN, locked after 5 wrong ones
+const pinEmail = `pin.${stamp}@example.com`;
+await login('client', pinEmail);
+ok((await call('GET', '/client/pin/status')).json?.Data?.IsSet === false, 'PIN: not set yet');
+const pinOtp = async () => {
+  const r = await call('POST', '/client/pin/sendOtp');
+  return { ID: r.json.Data.ID, UID: r.json.Data.UID, Code: await otpFromLog(pinEmail) };
+};
+const po = await pinOtp();
+ok((await call('PUT', '/client/pin/set', { Pin: '4826' })).status === 400, 'PIN: without the code → 400');
+ok((await call('PUT', '/client/pin/set', { Pin: '1111', Otp: po })).status === 400, 'PIN: all the same digits → 400');
+ok((await call('PUT', '/client/pin/set', { Pin: '1234', Otp: po })).status === 400, 'PIN: digits in a row → 400');
+ok((await call('PUT', '/client/pin/set', { Pin: '48a6', Otp: po })).status === 400, 'PIN: not digits → 400');
+const set = await call('PUT', '/client/pin/set', { Pin: '4826', Otp: po });
+ok(set.status === 200 && set.json.Data.IsSet && set.json.Data.SetOn, 'PIN: set (confirmed with the code)', set.json);
+const stored = await prisma.user.findFirst({ where: { email: pinEmail } });
+ok(stored.pinHash.startsWith('scrypt$') && !stored.pinHash.includes('4826'), 'PIN: only a scrypt hash is kept');
 forget('client');
-ok((await call('POST', '/client/passkey/registerOptions')).status === 401, 'passkey: adding needs a signed-in customer (401)');
+const pinLogin = (pin, l = pinEmail) => call('POST', '/public/auth/pinLogin', { Login: l, Pin: pin });
+ok((await pinLogin('9999')).status === 401, 'PIN sign-in: a wrong PIN → 401');
+ok((await pinLogin('4826', `nobody.${stamp}@example.com`)).status === 401, 'PIN sign-in: an unknown account → the same 401');
+const good = await pinLogin('4826');
+ok(good.status === 200 && /lg_client=/.test(good.headers.get('set-cookie') ?? ''), 'PIN sign-in: the right PIN → a session', good.json);
+setCookie('client', good.headers.get('set-cookie').split(';')[0]);
+ok((await call('GET', '/client/auth/me')).json?.Data?.User?.Email === pinEmail, 'PIN sign-in: the session is this account');
+ok((await prisma.user.findFirst({ where: { email: pinEmail } })).pinFails === 0, 'PIN sign-in: a success clears the wrong attempts');
+forget('client');
+for (let i = 0; i < 5; i++) await pinLogin('9999');
+ok((await pinLogin('4826')).status === 429, 'PIN: locked after 5 wrong ones (even the right PIN → 429)');
+await prisma.user.update({ where: { email: pinEmail }, data: { pinLockedUntil: null } });
+setCookie('client', good.headers.get('set-cookie').split(';')[0]);
+ok((await call('PUT', '/client/pin/remove')).json?.Data?.IsSet === false, 'PIN: removed');
+forget('client');
+ok((await pinLogin('4826')).status === 401, 'PIN sign-in: no PIN any more → 401');
+ok((await call('GET', '/client/pin/status')).status === 401, 'PIN: the settings need a signed-in customer (401)');
 
 done();

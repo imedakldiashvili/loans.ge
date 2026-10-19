@@ -4,10 +4,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, ApiError, Page, Ref } from '../api';
-import { OtpModal } from '../auth';
-import { addPasskey, passkeysSupported } from '../passkey';
+import { OtpModal, PinIcon } from '../auth';
 import { OrgLogo, StatusRow, useRefs, useSession } from '../session';
-import { Chevron, ErrorText, PasskeyIcon, fmt, fmtCd, fmtDate, fmtDay, fmtPhone, Modal, money, useNow } from '../ui';
+import { Chevron, ErrorText, PinInput, pinProblem, fmt, fmtCd, fmtDate, fmtDay, fmtPhone, Modal, money, useNow } from '../ui';
 
 // Customer cabinet (prototype #cabinet): active / closed applications, per-organisation statuses and offers,
 // application view, offer view with accept / decline, closing an application; profile.
@@ -708,39 +707,72 @@ const TITLES: Record<Field, string> = {
   first: 'სახელის შეცვლა', last: 'გვარის შეცვლა', dob: 'დაბადების თარიღის შეცვლა',
 };
 
-interface PasskeyRow {
-  ID: number;
-  UID: string;
-  Name: string | null;
-  CreatedOn: string;
-  LastUsedOn: string | null;
-}
-/** The account's passkeys: list, add (the device creates the key), remove. */
-function usePasskeys() {
-  const list = useQuery({ queryKey: ['passkeys'], queryFn: () => api<Page<PasskeyRow>>('POST', '/client/passkey/find/1/50', {}) });
-  const [busy, setBusy] = useState(false);
+/** Set / change the site PIN: the PIN twice, then the code sent to the account's e-mail (or mobile); remove it too. */
+function PinModal({ isSet, onClose, onDone }: { isSet: boolean; onClose: () => void; onDone: () => void }) {
+  const [a, setA] = useState('');
+  const [b, setB] = useState('');
   const [error, setError] = useState('');
-  const run = async (fn: () => Promise<unknown>) => {
+  const [code, setCode] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const problem = a ? pinProblem(a) : '';
+  const ready = !problem && a.length >= 4 && a === b;
+  const remove = async () => {
+    if (!confirm(t('წავშალოთ PIN-კოდი?'))) return;
     setBusy(true);
-    setError('');
     try {
-      await fn();
-      await list.refetch();
+      await api('PUT', '/client/pin/remove');
+      onDone();
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('შეცდომა'));
+      setError(errText(e));
     } finally {
       setBusy(false);
     }
   };
-  return {
-    list, busy, error,
-    add: () => run(addPasskey),
-    remove: (k: PasskeyRow) => (confirm(t('წავშალოთ პასკოდი?')) ? run(() => api('DELETE', `/client/passkey/delete/${k.ID}/${k.UID}`)) : Promise.resolve()),
-  };
+  if (code)
+    return (
+      <OtpModal
+        where="კოდი გაიგზავნა"
+        target=""
+        send={() => api<Ref>('POST', '/client/pin/sendOtp')}
+        verify={async (ref, otp) => {
+          await api('PUT', '/client/pin/set', { Pin: a, Otp: { ID: ref.ID, UID: ref.UID, Code: otp } });
+          onDone();
+        }}
+        onClose={onClose}
+      />
+    );
+  return (
+    <Modal onClose={onClose} labelledBy="pinSetTitle" className="pin-box">
+      <h3 id="pinSetTitle">{t(isSet ? 'PIN-ის შეცვლა' : 'PIN-ის დაყენება')}</h3>
+      <p>{t('PIN-ით შეხვალ ელ. ფოსტით ან მობილურით, კოდის გარეშე. 4–6 ციფრი.')}</p>
+      <div className="pin-form">
+        <label>
+          {t('ახალი PIN')}
+          <PinInput value={a} onChange={setA} label={t('ახალი PIN')} autoFocus />
+        </label>
+        <label>
+          {t('გაიმეორე')}
+          <PinInput value={b} onChange={setB} label={t('გაიმეორე')} onEnter={() => ready && setCode(true)} />
+        </label>
+      </div>
+      <ErrorText error={error || (problem ? t(problem) : b.length >= a.length && a.length >= 4 && a !== b ? t('PIN-ები არ ემთხვევა') : '')} />
+      <div className="cancel-actions">
+        {isSet && (
+          <button type="button" className="btn btn-ghost pin-del" disabled={busy} onClick={() => void remove()}>
+            {t('წაშლა')}
+          </button>
+        )}
+        <button type="button" className="btn btn-green" disabled={!ready || busy} onClick={() => setCode(true)}>
+          {t('შემდეგი')}
+        </button>
+      </div>
+    </Modal>
+  );
 }
 
 function Profile() {
-  const pk = usePasskeys();
+  const pin = useQuery({ queryKey: ['pin'], queryFn: () => api<{ IsSet: boolean; SetOn: string | null }>('GET', '/client/pin/status') });
+  const [pinOpen, setPinOpen] = useState(false);
   const { me, refresh } = useSession();
   const { cities, districts } = useRefs();
   const qc = useQueryClient();
@@ -763,69 +795,37 @@ function Profile() {
   };
   return (
     <div>
-      {/* "user" and the passkey panel side by side */}
-      <div className="prof-pair">
-        <div className="cab-panel prof-sec">
-          <h3 className="prof-h">{t('მომხმარებელი')}</h3>
-          <div className="prof-info">
-            <div className="prof-row">
-              <span>{t('ელ. ფოსტა')}</span>
-              <b>{d.User.Email ?? '—'}</b>
-              <i />
-            </div>
-            <div className="prof-row">
-              <span>{t('მომხმარებლის სახელი')}</span>
-              <b>{d.User.UserName || d.User.Email?.split('@')[0] || '—'}</b>
-              {btn('user')}
-            </div>
-            <div className="prof-row">
-              <span>{t('მობილური')}</span>
-              <b>{d.User.Phone ? fmtPhone(d.User.Phone) : '—'}</b>
-              {btn('phone')}
-            </div>
-            <div className="prof-row">
-              <span>{t('ლოკაცია')}</span>
-              <b>{loc || '—'}</b>
-              {btn('loc')}
-            </div>
+      <div className="cab-panel prof-sec">
+        <h3 className="prof-h prof-h-row">
+          {t('მომხმარებელი')}
+          {/* the site PIN: sign in with e-mail / mobile + PIN */}
+          <button type="button" className="btn btn-ghost sm pin-btn" title={pin.data?.SetOn ? `${t('PIN დაყენებულია')} ${fmtDate(pin.data.SetOn)}` : undefined} onClick={() => setPinOpen(true)}>
+            <PinIcon />
+            {t(pin.data?.IsSet ? 'PIN-ის შეცვლა' : 'PIN-ის დაყენება')}
+          </button>
+        </h3>
+        <div className="prof-info">
+          <div className="prof-row">
+            <span>{t('ელ. ფოსტა')}</span>
+            <b>{d.User.Email ?? '—'}</b>
+            <i />
+          </div>
+          <div className="prof-row">
+            <span>{t('მომხმარებლის სახელი')}</span>
+            <b>{d.User.UserName || d.User.Email?.split('@')[0] || '—'}</b>
+            {btn('user')}
+          </div>
+          <div className="prof-row">
+            <span>{t('მობილური')}</span>
+            <b>{d.User.Phone ? fmtPhone(d.User.Phone) : '—'}</b>
+            {btn('phone')}
+          </div>
+          <div className="prof-row">
+            <span>{t('ლოკაცია')}</span>
+            <b>{loc || '—'}</b>
+            {btn('loc')}
           </div>
         </div>
-        {/* passkeys — their own panel: sign in with a fingerprint / face / device PIN instead of a code */}
-        {passkeysSupported() && (
-          <div className="cab-panel prof-sec">
-            <h3 className="prof-h prof-h-row">
-              {t('პასკოდი')}
-              <button type="button" className="btn btn-ghost sm pk-add" disabled={pk.busy} onClick={() => void pk.add()}>
-                <PasskeyIcon />
-                {t('პასკოდის დამატება')}
-              </button>
-            </h3>
-            <p className="pk-hint">{t('შესვლა კოდის გარეშე — თითის ანაბეჭდით, სახით ან მოწყობილობის PIN-ით.')}</p>
-            <ErrorText error={pk.error} />
-            {(pk.list.data?.Items.length ?? 0) > 0 ? (
-              <div className="pk-list">
-                {pk.list.data!.Items.map((k) => (
-                  <div key={k.ID} className="pk-row">
-                    <span className="pk-name">
-                      <b>{k.Name || t('პასკოდი')}</b>
-                      <small>
-                        {t('დამატებულია')} {fmtDate(k.CreatedOn)}
-                        {k.LastUsedOn ? ` · ${t('ბოლოს')} ${fmtDate(k.LastUsedOn)}` : ''}
-                      </small>
-                    </span>
-                    <button type="button" className="cab-ico danger" title={t('წაშლა')} aria-label={t('წაშლა')} onClick={() => void pk.remove(k)}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="pk-empty">{t('პასკოდი ჯერ არ გაქვს დამატებული')}</p>
-            )}
-          </div>
-        )}
       </div>
       <div className="cab-panel prof-sec">
         <h3 className="prof-h prof-h-row">
@@ -864,6 +864,7 @@ function Profile() {
         </div>
       </div>
       {edit && <ChangeModal field={edit} d={d} onClose={() => setEdit(null)} onSaved={saved} />}
+      {pinOpen && <PinModal isSet={!!pin.data?.IsSet} onClose={() => setPinOpen(false)} onDone={() => (setPinOpen(false), void pin.refetch())} />}
     </div>
   );
 }
