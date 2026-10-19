@@ -174,6 +174,7 @@ await prisma.$disconnect();
 const pinEmail = `pin.${stamp}@example.com`;
 await login('client', pinEmail);
 ok((await call('GET', '/client/pin/status')).json?.Data?.IsSet === false, 'PIN: not set yet');
+ok((await call('POST', '/public/auth/loginMethod', { Login: pinEmail })).json?.Data?.Pin === false, 'login dialog: no PIN yet → a code');
 const pinOtp = async () => {
   const r = await call('POST', '/client/pin/sendOtp');
   return { ID: r.json.Data.ID, UID: r.json.Data.UID, Code: await otpFromLog(pinEmail) };
@@ -188,6 +189,7 @@ ok(firstPin.status === 200 && firstPin.json.Data.IsSet, 'PIN: the first one righ
 ok((await call('PUT', '/client/pin/set', { Pin: '6281' })).status === 200, 'PIN: right after the code sign-in it can be changed / reset without a second code');
 const set = await call('PUT', '/client/pin/set', { Pin: '4826', Otp: po });
 ok(set.status === 200 && set.json.Data.IsSet && set.json.Data.SetOn, 'PIN: changed (confirmed with the code)', set.json);
+ok((await call('POST', '/public/auth/loginMethod', { Login: pinEmail })).json?.Data?.Pin === true, 'login dialog: a PIN is set → the PIN field');
 const stored = await prisma.user.findFirst({ where: { email: pinEmail } });
 ok(stored.pinHash.startsWith('scrypt$') && !stored.pinHash.includes('4826'), 'PIN: only a scrypt hash is kept');
 forget('client');

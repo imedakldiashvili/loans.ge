@@ -809,8 +809,6 @@
   .verify-badge.yes { background: var(--green-soft); color: var(--green); }
   .verify-badge.no { background: var(--bg-soft); color: var(--muted); border: 1px solid var(--line); }
   /* site PIN: login button, profile button, the PIN form */
-  .btn-pin { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 4px 0 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-weight: 600; }
-  .btn-pin:hover { border-color: var(--green); color: var(--green); }
   .pin-icon { width: 16px; height: 16px; flex: none; }
   .pin-btn { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; font-size: 13px; font-weight: 600; }
   .pin-form { display: grid; gap: 10px; margin: 0 0 12px; text-align: start; }
@@ -821,3 +819,4 @@
   .pin-links .linkbtn { color: var(--muted); }
   .pin-links .linkbtn:hover { color: var(--green); }
   .pin-del { color: #d9534f; margin-inline-end: auto; }
+  .pin-who { color: var(--fg); font-weight: 600; }

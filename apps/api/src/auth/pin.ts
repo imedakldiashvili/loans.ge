@@ -90,6 +90,14 @@ export class PinService {
     return this.status(userId);
   }
 
+  /** PIN or code for this login (e-mail / mobile): a PIN only when the customer has set one. */
+  async method(body: unknown) {
+    const { login } = parse(z.object({ login: z.string().trim().min(3) }), body);
+    const { channel, target } = parseLogin(login);
+    const user = await this.prisma.user.findFirst({ where: { isDeleted: false, isEnable: true, ...(channel === 'email' ? { email: target } : { phone: target }) }, select: { pinHash: true } });
+    return { pin: !!user?.pinHash };
+  }
+
   async login(body: unknown, meta: { ip?: string; userAgent?: string }) {
     const d = parse(loginBody, body);
     const { channel, target } = parseLogin(d.login);
@@ -147,6 +155,12 @@ export class ClientPinController {
 @Controller('public/auth')
 export class PublicPinController {
   constructor(private readonly svc: PinService) {}
+
+  /** The login dialog asks first: does this account sign in with a PIN (→ the PIN field) or with a code? */
+  @Post('loginMethod')
+  method(@Body() body: unknown) {
+    return this.svc.method(body);
+  }
 
   @Post('pinLogin')
   async login(@Body() body: unknown, @Req() req: AuthedRequest, @Res({ passthrough: true }) res: Response) {

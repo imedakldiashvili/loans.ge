@@ -225,18 +225,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resolver.current = null;
   };
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  // sign in with the site PIN (set earlier in the profile): e-mail or mobile + PIN, no code
-  const [login, setLogin] = useState('');
+  // e-mail first: an account with a PIN gets the PIN field, the others the one-time code
+  const [checking, setChecking] = useState(false);
+  const next = async () => {
+    if (!valid || checking) return;
+    setChecking(true);
+    try {
+      const m = await api<{ Pin: boolean }>('POST', '/public/auth/loginMethod', { Login: email.trim() });
+      if (m.Pin) {
+        setPin('');
+        setPinError('');
+        setStep('pin');
+      } else setStep('otp');
+    } catch {
+      setStep('otp');
+    } finally {
+      setChecking(false);
+    }
+  };
+  // the site PIN (set in the profile): PIN only — the e-mail is the one typed above
   const [pin, setPin] = useState('');
   const [pinBusy, setPinBusy] = useState(false);
   const [pinError, setPinError] = useState('');
-  const pinReady = login.trim().length >= 3 && /^\d{4,6}$/.test(pin);
+  const pinReady = /^\d{4,6}$/.test(pin);
   const pinSignIn = async () => {
     if (!pinReady || pinBusy) return;
     setPinBusy(true);
     setPinError('');
     try {
-      await api('POST', '/public/auth/pinLogin', { Login: login.trim(), Pin: pin });
+      await api('POST', '/public/auth/pinLogin', { Login: email.trim(), Pin: pin });
       await refresh();
       finish(true);
     } catch (e) {
@@ -254,10 +271,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {step === 'email' && (
         <Modal onClose={() => finish(false)} labelledBy="loginTitle">
           <h3 id="loginTitle">{t('ავტორიზაცია')}</h3>
-          <button type="button" className="btn btn-pin full" onClick={() => (setPinError(''), setPin(''), setLogin(email), setStep('pin'))}>
-            <PinIcon />
-            {t('PIN-ით შესვლა')}
-          </button>
           <div className="social">
             <button type="button" className="btn btn-social" disabled title={t('მალე')}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -281,7 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           <p>
             {t('შეიყვანე ელ. ფოსტა')}
             <br />
-            {t('გამოგიგზავნით ერთჯერად კოდს')}
+            {t('შეხვალ PIN-ით ან ერთჯერადი კოდით')}
           </p>
           <input
             type="email"
@@ -291,49 +304,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             className="login-email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && valid && setStep('otp')}
+            onKeyDown={(e) => e.key === 'Enter' && void next()}
             autoFocus
           />
-          <button type="button" className="btn btn-green full" disabled={!valid} onClick={() => setStep('otp')}>
-            {t('კოდის გაგზავნა')}
+          <button type="button" className="btn btn-green full" disabled={!valid || checking} onClick={() => void next()}>
+            {t('გაგრძელება')}
           </button>
         </Modal>
       )}
       {step === 'pin' && (
         <Modal onClose={() => finish(false)} labelledBy="pinTitle">
-          <h3 id="pinTitle">{t('PIN-ით შესვლა')}</h3>
-          <p>{t('შეიყვანე ელ. ფოსტა ან მობილური და PIN-კოდი')}</p>
+          <h3 id="pinTitle">{t('ავტორიზაცია')}</h3>
+          <p>
+            {t('შეიყვანე PIN-კოდი')}
+            <br />
+            <b className="pin-who">{email.trim().toLowerCase()}</b>
+          </p>
           <div className="pin-form">
-            <input
-              type="text"
-              placeholder={t('ელ. ფოსტა ან მობილური')}
-              autoComplete="username"
-              aria-label={t('ელ. ფოსტა ან მობილური')}
-              className="login-email"
-              value={login}
-              onChange={(e) => setLogin(e.target.value)}
-              autoFocus={!login}
-            />
-            <PinInput value={pin} onChange={setPin} label="PIN" autoFocus={!!login} onEnter={() => void pinSignIn()} />
+            <PinInput value={pin} onChange={setPin} label="PIN" autoFocus onEnter={() => void pinSignIn()} />
           </div>
           <ErrorText error={pinError} />
           <button type="button" className="btn btn-green full" disabled={!pinReady || pinBusy} onClick={() => void pinSignIn()}>
             {t('შესვლა')}
           </button>
           <div className="pin-links">
-            <button
-              type="button"
-              className="linkbtn"
-              onClick={() => {
-                // forgot the PIN: sign in with a code (a new PIN is set in the profile)
-                if (login.includes('@')) setEmail(login.trim());
-                setStep('email');
-              }}
-            >
+            {/* forgot the PIN: a one-time code to the same e-mail (a new PIN is set in the profile) */}
+            <button type="button" className="linkbtn" onClick={() => setStep('otp')}>
               {t('PIN დაგავიწყდა?')}
             </button>
             <button type="button" className="linkbtn" onClick={() => setStep('email')}>
-              {t('კოდით შესვლა')}
+              {t('სხვა ელ. ფოსტა')}
             </button>
           </div>
         </Modal>

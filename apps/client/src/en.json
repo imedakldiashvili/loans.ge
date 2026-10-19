@@ -284,10 +284,6 @@
  "გაუქმებული": "Cancelled",
  "არ არის არჩეული": "Not chosen",
  "არ არის ვერიფიცირებული": "Not verified",
- "PIN-ით შესვლა": "Sign in with a PIN",
- "შეიყვანე ელ. ფოსტა ან მობილური და PIN-კოდი": "Enter your e-mail or mobile and your PIN",
- "ელ. ფოსტა ან მობილური": "E-mail or mobile",
- "კოდით შესვლა": "Sign in with a code",
  "PIN-ის შეცვლა": "Change PIN",
  "PIN-ის დაყენება": "Set a PIN",
  "PIN დაყენებულია": "PIN set on",
@@ -303,5 +299,8 @@
  "წაშლა": "Delete",
  "PIN დაგავიწყდა?": "Forgot your PIN?",
  "მოგვიანებით": "Later",
- "შემდეგ ჯერზე შეხვალ ელ. ფოსტით და PIN-ით, კოდის გარეშე. 4–6 ციფრი.": "Next time sign in with your e-mail and PIN, no code. 4–6 digits."
+ "შემდეგ ჯერზე შეხვალ ელ. ფოსტით და PIN-ით, კოდის გარეშე. 4–6 ციფრი.": "Next time sign in with your e-mail and PIN, no code. 4–6 digits.",
+ "შეხვალ PIN-ით ან ერთჯერადი კოდით": "You sign in with your PIN or a one-time code",
+ "შეიყვანე PIN-კოდი": "Enter your PIN",
+ "სხვა ელ. ფოსტა": "Another e-mail"
 }
