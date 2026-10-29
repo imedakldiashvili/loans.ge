@@ -118,25 +118,30 @@ export function Shell({ children }: { children: ReactNode }) {
             );
           })}
         </nav>
-      </aside>
-      <div className="col">
-        <header>
-          <div className="wrap nav">
-            <Logo className="logo" />
-            <span className="tag">ადმინი</span>
-            <div className="who">
-              <span className="lg">{initials}</span>
-              <span>
-                <b>{name}</b>
-                <small>{me?.Profile ? ADMIN_ROLES[me.Profile.Role] : ''}</small>
-              </span>
-            </div>
+        {/* the user, theme and logout — at the very bottom of the menu */}
+        <div className="sb-foot">
+          <div className="who" title={name}>
+            <span className="lg">{initials}</span>
+            <span className="lbl">
+              <b>{name}</b>
+              <small>{me?.Profile ? ADMIN_ROLES[me.Profile.Role] : ''}</small>
+            </span>
+          </div>
+          <div className="sb-ctl">
             <button type="button" className="ctl" title="თემა" aria-label="თემა" onClick={toggleTheme}>
               {theme === 'dark' ? <Icon.sun /> : <Icon.moon />}
             </button>
             <button type="button" className="ctl danger" title="გასვლა" aria-label="გასვლა" onClick={logout}>
               <Icon.logout />
             </button>
+          </div>
+        </div>
+      </aside>
+      <div className="col">
+        <header>
+          <div className="wrap nav">
+            <Logo className="logo" />
+            <span className="tag">ადმინი</span>
           </div>
         </header>
         <main className="wrap">
