@@ -112,7 +112,10 @@ const configs: CrudConfig[] = [
   {
     // which product types an organisation accepts
     gateway: 'admin', module: 'organizationProductType', model: 'organizationProductType',
-    schema: z.object({ organizationId: id, productTypeId: id }),
+    // with the amounts it lends (empty = no limit)
+    schema: z
+      .object({ organizationId: id, productTypeId: id, minAmount: z.number().nonnegative().nullable().default(null), maxAmount: z.number().positive().nullable().default(null) })
+      .refine((p) => p.minAmount === null || p.maxAmount === null || p.maxAmount >= p.minAmount, { path: ['maxAmount'], message: 'მაქსიმუმი ნაკლებია მინიმუმზე' }),
     filterFields: ['organizationId', 'productTypeId'], unique: [['organizationId', 'productTypeId']], include: { productType: { select: { id: true, code: true, nameKa: true, nameEn: true } } },
   },
   {

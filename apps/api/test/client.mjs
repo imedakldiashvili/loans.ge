@@ -100,6 +100,14 @@ const counts = (await call('POST', '/client/application/find/1/10', { Filter: { 
 ok(counts.Counts.Active === 1 && counts.Counts.Done === 1 && counts.Items[0].ID === app.ID, 'closed application moves to "done"', counts.Counts);
 
 // ── the customer's answer: offers marked "choose" / "cancel" change together on "send"; unmarked ones stay
+// an organisation shows / takes only the amounts it lends for the product
+const link = await prisma.organizationProductType.findFirst({ where: { organizationId: BigInt(accepting[0].ID), productTypeId: pt.id, isDeleted: false } });
+const pubOrg = (await call('POST', '/public/organization/find/1/100', {})).json.Data.Items.find((o) => o.ID === accepting[0].ID);
+ok(pubOrg && pubOrg.ProductTypes.every((x) => 'MinAmount' in x && 'MaxAmount' in x), 'public organisations: the amounts per product', pubOrg);
+await prisma.organizationProductType.update({ where: { id: link.id }, data: { maxAmount: 3000 } });
+const tooMuch = await call('POST', '/client/application/add', await withCode({ ...body, OrganizationIDs: [accepting[0].ID] }));
+ok(tooMuch.status === 400 && tooMuch.json.Error.Details.some((d) => d.Field === 'OrganizationIDs'), 'amount above what the organisation lends → 400', tooMuch.json);
+await prisma.organizationProductType.update({ where: { id: link.id }, data: { maxAmount: link.maxAmount } });
 const add3 = await call('POST', '/client/application/add', await withCode({ ...body, Amount: 8000, OrganizationIDs: accepting.slice(0, 3).map((o) => o.ID) }));
 const app3 = (await call('GET', `/client/application/detail/${add3.json.Data.ID}/${add3.json.Data.UID}`)).json.Data;
 const [p1, p2, p3] = app3.Orgs;

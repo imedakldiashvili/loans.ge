@@ -113,13 +113,21 @@ export class ClientApplicationService {
     if (d.districtId && !(await this.prisma.district.count({ where: { id: d.districtId, cityId: d.cityId, isDeleted: false } }))) {
       throw validation([{ field: 'DistrictID', message: 'უბანი ამ ქალაქს არ ეკუთვნის' }]);
     }
-    // only partner organisations that accept this product type
+    // only partner organisations that accept this product type — and lend this amount
     const ids = [...new Set(d.organizationIds.map(String))].map(BigInt);
     const orgs = await this.prisma.organization.findMany({
-      where: { id: { in: ids }, isDeleted: false, isEnable: true, isPartner: true, productTypes: { some: { productTypeId: pt.id, isDeleted: false } } },
+      where: {
+        id: { in: ids }, isDeleted: false, isEnable: true, isPartner: true,
+        productTypes: {
+          some: {
+            productTypeId: pt.id, isDeleted: false,
+            AND: [{ OR: [{ minAmount: null }, { minAmount: { lte: d.amount } }] }, { OR: [{ maxAmount: null }, { maxAmount: { gte: d.amount } }] }],
+          },
+        },
+      },
       select: { id: true },
     });
-    if (orgs.length !== ids.length) throw validation([{ field: 'OrganizationIDs', message: 'ორგანიზაცია ამ პროდუქტზე განაცხადს არ იღებს' }]);
+    if (orgs.length !== ids.length) throw validation([{ field: 'OrganizationIDs', message: 'ორგანიზაცია ამ პროდუქტზე ან ამ თანხაზე განაცხადს არ იღებს' }]);
 
     const m = await this.statuses.machine();
     const initial = await this.initialStatus();

@@ -240,6 +240,9 @@ model OrganizationProductType {
   organization   Organization @relation(fields: [organizationId], references: [id])
   productTypeId  BigInt       @map("product_type_id")
   productType    ProductType  @relation(fields: [productTypeId], references: [id])
+  /// the amounts this organisation lends for the product (empty = no limit) — the wizard hides it outside them
+  minAmount      Decimal?     @map("min_amount") @db.Decimal(14, 2)
+  maxAmount      Decimal?     @map("max_amount") @db.Decimal(14, 2)
 
   @@index([organizationId, productTypeId])
   @@map("organization_product_type")

@@ -28,7 +28,7 @@ const configs: CrudConfig[] = [
   // product types it accepts — the wizard lists only organisations that take the chosen loan
   ro('organization', 'organization', {
     searchFields: ['nameKa', 'nameEn'], filterFields: ['category', 'isPartner'],
-    include: { productTypes: { where: { isDeleted: false }, select: { productTypeId: true } } },
+    include: { productTypes: { where: { isDeleted: false }, select: { productTypeId: true, minAmount: true, maxAmount: true } } },
   }),
 ];
 

@@ -23,10 +23,14 @@ interface OrgPt extends Base {
   OrganizationID: number;
   ProductTypeID: number;
   ProductType: { ID: number; NameKa: string; NameEn: string };
+  MinAmount: number | string | null;
+  MaxAmount: number | string | null;
 }
 interface ProductType extends Base {
   NameKa: string;
   NameEn: string;
+  MinAmount: number | string;
+  MaxAmount: number | string;
   Sort: number;
 }
 interface Staff extends Base {
@@ -130,6 +134,10 @@ function OrgDialog({ row, links, onClose }: { row: Org | null; links: OrgPt[]; o
   const [category, setCategory] = useState(row?.Category ?? 'bank');
   const [isPartner, setIsPartner] = useState(row?.IsPartner ?? true);
   const [pts, setPts] = useState<number[]>(links.map((l) => l.ProductTypeID));
+  // the amounts it lends per product (empty = no limit); a newly checked product starts with the product's own limits
+  const str = (v: number | string | null | undefined) => (v === null || v === undefined ? '' : String(Number(v)));
+  const [amounts, setAmounts] = useState<Record<number, { min: string; max: string }>>(Object.fromEntries(links.map((l) => [l.ProductTypeID, { min: str(l.MinAmount), max: str(l.MaxAmount) }])));
+  const num = (v: string | undefined) => (v && v.trim() ? Number(v) : null);
   const [errors, setErrors] = useState<FieldErrors>({});
   // the logo is uploaded / removed at once (not with "save")
   const [logo, setLogo] = useState<string | null>(row?.LogoPath ?? null);
@@ -159,7 +167,13 @@ function OrgDialog({ row, links, onClose }: { row: Org | null; links: OrgPt[]; o
     const ref = row ? await crud.edit('organization', row, body) : await crud.add('organization', body);
     // accepted product types: add the new ones, remove the unchecked ones
     const want = isPartner ? pts : [];
-    for (const id of want.filter((id) => !links.some((l) => l.ProductTypeID === id))) await crud.add('organizationProductType', { OrganizationID: ref.ID, ProductTypeID: id });
+    const linkBody = (id: number) => ({ OrganizationID: ref.ID, ProductTypeID: id, MinAmount: num(amounts[id]?.min), MaxAmount: num(amounts[id]?.max) });
+    for (const id of want.filter((id) => !links.some((l) => l.ProductTypeID === id))) await crud.add('organizationProductType', linkBody(id));
+    // kept ones whose amounts changed
+    for (const l of links.filter((l) => want.includes(l.ProductTypeID))) {
+      const b = linkBody(l.ProductTypeID);
+      if (b.MinAmount !== num(str(l.MinAmount)) || b.MaxAmount !== num(str(l.MaxAmount))) await crud.edit('organizationProductType', l, b);
+    }
     for (const l of links.filter((l) => !want.includes(l.ProductTypeID))) await crud.remove('organizationProductType', l);
     await invalidate('organization', 'organizationProductType');
     toast(row ? 'შენახულია' : 'დაემატა');
@@ -221,15 +235,37 @@ function OrgDialog({ row, links, onClose }: { row: Org | null; links: OrgPt[]; o
       </div>
       {isPartner && (
         <div className="f">
-          <label>იღებს პროდუქტის ტიპებს</label>
-          <div className="checks">
-            {(productTypes.data ?? []).map((p) => (
-              <label key={p.ID}>
-                <input type="checkbox" checked={pts.includes(p.ID)} onChange={(e) => setPts((v) => (e.target.checked ? [...v, p.ID] : v.filter((x) => x !== p.ID)))} />
-                {p.NameKa}
-              </label>
-            ))}
+          <label>იღებს პროდუქტის ტიპებს — თანხა მინ. / მაქს. (₾)</label>
+          <div className="pt-amounts">
+            {(productTypes.data ?? []).map((p) => {
+              const on = pts.includes(p.ID);
+              const a = amounts[p.ID] ?? { min: '', max: '' };
+              const set = (k: 'min' | 'max', v: string) => setAmounts((m) => ({ ...m, [p.ID]: { ...a, [k]: v } }));
+              return (
+                <div key={p.ID} className="pt-amount">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      onChange={(e) => {
+                        setPts((v) => (e.target.checked ? [...v, p.ID] : v.filter((x) => x !== p.ID)));
+                        if (e.target.checked && !amounts[p.ID]) setAmounts((m) => ({ ...m, [p.ID]: { min: str(p.MinAmount), max: str(p.MaxAmount) } }));
+                      }}
+                    />
+                    {p.NameKa}
+                  </label>
+                  {on && (
+                    <>
+                      <input type="number" min={0} step={100} inputMode="numeric" placeholder="მინ." aria-label={`${p.NameKa} — მინიმუმი`} value={a.min} onChange={(e) => set('min', e.target.value)} />
+                      <input type="number" min={0} step={100} inputMode="numeric" placeholder="მაქს." aria-label={`${p.NameKa} — მაქსიმუმი`} value={a.max} onChange={(e) => set('max', e.target.value)} />
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
+          <FieldError errors={errors} field="MaxAmount" />
+          <small>ვიზარდში ორგანიზაცია მხოლოდ ამ თანხებზე გამოჩნდება; ცარიელი — შეზღუდვის გარეშე</small>
         </div>
       )}
     </Dialog>

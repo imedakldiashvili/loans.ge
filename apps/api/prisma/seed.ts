@@ -73,10 +73,12 @@ async function main() {
   // ── product types and their offer field schema
   const productTypeId = new Map<string, bigint>(); // prototype id (pt1…) → db id
   const productTypeByName = new Map<string, bigint>();
+  // a product's limits cover all its amount ranges (100 → 1 000, 1 000 → 10 000, …)
+  const limits = (p: any) => (p.ranges?.length ? { min: Math.min(...p.ranges), max: Math.max(...p.ranges) * 10 } : { min: p.min, max: p.max });
   for (const [i, p] of data.productTypes.entries()) {
     const row = await prisma.productType.create({
       data: {
-        code: slug(p.nameEn), nameKa: p.name, nameEn: p.nameEn, minAmount: p.min, maxAmount: p.max,
+        code: slug(p.nameEn), nameKa: p.name, nameEn: p.nameEn, minAmount: limits(p).min, maxAmount: limits(p).max,
         minMonths: p.noTerm ? null : p.minM || null, maxMonths: p.noTerm ? null : p.maxM || null, noTerm: !!p.noTerm || !p.maxM,
         amountRanges: p.ranges ?? [], sort: p.sort ?? (i + 1) * 10, isEnable: p.active !== false,
         fields: {
@@ -100,7 +102,13 @@ async function main() {
       data: {
         nameKa: o.name, nameEn: o.nameEn, category: CATEGORY[o.cat] ?? 'bank', color: o.color, isPartner: o.partner !== false,
         sort: o.sort, isEnable: o.active !== false,
-        productTypes: { create: (o.products ?? []).filter((id: string) => productTypeId.has(id)).map((id: string) => ({ productTypeId: productTypeId.get(id)! })) },
+        // for now every organisation lends the product's whole range
+        productTypes: {
+          create: (o.products ?? []).filter((id: string) => productTypeId.has(id)).map((id: string) => {
+            const lim = limits(data.productTypes.find((x: any) => x.id === id));
+            return { productTypeId: productTypeId.get(id)!, minAmount: lim.min, maxAmount: lim.max };
+          }),
+        },
       },
     });
     orgId.set(o.id, row.id);

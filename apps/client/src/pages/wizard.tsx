@@ -36,7 +36,9 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
 
   const total = Object.values(incomes).reduce((t, v) => t + (Number(v) || 0), 0);
   const cityDistricts = refs.districts.filter((d) => String(d.CityID) === p.city);
-  const accepting = refs.organizations.filter((o) => o.IsPartner && o.ProductTypes.some((x) => x.ProductTypeID === pt.ID));
+  // only organisations that take this loan and lend this amount
+  const lends = (x: { MinAmount: number | string | null; MaxAmount: number | string | null }) => (x.MinAmount === null || Number(x.MinAmount) <= start.amount) && (x.MaxAmount === null || Number(x.MaxAmount) >= start.amount);
+  const accepting = refs.organizations.filter((o) => o.IsPartner && o.ProductTypes.some((x) => x.ProductTypeID === pt.ID && lends(x)));
   const bankList = refs.organizations.filter((o) => o.Category === 'bank');
   const valid = (n: number) =>
     n === 1 ? !!credit
@@ -281,7 +283,7 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
                       </div>
                     );
                   })}
-                  {!accepting.length && <p className="wz-note">{t('ამ პროდუქტზე პარტნიორი ორგანიზაცია ჯერ არ არის.')}</p>}
+                  {!accepting.length && <p className="wz-note">{t('ამ პროდუქტზე და თანხაზე პარტნიორი ორგანიზაცია არ არის.')}</p>}
                 </div>
                 <div className="org-total">
                   <span>{t('არჩეულია')}</span>

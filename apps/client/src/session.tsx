@@ -91,7 +91,8 @@ export interface Org {
   LogoPath: string | null;
   IsPartner: boolean;
   Sort: number;
-  ProductTypes: { ProductTypeID: number }[];
+  /** the products it takes, with the amounts it lends (null = no limit) */
+  ProductTypes: { ProductTypeID: number; MinAmount: number | string | null; MaxAmount: number | string | null }[];
 }
 export interface StatusRow {
   Key: string;
