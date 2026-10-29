@@ -69,11 +69,6 @@ export function Shell({ children }: { children: ReactNode }) {
   useEffect(() => store.set('adminSb', small ? '1' : '0'), [small]);
 
   const name = me?.Profile?.DisplayName || me?.User.Email || '';
-  const initials = name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2);
 
   return (
     <div className={`app in ${small ? 'sbc' : ''}`}>
@@ -121,7 +116,10 @@ export function Shell({ children }: { children: ReactNode }) {
         {/* the user, theme and logout — at the very bottom of the menu */}
         <div className="sb-foot">
           <div className="who" title={name}>
-            <span className="lg">{initials}</span>
+            {/* the loans.ge logo — as the organisation's logo in partner */}
+            <span className="lg img">
+              <img src="/fs/default/org-logo.png" alt="" />
+            </span>
             <span className="lbl">
               <b>{name}</b>
               <small>{me?.Profile ? ADMIN_ROLES[me.Profile.Role] : ''}</small>
