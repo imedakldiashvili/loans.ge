@@ -39,6 +39,21 @@ function useTheme(): [boolean, () => void] {
 export function App() {
   const { me, loading, logout, switchTo } = useSession();
   const [, toggleTheme] = useTheme();
+  // the folded menu, remembered
+  const [small, setSmall] = useState(() => {
+    try {
+      return localStorage.getItem('partnerSb') === '1';
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('partnerSb', small ? '1' : '0');
+    } catch {
+      /* storage blocked */
+    }
+  }, [small]);
   const nav = useNavigate();
   const p = me?.Profile;
   const back = p?.Role === 'back';
@@ -63,92 +78,120 @@ export function App() {
   if (loading) return null;
   const org = p?.Organization;
 
+  const routes = p && (
+    <Routes>
+      <Route path="/applications" element={<AppsPage key={p.ID} />} />
+      <Route path="/applications/:id" element={<AppsPage key={p.ID} />} />
+      <Route path="/products" element={back ? <ProductsPage key={p.ID} /> : <Navigate to="/applications" replace />} />
+      <Route path="/products/:id" element={back ? <ProductFormPage /> : <Navigate to="/applications" replace />} />
+      <Route path="/users" element={back ? <UsersPage key={p.ID} /> : <Navigate to="/applications" replace />} />
+      <Route path="/integration" element={back ? <IntegrationPage key={p.ID} /> : <Navigate to="/applications" replace />} />
+      <Route path="*" element={<Navigate to="/applications" replace />} />
+    </Routes>
+  );
+  const themeBtn = (
+    <button type="button" className="ctl" title="თემა" aria-label="თემა" onClick={toggleTheme}>
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+      </svg>
+    </button>
+  );
+  const logoLink = (cls: string) => (
+    <Link className={cls} to="/applications" title="loans.ge">
+      <img src={logo} alt="" />
+      <b>
+        Loans<span>.ge</span>
+      </b>
+    </Link>
+  );
+
+  // not signed in: the login page under a plain header
+  if (!p)
+    return (
+      <>
+        <header>
+          <div className="wrap nav">
+            {logoLink('logo')}
+            <span className="tag">პარტნიორი</span>
+            {themeBtn}
+          </div>
+        </header>
+        <main className="wrap">
+          <Login />
+        </main>
+      </>
+    );
+
+  // signed in: the menu on the left (as in admin) — logo and fold on top, the sections, the organisation / user / bell / theme / logout at the bottom
   return (
-    <>
-      <header>
-        <div className="wrap nav">
-          <Link className="logo" to="/applications" title="loans.ge">
-            <img src={logo} alt="" />
-            <b>
-              Loans<span>.ge</span>
-            </b>
-          </Link>
-          <span className="tag">პარტნიორი</span>
-          {p && (
-            <div className="who">
-              {/* the organisation's logo (uploaded in admin), or the loans.ge logo */}
-              <span className="lg img">
-                <img src={org?.LogoPath ? `/fs/${org.LogoPath}` : '/fs/default/org-logo.png'} alt="" />
-              </span>
-              <span>
-                <b>{org?.NameKa}</b>
-                <small>
-                  {p.DisplayName} · {ROLES[p.Role]}
-                </small>
-              </span>
-              {me!.Profiles.length > 1 && (
-                <select aria-label="ორგანიზაცია" value={p.ID} onChange={(e) => switchTo(me!.Profiles.find((x) => x.ID === Number(e.target.value))!)}>
-                  {me!.Profiles.map((x) => (
-                    <option key={x.ID} value={x.ID}>
-                      {x.Organization.NameKa}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-          )}
-          {p && <Bell gateway="partner" onOpen={(n) => nav(n.ApplicationOrgID ? `/applications/${n.ApplicationOrgID}` : '/applications')} />}
-          <button type="button" className="ctl" title="თემა" aria-label="თემა" onClick={toggleTheme}>
+    <div className={`app${small ? ' sbc' : ''}`}>
+      <aside className="sb">
+        <div className="sb-head">
+          {logoLink('sb-logo')}
+          <button type="button" id="sbTg" title={small ? 'მენიუს გაშლა' : 'მენიუს შეკუმშვა'} aria-label={small ? 'მენიუს გაშლა' : 'მენიუს შეკუმშვა'} aria-expanded={!small} onClick={() => setSmall((v) => !v)}>
             <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="4" />
-              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+              <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />
             </svg>
           </button>
-          {p && (
+        </div>
+        <nav className="side" aria-label="განყოფილებები">
+          {MENU.filter((m) => back || !m.back).map((m) => (
+            <NavLink key={m.to} to={m.to} title={m.label} className={({ isActive }) => (isActive ? 'on' : '')}>
+              <svg viewBox="0 0 24 24">
+                <path d={m.icon} />
+              </svg>
+              <span className="lbl">{m.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+        <div className="sb-foot">
+          <div className="who" title={`${org?.NameKa ?? ''} — ${p.DisplayName} · ${ROLES[p.Role]}`}>
+            {/* the organisation's logo (uploaded in admin), or the loans.ge logo */}
+            <span className="lg img">
+              <img src={org?.LogoPath ? `/fs/${org.LogoPath}` : '/fs/default/org-logo.png'} alt="" />
+            </span>
+            <span className="lbl">
+              <b>{org?.NameKa}</b>
+              <small>
+                {p.DisplayName} · {ROLES[p.Role]}
+              </small>
+            </span>
+          </div>
+          {me!.Profiles.length > 1 && (
+            <select className="sb-org" aria-label="ორგანიზაცია" value={p.ID} onChange={(e) => switchTo(me!.Profiles.find((x) => x.ID === Number(e.target.value))!)}>
+              {me!.Profiles.map((x) => (
+                <option key={x.ID} value={x.ID}>
+                  {x.Organization.NameKa}
+                </option>
+              ))}
+            </select>
+          )}
+          <div className="sb-ctl">
+            <Bell gateway="partner" onOpen={(n) => nav(n.ApplicationOrgID ? `/applications/${n.ApplicationOrgID}` : '/applications')} />
+            {themeBtn}
             <button type="button" className="ctl" title="გასვლა" aria-label="გასვლა" onClick={logout}>
               <svg viewBox="0 0 24 24">
                 <path d="M10 17l5-5-5-5M15 12H3M21 3v18" />
               </svg>
             </button>
-          )}
+          </div>
         </div>
-      </header>
-      <main className="wrap">
-        {!p ? (
-          <Login />
-        ) : (
-          <section className="ws">
-            {back && (
-              <nav className="tabs">
-                {(
-                  [
-                    ['/applications', 'განაცხადები'],
-                    ['/products', 'პროდუქტები'],
-                    ['/users', 'მომხმარებლები'],
-                    ['/integration', 'ინტეგრაცია'],
-                  ] as const
-                ).map(([to, label]) => (
-                  <NavLink key={to} to={to} className={({ isActive }) => (isActive ? 'on' : '')}>
-                    {label}
-                  </NavLink>
-                ))}
-              </nav>
-            )}
-            <Routes>
-              <Route path="/applications" element={<AppsPage key={p.ID} />} />
-              <Route path="/applications/:id" element={<AppsPage key={p.ID} />} />
-              <Route path="/products" element={back ? <ProductsPage key={p.ID} /> : <Navigate to="/applications" replace />} />
-              <Route path="/products/:id" element={back ? <ProductFormPage /> : <Navigate to="/applications" replace />} />
-              <Route path="/users" element={back ? <UsersPage key={p.ID} /> : <Navigate to="/applications" replace />} />
-              <Route path="/integration" element={back ? <IntegrationPage key={p.ID} /> : <Navigate to="/applications" replace />} />
-              <Route path="*" element={<Navigate to="/applications" replace />} />
-            </Routes>
-          </section>
-        )}
+      </aside>
+      <main className="col">
+        <section className="ws">{routes}</section>
       </main>
-    </>
+    </div>
   );
 }
+
+/** The partner menu; sales see applications only. */
+const MENU: { to: string; label: string; icon: string; back?: boolean }[] = [
+  { to: '/applications', label: 'განაცხადები', icon: 'M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5' },
+  { to: '/products', label: 'პროდუქტები', icon: 'M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8', back: true },
+  { to: '/users', label: 'მომხმარებლები', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8', back: true },
+  { to: '/integration', label: 'ინტეგრაცია', icon: 'M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4', back: true },
+];
 
 /** Login: e-mail or mobile → one-time code (POST /public/auth/sendOtp → verifyOtp, gateway partner). */
 function Login() {

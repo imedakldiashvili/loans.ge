@@ -40,7 +40,7 @@
   .who .lg { width: 30px; height: 30px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
   .who b { font-weight: 600; } .who small { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
   .ctl { height: 36px; min-width: 36px; padding: 0 8px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--fg); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-  .ctl svg, .ib svg, .side button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .ctl svg, .ib svg, .side a svg, #sbTg svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tag { display: inline-block; background: var(--orange-soft); color: var(--orange); font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; letter-spacing: .3px; }
 
   /* Login */
@@ -119,6 +119,52 @@
   .f .chk { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
   @media (max-width: 640px) { .prow { grid-template-columns: 40px minmax(0, 1fr) 76px; } .prow .pmeta { grid-column: 2; justify-items: start; text-align: left; } .prow .racts.p { grid-column: 3; grid-row: 1; } .f .grid2 { grid-template-columns: 1fr; gap: 0; } }
 
+  /* Signed in: the menu on the left (as in admin). The logo and the fold above, the organisation / user / bell / theme / logout below stay; only the sections between them scroll. */
+  .app { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
+  .sb { position: sticky; top: 0; z-index: 20; height: 100vh; display: flex; flex-direction: column; gap: 14px; padding: 0 12px 14px; background: var(--bg); border-inline-end: 1px solid var(--line); }
+  .sb-head { position: relative; flex: none; }
+  .sb-logo { display: flex; align-items: center; gap: 8px; height: 71px; margin: 0 -12px; padding: 0 20px; border-bottom: 1px solid var(--line); color: var(--green); font-weight: 700; font-size: 20px; text-decoration: none; }
+  .sb-logo img { height: 36px; width: auto; } .sb-logo span { color: var(--orange); }
+  /* the fold: a small round button on the middle of the line under the logo */
+  #sbTg { position: absolute; left: 50%; bottom: 0; transform: translate(-50%, 50%); z-index: 2; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; padding: 0; background: var(--bg); color: var(--muted); border: 1.5px solid color-mix(in srgb, var(--muted) 45%, transparent); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  #sbTg:hover { color: var(--green); border-color: var(--green); }
+  #sbTg svg { width: 14px; height: 14px; transition: transform .2s; }
+  .side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; align-content: start; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; margin-inline: -12px; padding: 4px 2px 4px 12px; scrollbar-width: thin; scrollbar-gutter: stable; }
+  .side a { position: relative; display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; color: var(--fg); text-decoration: none; white-space: nowrap; }
+  .side a:hover { background: var(--bg-soft); }
+  .side a.on { background: var(--green-soft); color: var(--green); font-weight: 600; }
+  .side a.on::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--green); }
+  .side a svg { flex: none; }
+  .side .lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  /* the line above runs the whole width, like the one under the logo */
+  .sb-foot { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-inline: -12px; padding: 12px 12px 0; border-top: 1px solid var(--line); }
+  .sb-foot .who { margin-inline-start: 0; flex: 1 1 100%; min-width: 0; }
+  .sb-foot .who .lg { flex: none; }
+  .sb-foot .who .lbl { min-width: 0; } .sb-foot .who b, .sb-foot .who small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sb-org { width: 100%; font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--fg); }
+  .sb-ctl { display: flex; gap: 6px; }
+  /* the bell's list opens upwards, beside the menu */
+  .sb .bell-menu { top: auto; bottom: calc(100% + 8px); left: 0; right: auto; }
+  .col { min-width: 0; padding-inline: 24px; }
+  .col .ws { min-height: 0; }
+  /* folded: 64px, icons only */
+  @media (min-width: 901px) {
+    .app.sbc { grid-template-columns: 64px minmax(0, 1fr); }
+    .sbc .sb { padding-inline: 8px; } .sbc .sb-logo { justify-content: center; margin: 0 -8px; padding-inline: 0; } .sbc .sb-logo b { display: none; } .sbc #sbTg svg { transform: rotate(180deg); }
+    .sbc .side { margin-inline: 0; padding-inline: 0; overflow: visible; } .sbc .side a { justify-content: center; padding-inline: 0; } .sbc .side .lbl { display: none; }
+    .sbc .sb-foot { flex-direction: column; margin-inline: -8px; padding-inline: 8px; } .sbc .sb-foot .who { justify-content: center; flex: none; } .sbc .sb-foot .who .lbl, .sbc .sb-org { display: none; } .sbc .sb-ctl { flex-direction: column; }
+  }
+  /* narrow screens: the menu above the page */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .sb { position: static; height: auto; padding: 10px 12px; gap: 10px; border-inline-end: 0; border-bottom: 1px solid var(--line); }
+    #sbTg { display: none; } .sb-logo { height: auto; margin: 0; padding: 0 8px 8px; }
+    .side { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; overflow: visible; } .side a { padding: 8px 10px; font-size: 13px; } .side a.on::before { display: none; }
+    .sb-foot { margin: 0; padding: 10px 0 0; flex-wrap: nowrap; } .sb-foot .who { flex: 1; } .sb-org { width: auto; }
+    .sb .bell-menu { left: auto; right: 0; }
+    .col { padding-inline: 12px; }
+  }
+
   /* Workspace */
   .ws { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; align-content: start; padding-block: 22px; min-height: calc(100vh - 70px - env(safe-area-inset-top, 0px)); }
   .chips { display: flex; flex-wrap: nowrap; gap: 4px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; min-width: 0; }
@@ -129,13 +175,6 @@
   .chip .n { min-width: 22px; height: 20px; padding: 0 6px; display: grid; place-items: center; border-radius: 5px; background: var(--bg-soft); color: var(--fg); font-size: 12px; font-variant-numeric: tabular-nums; flex: none; }
   .chip.on { color: var(--on-accent); border-color: transparent; } .chip.on i { background: var(--on-accent) !important; } .chip.on .n { background: rgba(255,255,255,.22); color: var(--on-accent); }
   .chip:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
-  .side { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; position: sticky; top: 86px; }
-  .side button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: start; font-size: 13px; font-weight: 500; color: var(--fg); background: none; border: 0; padding: 9px 10px; border-radius: 6px; cursor: pointer; }
-  .side button:hover { background: var(--bg-soft); }
-  .side button.on { background: var(--green-soft); color: var(--green); font-weight: 600; }
-  .side button i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
-  .side button .n { margin-inline-start: auto; min-width: 24px; height: 22px; padding: 0 7px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); font-size: 12px; color: var(--fg); font-weight: 700; font-variant-numeric: tabular-nums; }
-  .side hr { border: 0; border-top: 1px solid var(--line); margin: 8px 0; }
   .main { min-width: 0; display: grid; gap: 16px; }
   .top { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; min-height: 42px; }
   .srow { display: flex; justify-content: flex-start; gap: 8px; flex-wrap: wrap; }
