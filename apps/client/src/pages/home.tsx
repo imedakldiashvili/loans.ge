@@ -32,13 +32,10 @@ export function QuickForm({ onSubmit, initial }: { onSubmit: (s: Start) => void;
   }, [initial]);
 
   const r = ranges.includes(range) ? range : ranges[Math.min(1, ranges.length - 1)] ?? 1000;
-  const min = Math.max(r, pt?.MinAmount ?? 0);
-  const max = Math.min(r * 10, pt?.MaxAmount ?? r * 10);
-  // the scale under the slider: from the product's min to its max (e.g. quick loan 1K+ → 1K … 3K, not 10K);
-  // a short one gets finer marks — at least 4 gaps (1K, 1.5K, … 3K; 100K, 110K, … 150K)
-  const tickStep = [r, r / 2, r / 5, r / 10].find((s) => (max - min) / s >= 4 && (max - min) % s === 0) ?? r / 10;
-  const ticks = Array.from({ length: Math.floor((max - min) / tickStep) + 1 }, (_, i) => min + i * tickStep);
-  if (ticks[ticks.length - 1] !== max) ticks.push(max);
+  // always the whole range, whatever the product: 100 → 1 000, 1 000 → 10 000, …
+  const min = r;
+  const max = r * 10;
+  const ticks = Array.from({ length: 10 }, (_, i) => r * (i + 1));
   const v = Math.min(Math.max(value, min), max);
   const p = max > min ? ((v - min) / (max - min)) * 100 : 0;
   const curs = currencies.length ? currencies : [{ ID: 0, Code: 'GEL', Symbol: '₾' }];
