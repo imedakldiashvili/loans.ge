@@ -146,16 +146,14 @@ export function App() {
           ))}
         </nav>
         <div className="sb-foot">
-          {/* the organisation's logo (uploaded in admin, or the loans.ge one); as in admin the name first, then the role and the organisation */}
+          {/* the organisation's logo (uploaded in admin, or the loans.ge one); as in admin the name first, then the role */}
           <div className="who" title={`${p.DisplayName} — ${ROLES[p.Role]} · ${org?.NameKa ?? ''}`}>
             <span className="lg img">
               <img src={org?.LogoPath ? `/fs/${org.LogoPath}` : '/fs/default/org-logo.png'} alt="" />
             </span>
             <span className="lbl">
               <b>{p.DisplayName}</b>
-              <small>
-                {ROLES[p.Role]} · {org?.NameKa}
-              </small>
+              <small>{ROLES[p.Role]}</small>
             </span>
           </div>
           {me!.Profiles.length > 1 && (
