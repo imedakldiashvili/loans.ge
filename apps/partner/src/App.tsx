@@ -77,6 +77,11 @@ export function App() {
   }, [p?.ID]);
   if (loading) return null;
   const org = p?.Organization;
+  const initials = (p?.DisplayName ?? '')
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2);
 
   const routes = p && (
     <Routes>
@@ -146,15 +151,13 @@ export function App() {
           ))}
         </nav>
         <div className="sb-foot">
-          <div className="who" title={`${org?.NameKa ?? ''} — ${p.DisplayName} · ${ROLES[p.Role]}`}>
-            {/* the organisation's logo (uploaded in admin), or the loans.ge logo */}
-            <span className="lg img">
-              <img src={org?.LogoPath ? `/fs/${org.LogoPath}` : '/fs/default/org-logo.png'} alt="" />
-            </span>
+          {/* as in admin: the user's initials, the name first, then the role and the organisation */}
+          <div className="who" title={`${p.DisplayName} — ${ROLES[p.Role]} · ${org?.NameKa ?? ''}`}>
+            <span className="lg">{initials}</span>
             <span className="lbl">
-              <b>{org?.NameKa}</b>
+              <b>{p.DisplayName}</b>
               <small>
-                {p.DisplayName} · {ROLES[p.Role]}
+                {ROLES[p.Role]} · {org?.NameKa}
               </small>
             </span>
           </div>
