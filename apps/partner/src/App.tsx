@@ -4,6 +4,7 @@ import { api, ApiError, Ref } from './api';
 import logo from './logo.png';
 import { AppsPage } from './pages/apps';
 import { IntegrationPage } from './pages/integration';
+import { MePage } from './pages/me';
 import { ProductFormPage, ProductsPage } from './pages/products';
 import { UsersPage } from './pages/users';
 import { chime, useTitleCounter } from './attention';
@@ -16,7 +17,7 @@ import { useToast } from './ui/ui';
 //   /applications (/applications/{id} — that record open) · /products (/products/new, /products/{id}) · /users · /integration.
 // Sales see applications only; the back-office addresses send them back there.
 
-function useTheme(): [boolean, () => void] {
+function useTheme(): [boolean, () => void, (d: boolean) => void] {
   const [dark, setDark] = useState(() => {
     try {
       return localStorage.getItem('theme') === 'dark';
@@ -33,12 +34,12 @@ function useTheme(): [boolean, () => void] {
       /* storage blocked */
     }
   }, [dark]);
-  return [dark, () => setDark((d) => !d)];
+  return [dark, () => setDark((d) => !d), setDark];
 }
 
 export function App() {
-  const { me, loading, logout, switchTo } = useSession();
-  const [, toggleTheme] = useTheme();
+  const { me, loading, logout } = useSession();
+  const [dark, toggleTheme, setDark] = useTheme();
   // the folded menu, remembered
   const [small, setSmall] = useState(() => {
     try {
@@ -86,6 +87,7 @@ export function App() {
       <Route path="/products/:id" element={back ? <ProductFormPage /> : <Navigate to="/applications" replace />} />
       <Route path="/users" element={back ? <UsersPage key={p.ID} /> : <Navigate to="/applications" replace />} />
       <Route path="/integration" element={back ? <IntegrationPage key={p.ID} /> : <Navigate to="/applications" replace />} />
+      <Route path="/me" element={<MePage dark={dark} setDark={setDark} />} />
       <Route path="*" element={<Navigate to="/applications" replace />} />
     </Routes>
   );
@@ -146,8 +148,8 @@ export function App() {
           ))}
         </nav>
         <div className="sb-foot">
-          {/* the organisation's logo (uploaded in admin, or the loans.ge one); as in admin the name first, then the role */}
-          <div className="who" title={`${p.DisplayName} — ${ROLES[p.Role]} · ${org?.NameKa ?? ''}`}>
+          {/* the user → my data (details, organisation, theme); the organisation's logo, the name, the role */}
+          <NavLink to="/me" className={({ isActive }) => `who${isActive ? ' on' : ''}`} title={`${p.DisplayName} — ჩემი მონაცემები (${org?.NameKa ?? ''})`}>
             <span className="lg img">
               <img src={org?.LogoPath ? `/fs/${org.LogoPath}` : '/fs/default/org-logo.png'} alt="" />
             </span>
@@ -155,19 +157,9 @@ export function App() {
               <b>{p.DisplayName}</b>
               <small>{ROLES[p.Role]}</small>
             </span>
-          </div>
-          {me!.Profiles.length > 1 && (
-            <select className="sb-org" aria-label="ორგანიზაცია" value={p.ID} onChange={(e) => switchTo(me!.Profiles.find((x) => x.ID === Number(e.target.value))!)}>
-              {me!.Profiles.map((x) => (
-                <option key={x.ID} value={x.ID}>
-                  {x.Organization.NameKa}
-                </option>
-              ))}
-            </select>
-          )}
+          </NavLink>
           <div className="sb-ctl">
             <Bell gateway="partner" onOpen={(n) => nav(n.ApplicationOrgID ? `/applications/${n.ApplicationOrgID}` : '/applications')} />
-            {themeBtn}
             <button type="button" className="ctl" title="გასვლა" aria-label="გასვლა" onClick={logout}>
               <svg viewBox="0 0 24 24">
                 <path d="M10 17l5-5-5-5M15 12H3M21 3v18" />

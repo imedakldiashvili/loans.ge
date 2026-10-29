@@ -5,6 +5,7 @@ import { AppsPage, ComparePage } from './pages/apps';
 import { LoginPage } from './pages/login';
 import { IntegrationPage } from './pages/integration';
 import { LogsPage } from './pages/logs';
+import { MePage } from './pages/me';
 import { MonitorPage } from './pages/monitor';
 import { OffersPage } from './pages/offers';
 import { OrgsPage } from './pages/orgs';
@@ -22,6 +23,7 @@ export function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/monitor" replace />} />
         <Route path="/monitor" element={<MonitorPage />} />
+        <Route path="/me" element={<MePage />} />
         <Route path="/apps" element={<AppsPage />} />
         <Route path="/apps/:id/:uid" element={<AppsPage />} />
         <Route path="/apps/:id/:uid/compare" element={<ComparePage />} />

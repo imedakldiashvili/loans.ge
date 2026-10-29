@@ -137,12 +137,20 @@
   .side a svg { flex: none; }
   .side .lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   /* the line above runs the whole width, like the one under the logo */
-  .sb-foot { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-inline: -12px; padding: 12px 12px 0; border-top: 1px solid var(--line); }
-  .sb-foot .who { margin-inline-start: 0; flex: 1 1 100%; min-width: 0; }
+  .sb-foot { flex: none; display: flex; align-items: center; gap: 8px; margin-inline: -12px; padding: 12px 12px 0; border-top: 1px solid var(--line); }
+  .sb-foot .who { margin-inline-start: 0; flex: 1; min-width: 0; padding: 4px 6px; margin-block: -4px; border-radius: 6px; text-decoration: none; }
+  .sb-foot .who:hover, .sb-foot .who.on { background: var(--green-soft); }
   .sb-foot .who .lg { flex: none; }
   .sb-foot .who .lbl { min-width: 0; } .sb-foot .who b, .sb-foot .who small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .sb-org { width: 100%; font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--fg); }
   .sb-ctl { display: flex; gap: 6px; }
+  /* my data */
+  .me-card { padding: 18px 20px; } .me-card .kv { grid-template-columns: 140px minmax(0, 1fr); align-items: center; gap: 12px 14px; font-size: 14px; }
+  .me-org { font: inherit; font-size: 14px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--fg); justify-self: start; min-width: 220px; }
+  .me-org-name { display: inline-flex; align-items: center; gap: 10px; } .me-org-name .lg { width: 30px; height: 30px; border-radius: 50%; flex: none; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; justify-self: start; }
+  .seg button { border: 0; background: var(--bg); color: var(--fg); padding: 7px 16px; font: inherit; font-size: 13px; cursor: pointer; } .seg button + button { border-inline-start: 1px solid var(--line); }
+  .seg button.on { background: var(--green); color: #fff; font-weight: 600; }
+  .seg button { display: grid; place-items: center; width: 44px; height: 36px; padding: 0; } .seg button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   /* the bell's list opens upwards, beside the menu */
   .sb .bell-menu { top: auto; bottom: calc(100% + 8px); left: 0; right: auto; }
   .col { min-width: 0; padding-inline: 24px; }
@@ -152,7 +160,7 @@
     .app.sbc { grid-template-columns: 64px minmax(0, 1fr); }
     .sbc .sb { padding-inline: 8px; } .sbc .sb-logo { justify-content: center; margin: 0 -8px; padding-inline: 0; } .sbc .sb-logo b { display: none; } .sbc #sbTg svg { transform: rotate(180deg); }
     .sbc .side { margin-inline: 0; padding-inline: 0; overflow: visible; } .sbc .side a { justify-content: center; padding-inline: 0; } .sbc .side .lbl { display: none; }
-    .sbc .sb-foot { flex-direction: column; margin-inline: -8px; padding-inline: 8px; } .sbc .sb-foot .who { justify-content: center; flex: none; } .sbc .sb-foot .who .lbl, .sbc .sb-org { display: none; } .sbc .sb-ctl { flex-direction: column; }
+    .sbc .sb-foot { flex-direction: column; margin-inline: -8px; padding-inline: 8px; } .sbc .sb-foot .who { justify-content: center; flex: none; } .sbc .sb-foot .who .lbl { display: none; } .sbc .sb-ctl { flex-direction: column; }
   }
   /* narrow screens: the menu above the page */
   @media (max-width: 900px) {
@@ -160,7 +168,7 @@
     .sb { position: static; height: auto; padding: 10px 12px; gap: 10px; border-inline-end: 0; border-bottom: 1px solid var(--line); }
     #sbTg { display: none; } .sb-logo { height: auto; margin: 0; padding: 0 8px 8px; }
     .side { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; overflow: visible; } .side a { padding: 8px 10px; font-size: 13px; } .side a.on::before { display: none; }
-    .sb-foot { margin: 0; padding: 10px 0 0; flex-wrap: nowrap; } .sb-foot .who { flex: 1; } .sb-org { width: auto; }
+    .sb-foot { margin: 0; padding: 10px 0 0; flex-wrap: nowrap; } .sb-foot .who { flex: 1; }
     .sb .bell-menu { left: auto; right: 0; }
     .col { padding-inline: 12px; }
   }

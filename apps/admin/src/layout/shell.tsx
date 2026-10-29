@@ -1,5 +1,5 @@
 import { useQueries } from '@tanstack/react-query';
-import { ReactNode, useEffect, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { crud } from '../api/client';
 import { useLiveEvents } from '../api/live';
@@ -26,13 +26,17 @@ const store = {
 };
 
 /** Light by default, dark by the header switch (remembered). */
-export function useTheme(): [string, () => void] {
+/** The theme for the pages (my data → theme); set by the shell. */
+const ThemeContext = createContext<[string, (t: 'light' | 'dark') => void]>(['light', () => undefined]);
+export const useThemeSetting = () => useContext(ThemeContext);
+
+export function useTheme(): [string, () => void, (t: 'light' | 'dark') => void] {
   const [theme, setTheme] = useState(() => (store.get('adminTheme') === 'dark' ? 'dark' : 'light'));
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     store.set('adminTheme', theme);
   }, [theme]);
-  return [theme, () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))];
+  return [theme, () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')), setTheme];
 }
 
 export const Logo = ({ className }: { className: string }) => (
@@ -55,7 +59,7 @@ function useMenuCounts() {
 
 export function Shell({ children }: { children: ReactNode }) {
   const { me, logout } = useAuth();
-  const [theme, toggleTheme] = useTheme();
+  const [theme, , setTheme] = useTheme();
   const loc = useLocation();
   const nav = useNavigate();
   const [small, setSmall] = useState(() => store.get('adminSb') === '1');
@@ -113,9 +117,9 @@ export function Shell({ children }: { children: ReactNode }) {
             );
           })}
         </nav>
-        {/* the user, theme and logout — at the very bottom of the menu */}
+        {/* the user (→ my data) and logout — at the very bottom of the menu */}
         <div className="sb-foot">
-          <div className="who" title={name}>
+          <button type="button" className={`who${loc.pathname === '/me' ? ' on' : ''}`} title={`${name} — ჩემი მონაცემები`} onClick={() => nav('/me')}>
             {/* the loans.ge logo — as the organisation's logo in partner */}
             <span className="lg img">
               <img src="/fs/default/org-logo.png" alt="" />
@@ -124,11 +128,8 @@ export function Shell({ children }: { children: ReactNode }) {
               <b>{name}</b>
               <small>{me?.Profile ? ADMIN_ROLES[me.Profile.Role] : ''}</small>
             </span>
-          </div>
+          </button>
           <div className="sb-ctl">
-            <button type="button" className="ctl" title="თემა" aria-label="თემა" onClick={toggleTheme}>
-              {theme === 'dark' ? <Icon.sun /> : <Icon.moon />}
-            </button>
             <button type="button" className="ctl danger" title="გასვლა" aria-label="გასვლა" onClick={logout}>
               <Icon.logout />
             </button>
@@ -138,7 +139,9 @@ export function Shell({ children }: { children: ReactNode }) {
       <div className="col">
         <main className="wrap">
           <section className="ws">
-            <div className="main">{children}</div>
+            <div className="main">
+              <ThemeContext.Provider value={[theme, setTheme]}>{children}</ThemeContext.Provider>
+            </div>
           </section>
         </main>
       </div>
