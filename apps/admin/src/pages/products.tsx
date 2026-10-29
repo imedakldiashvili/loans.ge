@@ -71,9 +71,7 @@ export function ProductsPage() {
           <tr>
             <th className="w3">კოდი</th>
             <th>პროდუქტის ტიპი</th>
-            <th className="num w3">მინ. თანხა</th>
-            <th className="num w4">მაქს. თანხა</th>
-            <th className="w4">ვადა</th>
+            <th className="w5">თანხები/ვადები</th>
             <th>სწრაფი ფორმის დიაპაზონები</th>
             <th className="num w1">ველი</th>
             <th className="num w3">ორგანიზაცია</th>
@@ -84,7 +82,7 @@ export function ProductsPage() {
         }
       >
         {rows.length === 0 ? (
-          <StateRow span={11} loading={q.isLoading} error={q.error?.message} />
+          <StateRow span={9} loading={q.isLoading} error={q.error?.message} />
         ) : (
           rows.map((p, i) => (
             <tr key={p.ID} className={p.IsEnable ? '' : 'inactive'}>
@@ -94,9 +92,13 @@ export function ProductsPage() {
               <td>
                 <BiView ka={p.NameKa} en={p.NameEn} />
               </td>
-              <td className="num">{fmt(p.MinAmount)} ₾</td>
-              <td className="num">{fmt(p.MaxAmount)} ₾</td>
-              <td style={{ whiteSpace: 'nowrap' }}>{p.NoTerm ? <span className="tag grey">უვადო</span> : `${p.MinMonths ?? 0}–${p.MaxMonths ?? 0} თვე`}</td>
+              {/* amounts above, terms below */}
+              <td style={{ whiteSpace: 'nowrap' }}>
+                <div>
+                  {fmt(p.MinAmount)}–{fmt(p.MaxAmount)} ₾
+                </div>
+                <div style={{ marginTop: 4 }}>{p.NoTerm ? <span className="tag grey">უვადო</span> : <small style={{ color: 'var(--muted)' }}>{`${p.MinMonths ?? 0}–${p.MaxMonths ?? 0} თვე`}</small>}</div>
+              </td>
               <td>
                 <div className="chips">
                   {RANGES.map((r) => (
