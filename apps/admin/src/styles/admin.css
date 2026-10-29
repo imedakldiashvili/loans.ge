@@ -86,7 +86,7 @@
   /* შეკუმშული მენიუ (დესკტოპზე): 64px, მხოლოდ ხატულები, ქვემენიუები დამალული */
   @media (min-width: 901px) {
     .app.in.sbc { grid-template-columns: 64px minmax(0, 1fr); }
-    .sbc .sb { padding-inline: 8px; } .sbc .sb-logo { justify-content: center; margin: 0 -8px; padding-inline: 0; } .sbc .sb-logo b { display: none; } .sbc #sbTg svg { transform: rotate(180deg); }
+    .sbc .sb { padding-inline: 8px; } .sbc .sb-logo { margin: 0 -8px; padding: 0 0 0 20px; }   /* the logo stays where it is when the menu folds */ .sbc .sb-logo b { display: none; } .sbc #sbTg svg { transform: rotate(180deg); }
     .sbc .side button { justify-content: center; padding-inline: 0; gap: 0; } .sbc .side .lbl, .sbc .side .chev, .sbc .side .n, .sbc .side .sub { display: none !important; }
     .sbc .sb { overflow: visible; } .sbc .side { overflow: visible; margin-inline: 0; padding-inline: 0; } .sbc .side .grpw { position: relative; }
     /* შეკუმშულზე hover → ქვემენიუ გვერდით ამოდის */
