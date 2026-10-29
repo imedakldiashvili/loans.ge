@@ -139,7 +139,6 @@
   /* the line above runs the whole width, like the one under the logo */
   .sb-foot { flex: none; display: flex; align-items: center; gap: 8px; margin-inline: -12px; padding: 12px 12px 0; border-top: 1px solid var(--line); }
   .sb-foot .who { margin-inline-start: 0; flex: 1; min-width: 0; padding: 4px 6px; margin-block: -4px; border-radius: 6px; text-decoration: none; }
-  .sb-foot .who:hover, .sb-foot .who.on { background: var(--green-soft); }
   .sb-foot .who .lg { flex: none; }
   .sb-foot .who .lbl { min-width: 0; } .sb-foot .who b, .sb-foot .who small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .sb-ctl { display: flex; gap: 6px; }

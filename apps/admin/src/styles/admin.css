@@ -104,7 +104,6 @@
   .sb-foot .who .lg { flex: none; }
   /* the user opens my data */
   .sb-foot button.who { background: none; border: 0; padding: 4px 6px; margin: -4px 0; border-radius: 6px; font: inherit; text-align: start; cursor: pointer; }
-  .sb-foot button.who:hover, .sb-foot button.who.on { background: var(--green-soft); }
   .me-panel, .app.in .main > .me-panel { flex: none; min-height: 0; padding: 18px 20px; margin-bottom: 14px; } .me-panel .kv { grid-template-columns: 140px minmax(0, 1fr); align-items: center; gap: 12px 14px; }
   .app.in .col > main.wrap { width: 100%; box-sizing: border-box; }   /* full width also on pages without a wide table (my data) */
   .me-out svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
