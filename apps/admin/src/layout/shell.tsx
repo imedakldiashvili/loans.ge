@@ -138,12 +138,6 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       </aside>
       <div className="col">
-        <header>
-          <div className="wrap nav">
-            <Logo className="logo" />
-            <span className="tag">ადმინი</span>
-          </div>
-        </header>
         <main className="wrap">
           <section className="ws">
             <div className="main">{children}</div>
