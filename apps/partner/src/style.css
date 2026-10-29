@@ -123,7 +123,7 @@
   .app { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
   .sb { position: sticky; top: 0; z-index: 20; height: 100vh; display: flex; flex-direction: column; gap: 14px; padding: 0 12px 14px; background: var(--bg); border-inline-end: 1px solid var(--line); }
   .sb-head { position: relative; flex: none; }
-  .sb-logo { display: flex; align-items: center; gap: 8px; height: 71px; margin: 0 -12px; padding: 0 20px; border-bottom: 1px solid var(--line); color: var(--green); font-weight: 700; font-size: 20px; text-decoration: none; }
+  .sb-logo { display: flex; align-items: center; gap: 8px; height: 71px; margin: 0 -12px; padding: 0 20px 0 12px; border-bottom: 1px solid var(--line); color: var(--green); font-weight: 700; font-size: 20px; text-decoration: none; }
   .sb-logo img { height: 36px; width: auto; } .sb-logo span { color: var(--orange); }
   /* the fold: a small round button on the middle of the line under the logo */
   #sbTg { position: absolute; left: 50%; bottom: 0; transform: translate(-50%, 50%); z-index: 2; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; padding: 0; background: var(--bg); color: var(--muted); border: 1.5px solid color-mix(in srgb, var(--muted) 45%, transparent); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
@@ -159,7 +159,7 @@
   /* folded: 64px, icons only */
   @media (min-width: 901px) {
     .app.sbc { grid-template-columns: 64px minmax(0, 1fr); }
-    .sbc .sb { padding-inline: 8px; } .sbc .sb-logo { margin: 0 -8px; padding: 0 0 0 20px; }   /* the logo stays where it is when the menu folds */ .sbc .sb-logo b { display: none; } .sbc #sbTg svg { transform: rotate(180deg); }
+    .sbc .sb { padding-inline: 8px; } .sbc .sb-logo { margin: 0 -8px; padding: 0 0 0 12px; }   /* the logo stays where it is when the menu folds */ .sbc .sb-logo b { display: none; } .sbc #sbTg svg { transform: rotate(180deg); }
     .sbc .side { margin-inline: 0; padding-inline: 0; overflow: visible; } .sbc .side a { justify-content: center; padding-inline: 0; } .sbc .side .lbl { display: none; }
     .sbc .sb-foot { flex-direction: column; margin-inline: -8px; padding-inline: 8px; } .sbc .sb-foot .who { justify-content: center; flex: none; } .sbc .sb-foot .who .lbl { display: none; } .sbc .sb-ctl { flex-direction: column; }
   }
