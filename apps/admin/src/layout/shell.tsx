@@ -78,7 +78,13 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className={`app in ${small ? 'sbc' : ''}`}>
       <aside className="sb">
-        <Logo className="sb-logo" />
+        <div className="sb-head">
+          <Logo className="sb-logo" />
+          {/* folds the menu — sits in the middle of the line under the logo */}
+          <button type="button" id="sbTg" title={small ? 'მენიუს გაშლა' : 'მენიუს შეკუმშვა'} aria-label={small ? 'მენიუს გაშლა' : 'მენიუს შეკუმშვა'} aria-expanded={!small} onClick={() => setSmall((s) => !s)}>
+            <Icon.collapse />
+          </button>
+        </div>
         <nav className="side" aria-label="განყოფილებები">
           {MENU.map((g) => {
             const isOpen = open === g.key;
@@ -117,9 +123,6 @@ export function Shell({ children }: { children: ReactNode }) {
         <header>
           <div className="wrap nav">
             <Logo className="logo" />
-            <button type="button" className="ctl" title="მენიუს შეკუმშვა" aria-label="მენიუს შეკუმშვა" onClick={() => setSmall((s) => !s)}>
-              <Icon.collapse />
-            </button>
             <span className="tag">ადმინი</span>
             <div className="who">
               <span className="lg">{initials}</span>
