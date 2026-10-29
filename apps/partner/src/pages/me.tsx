@@ -2,7 +2,7 @@ import { ROLES, useSession } from '../session';
 
 /** My data: the signed-in user's own details, the organisation (switch, when there are several) and the theme — opened from the user at the bottom of the menu. */
 export function MePage({ dark, setDark }: { dark: boolean; setDark: (d: boolean) => void }) {
-  const { me, switchTo } = useSession();
+  const { me, switchTo, logout } = useSession();
   const p = me?.Profile;
   const u = me?.User;
   if (!p || !u) return null;
@@ -11,6 +11,13 @@ export function MePage({ dark, setDark }: { dark: boolean; setDark: (d: boolean)
     <div className="main">
       <div className="top">
         <h2>ჩემი მონაცემები</h2>
+        {/* logout — top right */}
+        <button type="button" className="btn btn-red me-out" onClick={() => void logout()}>
+          <svg viewBox="0 0 24 24">
+            <path d="M10 17l5-5-5-5M15 12H3M21 3v18" />
+          </svg>
+          გასვლა
+        </button>
       </div>
       <div className="card me-card">
         <div className="kv">

@@ -147,6 +147,7 @@
   .me-card { padding: 18px 20px; } .me-card .kv { grid-template-columns: 140px minmax(0, 1fr); align-items: center; gap: 12px 14px; font-size: 14px; }
   .me-org { font: inherit; font-size: 14px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--fg); justify-self: start; min-width: 220px; }
   .me-org-name { display: inline-flex; align-items: center; gap: 10px; } .me-org-name .lg { width: 30px; height: 30px; border-radius: 50%; flex: none; }
+  .me-out svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; justify-self: start; }
   .seg button { border: 0; background: var(--bg); color: var(--fg); padding: 7px 16px; font: inherit; font-size: 13px; cursor: pointer; } .seg button + button { border-inline-start: 1px solid var(--line); }
   .seg button.on { background: var(--green); color: #fff; font-weight: 600; }
