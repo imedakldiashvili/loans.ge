@@ -341,12 +341,12 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             <button
               type="button"
               className={`recv-offers${waiting ? ' wait' : ''}${received ? '' : ' none'}`}
-              title={t(waiting ? 'პასუხს ელოდება' : 'მიღებული შეთავაზებები')}
+              title={t(waiting ? 'პასუხს ელოდება' : 'შეთავაზებები')}
               disabled={!received}
               onClick={onCompare}
             >
               {I.compare}
-              <span>{t('მიღებული შეთავაზებები')}</span>
+              <span>{t('შეთავაზებები')}</span>
               <b>{received}</b>
             </button>
           </span>
