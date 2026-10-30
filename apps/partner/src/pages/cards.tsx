@@ -4,10 +4,11 @@ import { crud } from '../api';
 import { curSym, EditIcon, Modal, Switch, useToast } from '../ui/ui';
 import { CardDialog, CardInfo, CardRow, errText, Product, useProducts } from './products';
 
-// Offer templates (back office): every offer card of the organisation's products in one list — the terms a sales
-// manager picks when sending an offer. Add / edit / switch on-off / delete; the same cards the product page shows.
+// Product cards (back office): every card of the organisation's products in one list. A card = an offer — its terms by
+// offer type and currency, several on different amount ranges; a sales manager picks one when sending an offer.
+// Add / edit / switch on-off / delete; the same cards the product page shows.
 
-export function TemplatesPage() {
+export function CardsPage() {
   const q = useProducts();
   const qc = useQueryClient();
   const toast = useToast();
@@ -25,10 +26,10 @@ export function TemplatesPage() {
   return (
     <div className="main">
       <div className="top">
-        <h2>შეთავაზებების შაბლონები</h2>
+        <h2>პროდუქტის ბარათები</h2>
         <span className="count">{rows.length}</span>
         <button type="button" className="btn btn-green topbtn" disabled={!products.length} onClick={() => setPick(true)}>
-          + შაბლონი
+          + ბარათი
         </button>
       </div>
       <div className="srow">
@@ -50,7 +51,7 @@ export function TemplatesPage() {
         </select>
       </div>
       <div className="list">
-        {!rows.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'შაბლონი არ არის'}</div>}
+        {!rows.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'ბარათი არ არის'}</div>}
         {rows.map(({ p, k }) => (
           <div key={k.ID} className="card">
             <div className="prow">
@@ -73,7 +74,7 @@ export function TemplatesPage() {
                   onChange={async (v) => {
                     try {
                       await crud('partner', 'card').enable(k, v);
-                      toast(v ? 'შაბლონი ჩაირთო' : 'შაბლონი გამოირთო');
+                      toast(v ? 'ბარათი ჩაირთო' : 'ბარათი გამოირთო');
                       refresh();
                     } catch (e) {
                       toast(errText(e));
@@ -94,13 +95,13 @@ export function TemplatesPage() {
   );
 }
 
-/** A new template: first its product and currency (the product's currencies), then the card form. */
+/** A new card: first its product and currency (the product's currencies), then the card form. */
 function PickProduct({ products, onClose, onPick }: { products: Product[]; onClose: () => void; onPick: (p: Product, cur: string) => void }) {
   const [pid, setPid] = useState(products[0]?.ID ?? 0);
   const p = products.find((x) => x.ID === pid);
   const [cur, setCur] = useState(p?.Currencies[0] ?? '');
   return (
-    <Modal title="ახალი შაბლონი" onClose={onClose}>
+    <Modal title="ახალი ბარათი" onClose={onClose}>
       <div className="form f main-form">
         <div className="fld">
           <label htmlFor="tProd">პროდუქტი</label>
