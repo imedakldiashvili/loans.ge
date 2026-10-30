@@ -452,8 +452,10 @@
   .cab-card { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
   .cab-sum { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; width: 100%; text-align: start; font: inherit; background: none; border: 0; padding: 16px 18px; cursor: pointer; color: inherit; }
   .cab-sum:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
-  .cab-toggle svg { width: 16px; height: 16px; transition: transform .2s; }   /* expand: an icon beside the amount (.cab-ico) */
-  .amt-row { display: inline-flex; align-items: center; gap: 10px; }
+  /* the right column: amount + offers received, the expand to their right (vertically centred, no frame / background) */
+  .cab-right-col { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .cab-toggle { width: 28px; height: 28px; display: grid; place-items: center; border: 0; background: none; padding: 0; color: var(--muted); cursor: pointer; } .cab-toggle:hover { color: var(--green); } .cab-toggle:focus-visible { outline: 2px solid var(--orange); border-radius: 4px; }
+  .cab-toggle svg { width: 18px; height: 18px; transition: transform .2s; }
   /* the offers received: under the amount; filled green while an answer is awaited, outlined after */
   .recv-offers { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px 0 10px; border: 1px solid var(--green); border-radius: 6px; background: var(--bg); color: var(--green); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .recv-offers svg { width: 15px; height: 15px; } .recv-offers b { min-width: 20px; height: 20px; padding: 0 5px; display: inline-grid; place-items: center; border-radius: 4px; background: var(--green-soft); color: var(--green); font-size: 12px; }
@@ -796,7 +798,7 @@
   .st-counts .tot { color: var(--fg); border: 1px solid var(--muted); background: var(--bg-soft); }   /* the total: as large as the others, a visible frame */
   /* the counts of the expanded part's status groups: the same coloured badges */
   .cab-det-group .cnt[style] { color: var(--c); border-color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); }
-  .cab-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; padding-inline-end: 14px; }
+  .cab-right { display: flex; align-items: center; gap: 10px; flex: none; padding-inline-end: 14px; }
   /* the application icon's colour = its state: in progress (orange), done (green), cancelled (grey) */
   .cab-card .ico.st-on { background: var(--orange-soft); color: var(--orange); } .cab-card .ico.st-done { background: var(--green-soft); color: var(--green); } .cab-card .ico.st-off { background: var(--bg-soft); color: var(--muted); }
   /* checkboxes (active / done): a square box with a tick */

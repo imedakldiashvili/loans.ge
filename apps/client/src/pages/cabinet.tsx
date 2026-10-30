@@ -333,22 +333,22 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             </small>
           </span>
         </button>
+        {/* the amount and, under it, the offers received; the expand to their right, in the middle */}
         <div className="cab-right">
-          {/* the amount, and beside it the expand */}
-          <span className="amt-row">
+          <span className="cab-right-col">
             <i className="amt">{money(a.Amount, a.Currency)}</i>
-            <button type="button" className="cab-ico cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
-              <Chevron />
-            </button>
+            {/* the offers that came in — stays once there is one; filled while an answer is awaited */}
+            {received > 0 && (
+              <button type="button" className={`recv-offers${waiting ? ' wait' : ''}`} title={t(waiting ? 'პასუხს ელოდება' : 'მიღებული შეთავაზებები')} onClick={onCompare}>
+                {I.compare}
+                <span>{t('მიღებული შეთავაზებები')}</span>
+                <b>{received}</b>
+              </button>
+            )}
           </span>
-          {/* the offers that came in — stays once there is one; filled while an answer is awaited */}
-          {received > 0 && (
-            <button type="button" className={`recv-offers${waiting ? ' wait' : ''}`} title={t(waiting ? 'პასუხს ელოდება' : 'მიღებული შეთავაზებები')} onClick={onCompare}>
-              {I.compare}
-              <span>{t('მიღებული შეთავაზებები')}</span>
-              <b>{received}</b>
-            </button>
-          )}
+          <button type="button" className="cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
+            <Chevron />
+          </button>
         </div>
       </div>
       {open && (
