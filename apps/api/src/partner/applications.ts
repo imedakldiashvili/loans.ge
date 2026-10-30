@@ -36,6 +36,9 @@ export const findBody = z.preprocess(
         to: z.coerce.date().optional(),
         cityId: z.coerce.bigint().optional(),
         districtId: z.coerce.bigint().optional(),
+        /** back office: the staff member who took it; `free` — nobody took it yet */
+        assignedToId: z.coerce.bigint().optional(),
+        free: z.boolean().optional(),
       }),
     ),
   }),
@@ -98,6 +101,8 @@ export class PartnerApplicationService {
     const scoped: Prisma.ApplicationOrgWhereInput = {
       ...base,
       ...(f.id ? { id: f.id } : {}),
+      // who took it — back office only (a sales manager sees their own and the free ones anyway)
+      ...(!ctx().sales && f.assignedToId ? { assignedToId: f.assignedToId } : !ctx().sales && f.free ? { assignedToId: null } : {}),
       application: {
         ...app,
         ...(f.from || f.to ? { createdOn: { ...(f.from ? { gte: f.from } : {}), ...(f.to ? { lte: f.to } : {}) } } : {}),

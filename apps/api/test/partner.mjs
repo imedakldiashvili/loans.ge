@@ -114,6 +114,13 @@ if (free) {
 // ── back office: catalogue and staff
 forget('partner');
 await login('partner', 'office@7.ge');
+// back office filters the applications by who took them (or the free ones)
+const allBack = (await find('application', { Filter: {} })).json.Data.Items;
+const taker = allBack.find((x) => x.AssignedTo)?.AssignedTo;
+const byTaker = (await find('application', { Filter: { AssignedToID: taker.ID } })).json.Data;
+ok(byTaker.TotalCount > 0 && byTaker.Items.every((x) => x.AssignedTo?.ID === taker.ID), 'back: filter by the staff member who took them', byTaker.TotalCount);
+const freeOnes = (await find('application', { Filter: { Free: true } })).json.Data;
+ok(freeOnes.Items.every((x) => !x.AssignedTo) && freeOnes.TotalCount + allBack.filter((x) => x.AssignedTo).length === allBack.length, 'back: filter the free ones (nobody took them)');
 const pts = await prisma.productType.findMany();
 const mortgage = pts.find((p) => p.code === 'mortgage_loan'); // მისო A does not have it yet
 const consumer = pts.find((p) => p.code === 'consumer_loan');

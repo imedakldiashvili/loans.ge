@@ -116,6 +116,10 @@ export function AppsPage() {
   const [search, setSearch] = useState('');
   const [city, setCity] = useState('all');
   const [time, setTime] = useState<keyof typeof TIMES | 'all'>('24h');
+  // back office: whose records — a staff member, or the free ones (nobody took them)
+  const back = me?.Profile?.Role === 'back';
+  const [who, setWho] = useState('');
+  const staff = useQuery({ queryKey: ['staff'], queryFn: () => findAll<{ ID: number; DisplayName: string }>('partner', 'staff'), enabled: back });
   const [view, setView] = useState<Set<string> | null>(null);
   const [page, setPage] = useState(1);
   const [size, setSize] = usePageSize();
@@ -135,9 +139,10 @@ export function AppsPage() {
       Statuses: [...shown],
       ...(time !== 'all' ? { From: new Date(Date.now() - TIMES[time] * 864e5).toISOString() } : {}),
       ...(t === 'c' ? { CityID: Number(v) } : t === 'd' ? { CityID: Number(v.split('|')[0]), DistrictID: Number(v.split('|')[1]) } : {}),
+      ...(back && who === 'free' ? { Free: true } : back && who ? { AssignedToID: Number(who) } : {}),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, city, time, [...shown].join()]);
+  }, [search, city, time, who, back, [...shown].join()]);
   useEffect(() => {
     // a filter change closes the open record (not on the first render — it may come from the address)
     if (!refs.statuses.length) return; // the default status filter is not known yet
@@ -215,6 +220,18 @@ export function AppsPage() {
           <option value="7d">ბოლო კვირა</option>
           <option value="30d">ბოლო თვე</option>
         </select>
+        {back && (
+          <select className="fsel" aria-label="თანამშრომელი" value={who} onChange={(e) => setWho(e.target.value)}>
+            <option value="">აირჩიე თანამშრომელი</option>
+            <option value="free">არავის აუღია</option>
+            {(staff.data ?? []).map((u) => (
+              <option key={u.ID} value={u.ID}>
+                {u.DisplayName}
+                {u.ID === me?.Profile?.ID ? ' (შენ)' : ''}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
       <div className="chips">
         {mainKeys.map((k) => {
