@@ -194,7 +194,7 @@ export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, 
   return (
     <Modal onClose={onLater ?? onClose} labelledBy="pinSetTitle" className="pin-box">
       <h3 id="pinSetTitle">{t(title ?? (isSet ? 'PIN-ის შეცვლა' : 'PIN-ის დაყენება'))}</h3>
-      <p>{t(intro ?? 'PIN-ით შეხვალ ელ. ფოსტით ან მობილურით, კოდის გარეშე.')}</p>
+      <p>{t(intro ?? 'PIN-ით შეხვალ ელ. ფოსტით, კოდის გარეშე.')}</p>
       <div className="pin-form">
         <b className="pin-step">{t(label)}</b>
         {step === 'current' && <PinPad key="current" value={cur} onChange={setCur} length={curLen} label={t(label)} onEnter={() => void checkCurrent()} />}

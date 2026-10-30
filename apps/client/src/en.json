@@ -288,7 +288,7 @@
  "PIN-ის დაყენება": "Set a PIN",
  "PIN დაყენებულია": "PIN set on",
  "წავშალოთ PIN-კოდი?": "Remove the PIN?",
- "PIN-ით შეხვალ ელ. ფოსტით ან მობილურით, კოდის გარეშე. 4–6 ციფრი.": "Sign in with your e-mail or mobile and the PIN, no code. 4–6 digits.",
+ "PIN-ით შეხვალ ელ. ფოსტით, კოდის გარეშე.": "Sign in with your e-mail and the PIN, no code.",
  "ახალი PIN": "New PIN",
  "გაიმეორე": "Repeat",
  "PIN-ები არ ემთხვევა": "The PINs do not match",

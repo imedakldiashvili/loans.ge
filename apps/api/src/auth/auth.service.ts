@@ -39,6 +39,13 @@ export const parseLogin = (login: string): { channel: 'email' | 'sms'; target: s
   return { channel: 'sms', target: phone };
 };
 
+/** Signing in (every gateway — code or PIN) is by e-mail only; a mobile number is refused. */
+export const parseEmailLogin = (login: string) => {
+  const parsed = parseLogin(login);
+  if (parsed.channel !== 'email') throw new AppError('VALIDATION_ERROR', 'შესვლა მხოლოდ ელ.ფოსტით', [{ field: 'Login', message: 'შეიყვანე ელ.ფოსტა' }]);
+  return parsed;
+};
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -63,12 +70,11 @@ export class AuthService {
     });
   }
 
-  /** Step 1: send a code. Admin / partner accounts must exist and log in by email only; a client account is created on first login. */
+  /** Step 1: send a code (to an e-mail — the only login). Admin / partner accounts must exist; a client account is created on first login. */
   async sendOtp(body: unknown) {
     const { gateway, login } = parse(loginSchema, body);
-    const { channel, target } = parseLogin(login);
+    const { channel, target } = parseEmailLogin(login);
     if (gateway !== 'client') {
-      if (channel !== 'email') throw new AppError('VALIDATION_ERROR', 'შესვლა მხოლოდ ელ.ფოსტით', [{ field: 'Login', message: 'შეიყვანე ელ.ფოსტა' }]);
       const user = await this.findUser(channel, target);
       if (!user) throw notFound('ანგარიში');
       if (!user.isEnable) throw new AppError('FORBIDDEN', 'ანგარიში გამორთულია');

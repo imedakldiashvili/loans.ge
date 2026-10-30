@@ -7,7 +7,7 @@ import { parse } from '../core/crud';
 import { AppError, validation } from '../core/errors';
 import { PrismaService } from '../core/prisma.service';
 import { currentContext } from '../core/request-context';
-import { AuthService, parseLogin } from './auth.service';
+import { AuthService, parseEmailLogin } from './auth.service';
 import { AuthedRequest, sessionCookie, userAuth } from './auth.types';
 import { OtpService } from './otp.service';
 import { SessionService } from './session.service';
@@ -131,10 +131,10 @@ export class PinService {
     return this.status(userId);
   }
 
-  /** PIN or code for this login (e-mail / mobile): a PIN only when the customer has set one. */
+  /** PIN or code for this login (an e-mail): a PIN only when the customer has set one. */
   async method(body: unknown) {
     const { login } = parse(z.object({ login: z.string().trim().min(3) }), body);
-    const { channel, target } = parseLogin(login);
+    const { channel, target } = parseEmailLogin(login);
     const user = await this.prisma.user.findFirst({ where: { isDeleted: false, isEnable: true, ...(channel === 'email' ? { email: target } : { phone: target }) }, select: { pinHash: true, pinLength: true } });
     // the keypad shows as many places as this user's PIN has
     return { pin: !!user?.pinHash, length: user?.pinHash ? (user.pinLength ?? DEFAULT_LENGTH) : null };
@@ -142,7 +142,7 @@ export class PinService {
 
   async login(body: unknown, meta: { ip?: string; userAgent?: string }) {
     const d = parse(loginBody, body);
-    const { channel, target } = parseLogin(d.login);
+    const { channel, target } = parseEmailLogin(d.login);
     const user = await this.prisma.user.findFirst({ where: { isDeleted: false, ...(channel === 'email' ? { email: target } : { phone: target }) } });
     const now = new Date();
     if (user?.pinLockedUntil && user.pinLockedUntil > now) {
