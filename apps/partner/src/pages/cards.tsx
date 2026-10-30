@@ -119,30 +119,37 @@ export function CardFormPage() {
   };
 
   if (!isNew && !Number(id)) return <Navigate to="/cards" replace />;
-  const head = (title: string) => (
+  // ‹ უკან, then the title, save on the right (it submits the card form)
+  const head = (sub: string, save = false) => (
     <div className="top pf">
       <button type="button" className="btn btn-ghost" onClick={back}>
         ‹ უკან
       </button>
-      <h2>{title}</h2>
+      <h2>
+        პროდუქტის ბარათები <small className="muted">- {sub}</small>
+      </h2>
+      {save && (
+        <button type="submit" form="cardf" className="btn btn-green">
+          შენახვა
+        </button>
+      )}
     </div>
   );
   if (!p || (!isNew && !own))
     return (
       <div className="main">
-        {head('ბარათი')}
+        {head(isNew ? 'ახალი ბარათი' : 'ბარათი')}
         <div className="empty">{q.isLoading ? 'იტვირთება…' : isNew ? 'პროდუქტი არ არის - პროდუქტებს ადმინისტრატორი ამატებს' : 'ბარათი ვერ მოიძებნა'}</div>
       </div>
     );
   return (
     <div className="main">
-      {head(isNew ? 'ახალი ბარათი' : 'ბარათის რედაქტირება')}
+      {head(isNew ? 'ახალი ბარათი' : 'რედაქტირება', true)}
       <CardForm
         key={`${p.ID}|${c}|${id}`}
         p={p}
         cur={c}
         k={own?.k ?? null}
-        onClose={back}
         onSaved={back}
         head={
           <>

@@ -120,7 +120,7 @@
   @media (max-width: 640px) { .prow.pr4 { grid-template-columns: 40px minmax(0, 1fr) 40px; } .prow.pr4 .pmeta { grid-column: 2; justify-items: start; text-align: left; } .prow.pr4 .racts.p { grid-column: 2; grid-row: 3; justify-self: start; } .prow.pr4 .tg { grid-column: 3; grid-row: 1; } .det.cards { padding-left: 16px; } .crow { grid-template-columns: minmax(0, 1fr) auto; } .crow .racts.p { grid-column: 1 / -1; justify-self: start; } }
   .ib.edit { color: var(--fg); } .ib.edit:hover { border-color: var(--green); color: var(--green); }
   .topbtn { justify-self: end; }
-  .top.pf { grid-template-columns: auto 1fr; } .top.pf h2 { justify-self: end; text-align: right; }   /* ქვეგვერდებზე: ‹ უკან მარცხნივ, სათაური მარჯვნივ */
+  .top.pf { grid-template-columns: auto 1fr auto; } .top.pf h2 { justify-self: start; text-align: left; } .top.pf h2 small { font-size: 14px; font-weight: 400; }   /* ქვეგვერდებზე: ‹ უკან, მის შემდეგ სათაური, შენახვა მარჯვნივ */
   .f .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .f .fld { margin-bottom: 12px; } .f textarea { width: 100%; font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--fg); min-height: 64px; resize: vertical; }
   .f .chk { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
   @media (max-width: 640px) { .prow { grid-template-columns: 40px minmax(0, 1fr) 76px; } .prow .pmeta { grid-column: 2; justify-items: start; text-align: left; } .prow .racts.p { grid-column: 3; grid-row: 1; } .f .grid2 { grid-template-columns: 1fr; gap: 0; } }

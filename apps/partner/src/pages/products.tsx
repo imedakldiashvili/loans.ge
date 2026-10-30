@@ -8,7 +8,9 @@ import { Chevron, curSym, EditIcon, ErrorLine, fmt, Switch, useToast } from '../
 // Products of the organisation (prototype partner.html renderProducts / productEditPage / cardFields).
 // Product = product type (admin list) + currencies; offer types ("cards") per currency, values follow the type's field schema.
 
-type Val = number | string | boolean | null;
+/** pctMin: { Pct, Min } — a percentage with a minimum amount, e.g. 2% (min. 10 ₾) */
+type PctMin = { Pct: number | null; Min: number | null };
+type Val = number | string | boolean | PctMin | null;
 export interface CardRow {
   ID: number;
   UID: string;
@@ -158,6 +160,10 @@ export function CardInfo({ p, k }: { p: Product; k: CardRow }) {
     .filter((f) => !BASE.includes(f.Key))
     .map((f) => {
       const x = k.Values[pk(f.Key)] ?? f.DefaultValue;
+      if (f.Kind === 'pctMin') {
+        const o = (x && typeof x === 'object' ? x : null) as PctMin | null;
+        return `${f.LabelKa.replace(/,.*$/, '')}: ${o?.Pct !== null && o?.Pct !== undefined ? `${o.Pct}%${o.Min ? ` (მინ. ${fmt(o.Min)} ${cur})` : ''}` : '-'}`;
+      }
       return f.Kind === 'bool' ? (x ? f.LabelKa : '') : `${f.LabelKa.replace(/,.*$/, '')}: ${f.Kind === 'money' ? `${fmt(Number(x))} ${cur}` : x ?? '-'}`;
     })
     .filter(Boolean)
@@ -243,10 +249,22 @@ function ProductForm({ id, onBack }: { id: number; onBack: () => void }) {
         <button type="button" className="btn btn-ghost" onClick={onBack}>
           ‹ უკან
         </button>
-        <h2>პროდუქტის რედაქტირება</h2>
+        <h2>
+          პროდუქტები <small className="muted">- {p.ProductType.NameKa}</small>
+        </h2>
+        <button type="submit" form="prodf" className="btn btn-green" disabled={busy}>
+          შენახვა
+        </button>
       </div>
       <div className="card">
-        <div className="form f">
+        <form
+          id="prodf"
+          className="form f"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (await save()) onBack();
+          }}
+        >
           <div className="fld">
             <label>
               პროდუქტი <small className="muted">(ადმინისტრატორი ამატებს)</small>
@@ -350,23 +368,7 @@ function ProductForm({ id, onBack }: { id: number; onBack: () => void }) {
             </div>
           </div>
           <ErrorLine error={error} />
-          <div className="fbtns">
-            <button
-              type="button"
-              className="btn btn-green"
-              disabled={busy}
-              onClick={async () => {
-                const r = await save();
-                if (r) onBack();
-              }}
-            >
-              შენახვა
-            </button>
-            <button type="button" className="btn btn-ghost" onClick={onBack}>
-              გაუქმება
-            </button>
-          </div>
-        </div>
+        </form>
       </div>
     </div>
   );
@@ -380,8 +382,8 @@ const PAIRS: [string, string, string][] = [
 ];
 
 /** Card form (#dlg2, on its own page): offer type + fields from the product type schema; min/max and pairs on one line.
- *  `head` — the rows above it (product and currency). */
-export function CardForm({ p, cur, k, head, onClose, onSaved }: { p: Product; cur: string; k: CardRow | null; head?: React.ReactNode; onClose: () => void; onSaved: () => void }) {
+ *  `head` — the rows above it (product and currency). The page header's save button submits it (form="cardf"). */
+export function CardForm({ p, cur, k, head, onSaved }: { p: Product; cur: string; k: CardRow | null; head?: React.ReactNode; onSaved: () => void }) {
   const { fields, offerTypes } = useRefs();
   const toast = useToast();
   const fs = fields.filter((f) => f.ProductTypeID === p.ProductTypeID);
@@ -403,6 +405,25 @@ export function CardForm({ p, cur, k, head, onClose, onSaved }: { p: Product; cu
         </select>
       );
     if (f.Kind === 'bool') return <Switch on={!!v} onChange={set} />;
+    if (f.Kind === 'pctMin') {
+      // two inputs on one line: the percentage, then "მინ." the amount in the card's currency
+      const o: PctMin = v && typeof v === 'object' ? (v as PctMin) : { Pct: null, Min: null };
+      const num = (x: string) => (x === '' ? null : Number(x));
+      return (
+        <>
+          <span className="ui">
+            <input type="number" min={0} step={f.Step ?? 0.1} value={o.Pct ?? ''} onChange={(e) => set({ ...o, Pct: num(e.target.value) })} />
+            <b>%</b>
+          </span>
+          <span />
+          <span className="ui pre">
+            <i>მინ.</i>
+            <input type="number" min={0} step={1} value={o.Min ?? ''} onChange={(e) => set({ ...o, Min: num(e.target.value) })} />
+            <b>{curSym(cur)}</b>
+          </span>
+        </>
+      );
+    }
     const unit = f.Kind === 'money' ? curSym(cur) : ((f.LabelKa.match(/,\s*(.+)$/) ?? [])[1] ?? '').replace('% თვეში', '%');
     const pre = /^min[A-Z]/.test(f.Key) && PAIRS.some((x) => x[1] === f.Key) ? 'მინ.' : '';
     return (
@@ -452,7 +473,7 @@ export function CardForm({ p, cur, k, head, onClose, onSaved }: { p: Product; cu
     rows.push(
       <div key={f.Key} className="frow">
         <label>{f.LabelKa.replace(/,\s*.+$/, '')}:</label>
-        <div className={f.Kind === 'bool' ? 'rng' : 'one'}>{ctl(f)}</div>
+        <div className={f.Kind === 'bool' || f.Kind === 'pctMin' ? 'rng' : 'one'}>{ctl(f)}</div>
       </div>,
     );
   }
@@ -488,7 +509,14 @@ export function CardForm({ p, cur, k, head, onClose, onSaved }: { p: Product; cu
 
   return (
     <div className="card">
-      <div className="form f main-form">
+      <form
+        id="cardf"
+        className="form f main-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!busy) void save();
+        }}
+      >
         {head}
         <div className="frow">
           <label htmlFor="kType">შეთავაზების ტიპი:</label>
@@ -511,20 +539,14 @@ export function CardForm({ p, cur, k, head, onClose, onSaved }: { p: Product; cu
           </div>
         )}
         <ErrorLine error={error} />
-        <div className="fbtns">
-          <button type="button" className="btn btn-green" disabled={busy} onClick={save}>
-            {k ? 'შენახვა' : 'დამატება'}
-          </button>
-          <button type="button" className="btn btn-ghost" onClick={onClose}>
-            გაუქმება
-          </button>
-          {k && (
+        {k && (
+          <div className="fbtns">
             <button type="button" className="btn btn-red" style={{ marginInlineStart: 'auto' }} onClick={() => remove(k)}>
               წაშლა
             </button>
-          )}
-        </div>
-      </div>
+          </div>
+        )}
+      </form>
     </div>
   );
 }
