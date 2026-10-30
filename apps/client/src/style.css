@@ -10,6 +10,7 @@
     --line: #e3e7f1;
     --green: #5ebb47;
     --green-dark: #4ca538;
+    --green-deep: #2e7d32;   /* the count on a green button */
     --orange: #f47429;
     --orange-soft: #fdeee4;
     --green-soft: #e8f6e3;
@@ -20,7 +21,7 @@
   :root[data-theme="dark"] {
     color-scheme: dark;
     --bg: #151826; --bg-soft: #1b1f30; --card: #222740; --fg: #e8ebf5; --fg-body: #d5d9e6;
-    --muted: #9aa0b8; --line: #2e3450; --green: #6cc955; --green-dark: #5ebb47;
+    --muted: #9aa0b8; --line: #2e3450; --green: #6cc955; --green-dark: #5ebb47; --green-deep: #2e6b25;
     --orange: #f98a47; --orange-soft: #3a2a20; --green-soft: #1f3320;
     --blue: #6ea3e6; --sky: #5fbdeb; --amber: #e9bb4a; --grey-status: #8a8f9f;
   }
@@ -457,11 +458,11 @@
   .cab-toggle { width: 28px; height: 28px; display: grid; place-items: center; border: 0; background: none; padding: 0; color: var(--muted); cursor: pointer; } .cab-toggle:hover { color: var(--green); } .cab-toggle:focus-visible { outline: 2px solid var(--orange); border-radius: 4px; }
   .cab-toggle svg { width: 18px; height: 18px; transition: transform .2s; }
   /* the offers received: under the amount; filled green while an answer is awaited, outlined after */
-  .recv-offers { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px 0 10px; border: 1px solid var(--green); border-radius: 6px; background: var(--bg); color: var(--green); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .recv-offers svg { width: 15px; height: 15px; } .recv-offers b { min-width: 20px; height: 20px; padding: 0 5px; display: inline-grid; place-items: center; border-radius: 4px; background: var(--green-soft); color: var(--green); font-size: 12px; }
-  .recv-offers.wait { background: var(--green); color: #fff; } .recv-offers.wait b { background: #fff; color: var(--green); } .recv-offers:hover { border-color: var(--green-dark); } .recv-offers.wait:hover { background: var(--green-dark); }
+  .recv-offers { position: relative; width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--green); border-radius: 10px; background: var(--bg); color: var(--green); font: inherit; cursor: pointer; flex: none; }   /* the size of the application icon */
+  .recv-offers svg { width: 22px; height: 22px; } .recv-offers span { display: none; }   /* the words are in the tooltip */
+  .recv-offers b { position: absolute; top: -7px; right: -7px; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; border-radius: 10px; border: 2px solid var(--card, var(--bg)); background: var(--green-soft); color: var(--green); font-size: 11px; font-weight: 700; }   /* the count in the corner */
+  .recv-offers.wait { background: var(--green); color: #fff; } .recv-offers.wait b { background: var(--green-deep); color: #fff; } .recv-offers:hover { border-color: var(--green-dark); } .recv-offers.wait:hover { background: var(--green-dark); }
   .recv-offers.none { border-color: var(--line); color: var(--muted); cursor: default; } .recv-offers.none b { background: var(--bg-soft); color: var(--muted); }   /* none yet: 0, grey */
-  @media (max-width: 560px) { .recv-offers span { display: none; } }   /* phone: the icon and the number */
   .cab-card.open .cab-toggle svg { transform: rotate(180deg); } .cab-card.open .cab-toggle { color: var(--green); }
   .cab-det { background: var(--bg); color: var(--fg); padding: 2px 18px 14px; display: grid; gap: 10px; }
   .cab-stat { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
