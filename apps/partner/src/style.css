@@ -353,6 +353,6 @@
   .lg.img img { width: 72%; height: 72%; object-fit: contain; display: block; }
   /* the offer the customer chose */
   .tpl.ro .chosen b { color: var(--green); } .tpl.ro .not-chosen b { color: var(--muted); }
-  .tpl.ro .of-sep { border: 0; border-top: 2px solid var(--line); margin: 4px 0; }
+  .tpl.ro .of-sep { border: 0; border-top: 2px solid var(--line); margin: 12px 0; }
   /* an offer's number (several offers) in a filled frame, coloured by its status */
   .of-num { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; margin-inline-end: 6px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; vertical-align: middle; }
