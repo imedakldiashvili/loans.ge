@@ -368,8 +368,10 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
             {applicantName(r)}
             {taker && <span className="taker" title="აიღო"> · 👤 {taker}</span>}
           </small>
+          {/* the mobile and the e-mail — once the contacts are open */}
+          {(a.Phone || a.Email) && <small>{[a.Phone && `+995 ${a.Phone.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')}`, a.Email].filter(Boolean).join(' · ')}</small>}
           {/* the city and, when there is one, the district (or village) */}
-          <small>{[cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((x) => x.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(', ') || '—'}</small>
+          <small>{[cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((x) => x.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(' - ') || '—'}</small>
         </span>
         <span className="right">
           <span className="amt">{money(a.Amount, a.Currency)}</span>
@@ -423,7 +425,7 @@ function AppDetail({ d, st, bottom }: { d: Detail; st: (k: string) => StatusRow 
       ))}
     </div>
   );
-  // the blocks are listed first; only the last one opens on its own
+  // the blocks are listed first; only the first one opens on its own
   const secs: { title: string; body: React.ReactNode; date?: string }[] = [];
   const sec = (title: string, body: React.ReactNode, date?: string) => void secs.push({ title, body, date });
   const block = ({ title, body, date }: (typeof secs)[number], open: boolean) => (
@@ -485,7 +487,7 @@ function AppDetail({ d, st, bottom }: { d: Detail; st: (k: string) => StatusRow 
   );
   return (
     <>
-      <div className="dgrid">{secs.map((x, i) => block(x, i === secs.length - 1))}</div>
+      <div className="dgrid">{secs.map((x, i) => block(x, i === 0))}</div>
       {bottom}
       <div className="hist">
         {d.Events.map((e) => (
