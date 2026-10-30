@@ -190,7 +190,7 @@ export function AppsPage() {
       <div className="srow">
         <input className="search" type="search" placeholder="ძებნა: პირადი ნომერი, სახელი გვარი, მობილური" value={search} onChange={(e) => setSearch(e.target.value)} />
         <select className="fsel" aria-label="ლოკაცია" value={city} onChange={(e) => setCity(e.target.value)}>
-          <option value="all">ლოკაცია: ყველა</option>
+          <option value="all">აირჩიე ლოკაცია</option>
           {myCities.map((c) => {
             const ds = refs.districts.filter((d) => d.CityID === c.ID);
             return ds.length ? (
@@ -210,10 +210,10 @@ export function AppsPage() {
           })}
         </select>
         <select className="fsel" aria-label="დრო" value={time} onChange={(e) => setTime(e.target.value as typeof time)}>
+          <option value="all">აირჩიე პერიოდი</option>
           <option value="24h">ბოლო 24 საათი</option>
           <option value="7d">ბოლო კვირა</option>
           <option value="30d">ბოლო თვე</option>
-          <option value="all">ყველა</option>
         </select>
       </div>
       <div className="chips">
