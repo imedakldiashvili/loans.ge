@@ -490,10 +490,14 @@ export function AppView({ id, uid, onBack }: { id: number; uid: string; onBack: 
   return (
     <section className="cabinet app-view">
       <div className="wrap">
-        <div className="cmp-head">
+        {/* « back, the application (product · amount) to its right */}
+        <div className="view-head">
           <button type="button" className="btn btn-ghost" onClick={onBack}>
             « {t('უკან')}
           </button>
+          <h3 className="view-title">
+            {n(a.ProductType)} · {money(a.Amount, a.Currency)}
+          </h3>
         </div>
         <div className="view-page">
           <AppDetails a={a} />
@@ -540,9 +544,6 @@ function AppDetails({ a }: { a: App }) {
   );
   return (
     <>
-      <h3 className="view-title">
-        {n(a.ProductType)} · {money(a.Amount, a.Currency)}
-      </h3>
       <p className="view-sub">
         #{a.ID} · {t('გაგზავნილია')} {fmtDate(a.CreatedOn)}
       </p>

@@ -569,7 +569,8 @@
   .cab-menu-list button { display: block; width: 100%; text-align: start; white-space: nowrap; font: inherit; font-size: 13px; color: var(--fg); background: none; border: 0; border-radius: 4px; padding: 8px 10px; cursor: pointer; }
   .cab-menu-list button:hover { background: var(--bg-soft); }
   /* the application in detail — its own page (/cabinet/view/…) */
-  .app-view .view-page { max-width: 720px; margin: 0 auto 40px; background: var(--card, var(--bg)); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px 0; }
+  .app-view .view-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; } .app-view .view-head .view-title { margin: 0; }
+  .app-view .view-page { margin: 0 0 40px; background: var(--card, var(--bg)); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px 0; }
   .app-view .view-title { font-size: 20px; margin: 0 0 4px; } .app-view .view-sub { margin: 0 0 16px; font-size: 13px; color: var(--muted); }
   .app-view .view-page > .cab-det-foot { margin: 18px -22px 0; }
   .view-box { max-width: 560px; text-align: start; max-height: calc(100vh - 32px); overflow-y: auto; }
