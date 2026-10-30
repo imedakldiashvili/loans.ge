@@ -8,7 +8,7 @@ await login('admin', 'analyst@loans.ge'); // read-only role is enough for every 
 const all = (await call('POST', '/admin/application/find/1/50', {})).json.Data;
 const active = (await call('POST', '/admin/application/find/1/50', { Filter: { State: 'active' } })).json.Data;
 const closed = (await call('POST', '/admin/application/find/1/50', { Filter: { State: 'done' } })).json.Data;
-ok(all.TotalCount === 12, 'application: 12 demo applications', all.TotalCount);
+ok(all.TotalCount === 9, 'application: 9 demo applications', all.TotalCount);
 ok(active.TotalCount + closed.TotalCount === all.TotalCount && active.TotalCount > 0 && closed.TotalCount > 0, 'application: active + done = all', [active.TotalCount, closed.TotalCount]);
 ok(active.Items.every((a) => a.State === 'active') && closed.Items.every((a) => a.State === 'done'), 'application: computed state per row');
 const a0 = all.Items[0];
@@ -20,11 +20,11 @@ ok(det.Orgs.every((o) => Array.isArray(o.Events) && o.Events.length >= 1 && o.Or
 
 // ── offers (application × organisation)
 const offers = (await call('POST', '/admin/offer/find/1/100', {})).json.Data;
-ok(offers.TotalCount === 26, 'offer: 26 records', offers.TotalCount);
+ok(offers.TotalCount === 15, 'offer: 15 records', offers.TotalCount);
 const inOffer = (await call('POST', '/admin/offer/find/1/100', { Filter: { Status: 'offer' } })).json.Data;
 ok(inOffer.Items.every((o) => o.Status === 'offer') && inOffer.TotalCount > 0, 'offer: filter by current status');
 const passedSent = (await call('POST', '/admin/offer/find/1/100', { Filter: { Status: 'sent', Passed: true } })).json.Data;
-ok(passedSent.TotalCount === 26, 'offer: everyone passed through "sent"', passedSent.TotalCount);
+ok(passedSent.TotalCount === 15, 'offer: everyone passed through "sent"', passedSent.TotalCount);
 const passedOffer = (await call('POST', '/admin/offer/find/1/100', { Filter: { Status: 'offer', Passed: true } })).json.Data;
 ok(passedOffer.TotalCount >= inOffer.TotalCount, 'offer: passed ≥ current');
 const o0 = offers.Items.find((o) => o.Offers.length);
@@ -34,12 +34,12 @@ ok(odet.Offers[0].Months > 0 && odet.Events.length && odet.Application.Pid, 'off
 // ── monitoring
 const m = (await call('POST', '/admin/monitor/summary', {})).json.Data;
 const t = m.Tiles;
-ok(t.Total.Applications === 12 && t.Total.Offers === 26, 'monitor: totals 12 / 26', t.Total);
-ok(t.Progress.Applications + t.Complete.Applications + t.Canceled.Applications === 12, 'monitor: categories add up to the total (applications)');
-ok(t.Progress.Offers + t.Complete.Offers + t.Canceled.Offers === 26, 'monitor: categories add up to the total (offers)');
+ok(t.Total.Applications === 9 && t.Total.Offers === 15, 'monitor: totals 9 / 15', t.Total);
+ok(t.Progress.Applications + t.Complete.Applications + t.Canceled.Applications === 9, 'monitor: categories add up to the total (applications)');
+ok(t.Progress.Offers + t.Complete.Offers + t.Canceled.Offers === 15, 'monitor: categories add up to the total (offers)');
 const count = (list, st) => list.find((c) => c.Status === st)?.Count ?? 0;
-ok(count(m.Totals, 'sent') === 26 && m.Matrix.length > 0 && m.Statuses.length === 10, 'monitor: matrix of passed statuses ("sent" is the largest)');
-const bankA = m.Matrix.find((r) => r.Organization.NameKa === 'საქართველოს ბანკი');
+ok(count(m.Totals, 'sent') === 15 && m.Matrix.length > 0 && m.Statuses.length === 10, 'monitor: matrix of passed statuses ("sent" is the largest)');
+const bankA = m.Matrix.find((r) => r.Organization.NameKa === 'მისო A');
 const onlyA = (await call('POST', '/admin/monitor/summary', { Filter: { OrganizationID: bankA.Organization.ID } })).json.Data;
 ok(onlyA.Matrix.length === 1 && count(onlyA.Totals, 'sent') === count(bankA.Counts, 'sent'), 'monitor: organisation filter');
 const future = (await call('POST', '/admin/monitor/summary', { Filter: { From: '2099-01-01T00:00:00Z' } })).json.Data;

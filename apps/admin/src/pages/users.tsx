@@ -75,7 +75,7 @@ function UsersList({ tab }: { tab: Tab }) {
   const toggle = (p: Profile, on: boolean) =>
     act.enable.mutate({ r: p, on }, { onSuccess: () => toast(on ? 'გააქტიურდა' : 'დეაქტივირებულია'), onError: (e) => toast(e.message) });
 
-  const span = tab === 'customers' ? 7 : 6;
+  const span = tab === 'customers' ? 7 : tab === 'staff' ? 5 : 6;
   return (
     <ListPage
       title={cfg.title}
@@ -129,7 +129,6 @@ function UsersList({ tab }: { tab: Tab }) {
           ) : tab === 'staff' ? (
             <tr>
               <th>თანამშრომელი</th>
-              <th className="w5">ორგანიზაცია</th>
               <th>კონტაქტი</th>
               <th>შეზღუდვები</th>
               <th className="w2">აქტიური</th>
@@ -166,13 +165,12 @@ function UsersList({ tab }: { tab: Tab }) {
                 </>
               ) : tab === 'staff' ? (
                 <>
+                  {/* organisation logo first; name, then position, then the organisation under it */}
                   <td>
+                    <OrgMark org={p.Organization} cls="fl" />
                     {p.DisplayName}
                     <span className="sub">{ROLES[p.Role ?? ''] ?? p.Role}</span>
-                  </td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
-                    <OrgMark org={p.Organization} />
-                    {p.Organization?.NameKa}
+                    <span className="sub">{p.Organization?.NameKa}</span>
                   </td>
                   <td>
                     {p.User.Email}

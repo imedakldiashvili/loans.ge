@@ -6,12 +6,12 @@ import { call, done, forget, login, ok } from './lib.mjs';
 const prisma = new PrismaClient();
 const find = (m, body = {}, size = 50) => call('POST', `/partner/${m}/find/1/${size}`, body);
 
-// ── sales of საქართველოს ბანკი (no scope)
-await login('partner', 'sales1@1.ge');
+// ── sales of მისო A (no scope)
+await login('partner', 'sales1@7.ge');
 const all = (await find('application')).json.Data;
 const byStatus = (s) => all.Items.filter((x) => x.Status === s);
-ok(all.TotalCount === 4 && all.Items.every((x) => x.Organization === undefined || true), 'applications: only this organisation (4 records)', all.TotalCount);
-ok(all.StatusCounts.reduce((t, c) => t + c.Count, 0) === 4, 'applications: status counts for the chips');
+ok(all.TotalCount === 8 && all.Items.every((x) => x.Organization === undefined || true), 'applications: only this organisation (8 records)', all.TotalCount);
+ok(all.StatusCounts.reduce((t, c) => t + c.Count, 0) === 8, 'applications: status counts for the chips');
 
 const sent = byStatus('sent')[0];
 ok(sent.IsMasked === true && sent.Application.Pid === null && sent.Application.Phone === null && sent.Application.FirstName === 'განმცხადებელი', 'sent: applicant masked');
@@ -70,18 +70,18 @@ const after3 = (await call('GET', `/partner/application/detail/${sent.ID}/${sent
 ok(r3.status === 200 && after3.Status === 'cancelled' && after3.ExpiresOn === null && after3.ReasonIDs[0] === Number(reason.id) && after3.Next.length === 0, 'cancel with reason: final, no deadline, no next steps');
 
 // another organisation's record is invisible
-const foreign = await prisma.applicationOrg.findFirst({ where: { organization: { nameKa: 'თიბისი ბანკი' } } });
+const foreign = await prisma.applicationOrg.findFirst({ where: { organization: { nameKa: 'სუბიექტი A' } } });
 ok((await call('GET', `/partner/application/detail/${foreign.id}/${foreign.uid}`)).status === 404, "another organisation's record → 404");
 
 // ── sales with scope: cities თბილისი, რუსთავი; products p1, p3
-// test data: all of საქართველოს ბანკი's records free incoming ones, so the scope decides
+// test data: all of მისო A's records free incoming ones, so the scope decides
 const cities = await prisma.city.findMany({ where: { nameKa: { in: ['თბილისი', 'რუსთავი'] } } });
-const bankA = await prisma.applicationOrg.findMany({ where: { organization: { nameKa: 'საქართველოს ბანკი' } }, include: { application: true } });
-const sales2 = await prisma.userProfile.findFirst({ where: { user: { email: 'sales2@1.ge' } } });
+const bankA = await prisma.applicationOrg.findMany({ where: { organization: { nameKa: 'მისო A' } }, include: { application: true } });
+const sales2 = await prisma.userProfile.findFirst({ where: { user: { email: 'sales2@7.ge' } } });
 await prisma.applicationOrg.updateMany({ where: { id: { in: bankA.map((x) => x.id) } }, data: { status: 'sent', assignedToId: null, assignedOn: null, contactsOpenedOn: null } });
 const outside = bankA.find((x) => !cities.some((c) => c.id === x.application.cityId));
 forget('partner');
-await login('partner', 'sales2@1.ge');
+await login('partner', 'sales2@7.ge');
 let scoped = (await find('application')).json.Data;
 ok(scoped.TotalCount === 2 && scoped.Items.every((x) => cities.some((c) => Number(c.id) === x.Application.CityID)), 'incoming: only their cities and products (2 of 4)', scoped.TotalCount);
 // their own record stays visible after its city left the scope
@@ -100,26 +100,26 @@ if (free) {
   ok((await ch(fr, { Status: 'interested' })).status === 200, 'sales2 takes a free application (starts the review)');
   ok((await prisma.applicationOrg.findUnique({ where: { id: free.id } })).assignedToId !== null, 'it is assigned to sales2');
   forget('partner');
-  await login('partner', 'sales1@1.ge');
+  await login('partner', 'sales1@7.ge');
   ok((await find('application')).json.Data.Items.every((x) => x.ID !== fr.ID), "taken by a colleague → gone from sales1's list");
   ok((await call('GET', `/partner/application/detail/${fr.ID}/${fr.UID}`)).status === 404 && (await ch(fr, { Status: 'cancelled', ReasonIDs: [Number(rej.id)] })).status === 404, 'and sales1 cannot open or change it (404)');
   forget('partner');
-  await login('partner', 'office@1.ge');
+  await login('partner', 'office@7.ge');
   const seen = (await call('GET', `/partner/application/detail/${fr.ID}/${fr.UID}`)).json.Data;
   ok(seen?.AssignedTo?.DisplayName, 'back office sees it and who took it');
 } else ok(false, 'test data: a free application in the sales2 scope');
 
 // ── back office: catalogue and staff
 forget('partner');
-await login('partner', 'office@1.ge');
+await login('partner', 'office@7.ge');
 const pts = await prisma.productType.findMany();
-const quick = pts.find((p) => p.code === 'quick_loan'); // საქართველოს ბანკი does not accept it
+const quick = pts.find((p) => p.code === 'mortgage_loan'); // მისო A does not accept it
 const consumer = pts.find((p) => p.code === 'consumer_loan');
 ok((await call('POST', '/partner/product/add', { ProductTypeID: Number(quick.id), Currencies: ['GEL'] })).status === 400, 'product type not accepted by the organisation → 400');
 const np = await call('POST', '/partner/product/add', { ProductTypeID: Number(consumer.id), Description: 'ტესტი', Currencies: ['GEL'] });
 ok(np.status === 200, 'back: add product', np.json);
 const npRow = await prisma.partnerProduct.findUnique({ where: { id: BigInt(np.json.Data.ID) }, include: { organization: true } });
-ok(npRow.organization.nameKa === 'საქართველოს ბანკი', 'product belongs to the caller organisation');
+ok(npRow.organization.nameKa === 'მისო A', 'product belongs to the caller organisation');
 const ot = await prisma.referenceItem.findFirst({ where: { kind: 'offer_type' } });
 const bad = await call('POST', '/partner/card/add', { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'GEL', Values: { rate: 'x', minAmt: 5000, maxAmt: 100, unknownKey: 1 } });
 ok(bad.status === 400 && ['Values.rate', 'Values.unknownKey', 'Values.maxAmt', 'Values.minM'].every((f) => bad.json.Error.Details.some((d) => d.Field === f)), 'card values checked against the product field schema', bad.json.Error);

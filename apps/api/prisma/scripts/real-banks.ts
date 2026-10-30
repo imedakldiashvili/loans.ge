@@ -1,7 +1,8 @@
 // One-off, non-destructive: brings an existing database from the placeholder banks (ბანკი A–G) to the
 // NBG register banks (seed-data/banks). Nothing is deleted and no other data is touched:
 //   1. ბანკი A–G are renamed in place (ids stay, so their applications, offers, staff and products stay with them);
-//   2. register banks missing from the database are added (as partners, with the product types of Bank of Georgia);
+//   2. register banks missing from the database are added as reference-only banks (not partners, no product types —
+//      listed in the wizard's "which bank do you use" step, not on /partners); an existing bank keeps its partner flag;
 //   3. banks are ordered as in the register, the other categories after them;
 //   4. a bank without a logo gets its NBG logo (copied into the file storage, FS_ROOT) — uploaded logos are kept.
 // Safe to re-run: every step checks the current state first.
@@ -48,18 +49,14 @@ async function main() {
       log.push(`rename ${placeholder} → ${b.nameKa} (id ${org.id})`);
     }
 
-    // 2. add the missing register banks, with the product types (and limits) of Bank of Georgia
-    const template = await tx.organization.findFirst({ where: { ...live, nameKa: byCode.get('bog')!.nameKa }, include: { productTypes: { where: live } } });
+    // 2. add the missing register banks — reference only: a bank becomes a partner when it signs up (admin → organisations)
     let k = 0;
     for (const b of banks) {
       if (await tx.organization.findFirst({ where: { ...live, nameKa: b.nameKa } })) continue;
       const row = await tx.organization.create({
-        data: {
-          nameKa: b.nameKa, nameEn: b.nameEn, category: 'bank', color: PALETTE[k++ % PALETTE.length], isPartner: true, sort: b.sort,
-          productTypes: { create: (template?.productTypes ?? []).map((p) => ({ productTypeId: p.productTypeId, minAmount: p.minAmount, maxAmount: p.maxAmount })) },
-        },
+        data: { nameKa: b.nameKa, nameEn: b.nameEn, category: 'bank', color: PALETTE[k++ % PALETTE.length], isPartner: false, sort: b.sort },
       });
-      log.push(`add    ${b.nameKa} (id ${row.id}, ${template?.productTypes.length ?? 0} product types)`);
+      log.push(`add    ${b.nameKa} (id ${row.id}, reference only — not a partner)`);
     }
 
     // 3. order: banks as in the register, the other categories after them

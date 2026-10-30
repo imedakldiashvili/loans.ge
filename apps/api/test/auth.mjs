@@ -20,7 +20,7 @@ ok(staffPhone.status === 400 && staffPhone.json.Error.Details[0].Field === 'Logi
 const clientPhone = await call('POST', '/public/auth/sendOtp', { Gateway: 'client', Login: '555000001' });
 ok(clientPhone.status === 400 && clientPhone.json.Error.Details[0].Field === 'Login', 'customers log in by email only too → a mobile number is 400 on Login');
 ok((await call('POST', '/public/auth/loginMethod', { Login: '555000001' })).status === 400, 'loginMethod: a mobile number → 400');
-ok((await call('POST', '/public/auth/sendOtp', { Gateway: 'partner', Login: 'sales3@1.ge' })).status === 403, 'disabled staff account → 403');
+ok((await call('POST', '/public/auth/sendOtp', { Gateway: 'partner', Login: 'sales3@7.ge' })).status === 403, 'disabled staff account → 403');
 
 // ── operator: wrong code, resend limit, login
 const s1 = await call('POST', '/public/auth/sendOtp', { Gateway: 'admin', Login: 'operator@loans.ge' });
@@ -53,13 +53,13 @@ ok(me.status === 200 && me.json.Data.Profile.Role === 'operator' && me.json.Data
 ok((await call('POST', '/admin/city/find/1/5', {})).status === 200, 'operator: read references');
 const addCur = await call('POST', '/admin/currency/add', { Code: 'XOP', Symbol: 'X' });
 ok(addCur.status === 403 && addCur.json.Error.Code === 'FORBIDDEN', 'operator: cannot change references → 403');
-const org = (await call('POST', '/admin/organization/find/1/1', { Filter: { Search: 'კრედო ბანკი' } })).json.Data.Items[0];
+const org = (await call('POST', '/admin/organization/find/1/1', { Filter: { Search: 'ლიზინგი A' } })).json.Data.Items[0];
 const dis = await call('PUT', `/admin/organization/disable/${org.ID}/${org.UID}`);
 const orgRow = await prisma.organization.findUnique({ where: { id: BigInt(org.ID) } });
 ok(dis.status === 200 && orgRow.updatedBy === BigInt(v.json.Data.ID), 'operator: changes organisations; UpdatedBy = operator');
 
 // staff of a disabled organisation can't log in
-ok((await call('POST', '/public/auth/sendOtp', { Gateway: 'partner', Login: 'sales1@6.ge' })).status === 403, 'staff of a disabled organisation → 403');
+ok((await call('POST', '/public/auth/sendOtp', { Gateway: 'partner', Login: 'sales1@11.ge' })).status === 403, 'staff of a disabled organisation → 403');
 await call('PUT', `/admin/organization/enable/${org.ID}/${org.UID}`);
 
 // ── analyst: read only
@@ -68,9 +68,9 @@ ok((await call('POST', '/admin/status/find/1/5', {})).status === 200, 'analyst: 
 ok((await call('PUT', `/admin/organization/disable/${org.ID}/${org.UID}`)).status === 403, 'analyst: no changes → 403');
 
 // ── partner: session is per gateway
-const p = await login('partner', 'sales1@1.ge');
+const p = await login('partner', 'sales1@7.ge');
 const pme = await call('GET', '/partner/auth/me');
-ok(p.verify.status === 200 && pme.json.Data.Profile.ProfileType === 'staff' && pme.json.Data.Profile.Organization.NameKa === 'საქართველოს ბანკი', 'partner: staff profile with organisation');
+ok(p.verify.status === 200 && pme.json.Data.Profile.ProfileType === 'staff' && pme.json.Data.Profile.Organization.NameKa === 'მისო A', 'partner: staff profile with organisation');
 const partnerToken = decodeURIComponent(getCookie('partner').split('=')[1]);
 const cross = await call('POST', '/admin/city/find/1/5', {}, { Authorization: `Bearer ${partnerToken}`, Cookie: '' });
 ok(cross.status === 401, 'partner session is not valid on admin');
@@ -85,8 +85,8 @@ ok(created.profiles.length === 1 && created.profiles[0].customer, 'new user has 
 
 // staff member logging in as a borrower gets a customer profile too
 forget('client');
-await login('client', 'office@2.ge');
-const both = await prisma.user.findFirst({ where: { email: 'office@2.ge' }, include: { profiles: { include: { profileType: true } } } });
+await login('client', 'office@13.ge');
+const both = await prisma.user.findFirst({ where: { email: 'office@13.ge' }, include: { profiles: { include: { profileType: true } } } });
 ok(both.profiles.map((x) => x.profileType.code).sort().join() === 'customer,staff', 'existing staff user → customer profile added');
 
 // ── logout

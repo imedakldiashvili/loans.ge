@@ -7,16 +7,8 @@
       "cat": "ბანკი",
       "color": "#1e63b5",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 10
     },
     {
@@ -26,16 +18,8 @@
       "cat": "ბანკი",
       "color": "#7b4fb5",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 20
     },
     {
@@ -45,16 +29,8 @@
       "cat": "ბანკი",
       "color": "#0f9d8a",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 30
     },
     {
@@ -64,16 +40,8 @@
       "cat": "ბანკი",
       "color": "#c0392b",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 40
     },
     {
@@ -83,16 +51,8 @@
       "cat": "ბანკი",
       "color": "#b8860b",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 50
     },
     {
@@ -102,16 +62,8 @@
       "cat": "ბანკი",
       "color": "#2e7d32",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 60
     },
     {
@@ -178,16 +130,8 @@
       "cat": "ბანკი",
       "color": "#1e63b5",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 80
     },
     {
@@ -197,16 +141,8 @@
       "cat": "ბანკი",
       "color": "#7b4fb5",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 90
     },
     {
@@ -216,16 +152,8 @@
       "cat": "ბანკი",
       "color": "#0f9d8a",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 100
     },
     {
@@ -235,16 +163,8 @@
       "cat": "ბანკი",
       "color": "#c0392b",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 110
     },
     {
@@ -254,16 +174,8 @@
       "cat": "ბანკი",
       "color": "#b8860b",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 120
     },
     {
@@ -273,16 +185,8 @@
       "cat": "ბანკი",
       "color": "#2e7d32",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 130
     },
     {
@@ -292,16 +196,8 @@
       "cat": "ბანკი",
       "color": "#00838f",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 140
     },
     {
@@ -311,16 +207,8 @@
       "cat": "ბანკი",
       "color": "#6d4c41",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 150
     },
     {
@@ -330,16 +218,8 @@
       "cat": "ბანკი",
       "color": "#ad1457",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 160
     },
     {
@@ -349,16 +229,8 @@
       "cat": "ბანკი",
       "color": "#3949ab",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 170
     },
     {
@@ -368,16 +240,8 @@
       "cat": "ბანკი",
       "color": "#558b2f",
       "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt3",
-        "pt4",
-        "pt5",
-        "pt6",
-        "pt7",
-        "pt8"
-      ],
+      "partner": false,
+      "products": [],
       "sort": 180
     }
   ],
@@ -1750,342 +1614,6 @@
   ],
   "staff": [
     {
-      "org": "o1",
-      "list": [
-        {
-          "id": "u1",
-          "name": "ნინო კაპანაძე",
-          "role": "sales",
-          "phone": "+995 555 10 10 01",
-          "email": "sales1@1.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u2",
-          "name": "გიორგი მაისურაძე",
-          "role": "sales",
-          "phone": "+995 555 20 20 01",
-          "email": "sales2@1.ge",
-          "active": true,
-          "products": [
-            "p1",
-            "p3"
-          ],
-          "cities": [
-            "თბილისი",
-            "რუსთავი"
-          ]
-        },
-        {
-          "id": "u3",
-          "name": "თამარ ბერიძე",
-          "role": "back",
-          "phone": "+995 555 30 30 01",
-          "email": "office@1.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u4",
-          "name": "ლევან ხუციშვილი",
-          "role": "sales",
-          "phone": "+995 555 40 40 01",
-          "email": "sales3@1.ge",
-          "active": false,
-          "products": [
-            "p2"
-          ],
-          "cities": [
-            "ბათუმი",
-            "ქობულეთი"
-          ]
-        }
-      ]
-    },
-    {
-      "org": "o2",
-      "list": [
-        {
-          "id": "u1",
-          "name": "გიორგი მაისურაძე",
-          "role": "sales",
-          "phone": "+995 555 10 10 02",
-          "email": "sales1@2.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u2",
-          "name": "თამარ ბერიძე",
-          "role": "sales",
-          "phone": "+995 555 20 20 02",
-          "email": "sales2@2.ge",
-          "active": true,
-          "products": [
-            "p1",
-            "p3"
-          ],
-          "cities": [
-            "თბილისი",
-            "რუსთავი"
-          ]
-        },
-        {
-          "id": "u3",
-          "name": "ლევან ხუციშვილი",
-          "role": "back",
-          "phone": "+995 555 30 30 02",
-          "email": "office@2.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u4",
-          "name": "ანა გელაშვილი",
-          "role": "sales",
-          "phone": "+995 555 40 40 02",
-          "email": "sales3@2.ge",
-          "active": false,
-          "products": [
-            "p2"
-          ],
-          "cities": [
-            "ბათუმი",
-            "ქობულეთი"
-          ]
-        }
-      ]
-    },
-    {
-      "org": "o3",
-      "list": [
-        {
-          "id": "u1",
-          "name": "თამარ ბერიძე",
-          "role": "sales",
-          "phone": "+995 555 10 10 03",
-          "email": "sales1@3.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u2",
-          "name": "ლევან ხუციშვილი",
-          "role": "sales",
-          "phone": "+995 555 20 20 03",
-          "email": "sales2@3.ge",
-          "active": true,
-          "products": [
-            "p1",
-            "p3"
-          ],
-          "cities": [
-            "თბილისი",
-            "რუსთავი"
-          ]
-        },
-        {
-          "id": "u3",
-          "name": "ანა გელაშვილი",
-          "role": "back",
-          "phone": "+995 555 30 30 03",
-          "email": "office@3.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u4",
-          "name": "დავით ლომიძე",
-          "role": "sales",
-          "phone": "+995 555 40 40 03",
-          "email": "sales3@3.ge",
-          "active": false,
-          "products": [
-            "p2"
-          ],
-          "cities": [
-            "ბათუმი",
-            "ქობულეთი"
-          ]
-        }
-      ]
-    },
-    {
-      "org": "o4",
-      "list": [
-        {
-          "id": "u1",
-          "name": "ლევან ხუციშვილი",
-          "role": "sales",
-          "phone": "+995 555 10 10 04",
-          "email": "sales1@4.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u2",
-          "name": "ანა გელაშვილი",
-          "role": "sales",
-          "phone": "+995 555 20 20 04",
-          "email": "sales2@4.ge",
-          "active": true,
-          "products": [
-            "p1",
-            "p3"
-          ],
-          "cities": [
-            "თბილისი",
-            "რუსთავი"
-          ]
-        },
-        {
-          "id": "u3",
-          "name": "დავით ლომიძე",
-          "role": "back",
-          "phone": "+995 555 30 30 04",
-          "email": "office@4.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u4",
-          "name": "მარიამ წერეთელი",
-          "role": "sales",
-          "phone": "+995 555 40 40 04",
-          "email": "sales3@4.ge",
-          "active": false,
-          "products": [
-            "p2"
-          ],
-          "cities": [
-            "ბათუმი",
-            "ქობულეთი"
-          ]
-        }
-      ]
-    },
-    {
-      "org": "o5",
-      "list": [
-        {
-          "id": "u1",
-          "name": "ანა გელაშვილი",
-          "role": "sales",
-          "phone": "+995 555 10 10 05",
-          "email": "sales1@5.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u2",
-          "name": "დავით ლომიძე",
-          "role": "sales",
-          "phone": "+995 555 20 20 05",
-          "email": "sales2@5.ge",
-          "active": true,
-          "products": [
-            "p1",
-            "p3"
-          ],
-          "cities": [
-            "თბილისი",
-            "რუსთავი"
-          ]
-        },
-        {
-          "id": "u3",
-          "name": "მარიამ წერეთელი",
-          "role": "back",
-          "phone": "+995 555 30 30 05",
-          "email": "office@5.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u4",
-          "name": "ნინო კაპანაძე",
-          "role": "sales",
-          "phone": "+995 555 40 40 05",
-          "email": "sales3@5.ge",
-          "active": false,
-          "products": [
-            "p2"
-          ],
-          "cities": [
-            "ბათუმი",
-            "ქობულეთი"
-          ]
-        }
-      ]
-    },
-    {
-      "org": "o6",
-      "list": [
-        {
-          "id": "u1",
-          "name": "დავით ლომიძე",
-          "role": "sales",
-          "phone": "+995 555 10 10 06",
-          "email": "sales1@6.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u2",
-          "name": "მარიამ წერეთელი",
-          "role": "sales",
-          "phone": "+995 555 20 20 06",
-          "email": "sales2@6.ge",
-          "active": true,
-          "products": [
-            "p1",
-            "p3"
-          ],
-          "cities": [
-            "თბილისი",
-            "რუსთავი"
-          ]
-        },
-        {
-          "id": "u3",
-          "name": "ნინო კაპანაძე",
-          "role": "back",
-          "phone": "+995 555 30 30 06",
-          "email": "office@6.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u4",
-          "name": "გიორგი მაისურაძე",
-          "role": "sales",
-          "phone": "+995 555 40 40 06",
-          "email": "sales3@6.ge",
-          "active": false,
-          "products": [
-            "p2"
-          ],
-          "cities": [
-            "ბათუმი",
-            "ქობულეთი"
-          ]
-        }
-      ]
-    },
-    {
       "org": "o7",
       "list": [
         {
@@ -2498,39 +2026,26 @@
       "amount": "8 000 ₾",
       "name": "ნინო ბერიძე",
       "city": "თბილისი",
-      "orgs": 3,
+      "orgs": 2,
       "phone": "555 00 12 37",
       "email": "client1@example.com",
       "pid": "01011007919",
       "orgList": [
         {
-          "name": "საქართველოს ბანკი",
-          "status": "sent",
-          "sentAt": 1792156750059,
-          "statusAt": 1792156750059,
-          "log": [
-            {
-              "at": 1792156750059,
-              "status": "sent",
-              "by": "მომხმარებელი: ნინო ბერიძე"
-            }
-          ]
-        },
-        {
-          "name": "თიბისი ბანკი",
-          "status": "sent",
-          "sentAt": 1792156750059,
-          "statusAt": 1792156750059,
-          "log": [
-            {
-              "at": 1792156750059,
-              "status": "sent",
-              "by": "მომხმარებელი: ნინო ბერიძე"
-            }
-          ]
-        },
-        {
           "name": "მისო A",
+          "status": "sent",
+          "sentAt": 1792156750059,
+          "statusAt": 1792156750059,
+          "log": [
+            {
+              "at": 1792156750059,
+              "status": "sent",
+              "by": "მომხმარებელი: ნინო ბერიძე"
+            }
+          ]
+        },
+        {
+          "name": "სუბიექტი A",
           "status": "interested",
           "sentAt": 1792156750059,
           "statusAt": 1792157230059,
@@ -2576,13 +2091,13 @@
       "amount": "25 000 ₾",
       "name": "გიორგი მაისურაძე",
       "city": "ბათუმი",
-      "orgs": 3,
+      "orgs": 2,
       "phone": "555 00 24 74",
       "email": "client2@example.com",
       "pid": "01011015838",
       "orgList": [
         {
-          "name": "ლიბერთი ბანკი",
+          "name": "მისო A",
           "status": "offer",
           "sentAt": 1792150990059,
           "statusAt": 1792153090059,
@@ -2640,24 +2155,6 @@
               "at": 1792154110059,
               "status": "offer",
               "by": "ანა გელაშვილი (ლიზინგი A)"
-            }
-          ]
-        },
-        {
-          "name": "ბაზისბანკი",
-          "status": "expired",
-          "sentAt": 1792150990059,
-          "statusAt": 1792154590059,
-          "log": [
-            {
-              "at": 1792150990059,
-              "status": "sent",
-              "by": "მომხმარებელი: გიორგი მაისურაძე"
-            },
-            {
-              "at": 1792154590059,
-              "status": "expired",
-              "by": "სისტემა"
             }
           ]
         }
@@ -2738,125 +2235,6 @@
       ]
     },
     {
-      "credit": "კარგი",
-      "sector": "საჯარო სექტორი",
-      "incomes": [
-        {
-          "src": "ხელფასი",
-          "amount": 2900
-        }
-      ],
-      "banks": [
-        {
-          "name": "საქართველოს ბანკი",
-          "services": [
-            "ხელფასის ანგარიში",
-            "ბარათი"
-          ]
-        }
-      ],
-      "dob": "1987-05-14",
-      "district": "ძველი ქალაქი",
-      "id": "ad4",
-      "demo": true,
-      "date": "2026-10-16T04:43:10.059Z",
-      "loan": "იპოთეკური სესხი",
-      "amount": "95 000 ₾",
-      "name": "ლევან კაპანაძე",
-      "city": "თბილისი",
-      "orgs": 3,
-      "phone": "555 00 49 48",
-      "email": "client4@example.com",
-      "pid": "01011031676",
-      "orgList": [
-        {
-          "name": "საქართველოს ბანკი",
-          "status": "offer",
-          "sentAt": 1792125790059,
-          "statusAt": 1792128430059,
-          "offerAt": 1792128430059,
-          "terms": {
-            "amount": 95000,
-            "months": 60,
-            "rate": 15.5,
-            "fee": 950,
-            "insMonth": 190
-          },
-          "log": [
-            {
-              "at": 1792125790059,
-              "status": "sent",
-              "by": "მომხმარებელი: ლევან კაპანაძე"
-            },
-            {
-              "at": 1792126270059,
-              "status": "interested",
-              "by": "ანა გელაშვილი (საქართველოს ბანკი)"
-            },
-            {
-              "at": 1792128430059,
-              "status": "offer",
-              "by": "ანა გელაშვილი (საქართველოს ბანკი)"
-            }
-          ]
-        },
-        {
-          "name": "თიბისი ბანკი",
-          "status": "declined",
-          "sentAt": 1792125790059,
-          "statusAt": 1792130050059,
-          "offerAt": 1792127650059,
-          "terms": {
-            "amount": 95000,
-            "months": 60,
-            "rate": 15.5,
-            "fee": 950,
-            "insMonth": 190
-          },
-          "log": [
-            {
-              "at": 1792125790059,
-              "status": "sent",
-              "by": "მომხმარებელი: ლევან კაპანაძე"
-            },
-            {
-              "at": 1792126270059,
-              "status": "interested",
-              "by": "ანა გელაშვილი (თიბისი ბანკი)"
-            },
-            {
-              "at": 1792127650059,
-              "status": "offer",
-              "by": "ანა გელაშვილი (თიბისი ბანკი)"
-            },
-            {
-              "at": 1792130050059,
-              "status": "declined",
-              "by": "მომხმარებელი: ლევან კაპანაძე"
-            }
-          ]
-        },
-        {
-          "name": "პროკრედიტ ბანკი",
-          "status": "interested",
-          "sentAt": 1792125790059,
-          "statusAt": 1792126270059,
-          "log": [
-            {
-              "at": 1792125790059,
-              "status": "sent",
-              "by": "მომხმარებელი: ლევან კაპანაძე"
-            },
-            {
-              "at": 1792126270059,
-              "status": "interested",
-              "by": "ანა გელაშვილი (პროკრედიტ ბანკი)"
-            }
-          ]
-        }
-      ]
-    },
-    {
       "credit": "არ მაქვს საკრედიტო ისტორია",
       "sector": "კერძო კომპანია",
       "incomes": [
@@ -2893,7 +2271,7 @@
       "pid": "01011039595",
       "orgList": [
         {
-          "name": "კრედო ბანკი",
+          "name": "მისო A",
           "status": "accepted",
           "sentAt": 1792050190059,
           "statusAt": 1792053910059,
@@ -2982,7 +2360,7 @@
       "pid": "01011047514",
       "orgList": [
         {
-          "name": "ბაზისბანკი",
+          "name": "მისო A",
           "status": "done",
           "sentAt": 1791963790059,
           "statusAt": 1792058890059,
@@ -3019,103 +2397,6 @@
               "at": 1792058890059,
               "status": "done",
               "by": "მარიამ წერეთელი (ბაზისბანკი)"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "credit": "ვადაგადაცილება წარსულში",
-      "sector": "ინდმეწარმე",
-      "incomes": [
-        {
-          "src": "ხელფასი",
-          "amount": 3950
-        },
-        {
-          "src": "იჯარა",
-          "amount": 750
-        }
-      ],
-      "banks": [
-        {
-          "name": "საქართველოს ბანკი",
-          "services": [
-            "ხელფასის ანგარიში",
-            "ბარათი"
-          ]
-        }
-      ],
-      "dob": "1996-08-17",
-      "district": "ცენტრი",
-      "id": "ad7",
-      "demo": true,
-      "date": "2026-10-13T05:43:10.059Z",
-      "loan": "საკრედიტო ბარათი",
-      "amount": "3 000 ₾",
-      "name": "მარიამ ხუციშვილი",
-      "city": "თბილისი",
-      "orgs": 2,
-      "phone": "555 00 86 59",
-      "email": "client7@example.com",
-      "pid": "01011055433",
-      "orgList": [
-        {
-          "name": "თიბისი ბანკი",
-          "status": "done",
-          "sentAt": 1791870190059,
-          "statusAt": 1791964690059,
-          "offerAt": 1791871090059,
-          "terms": {
-            "amount": 3000,
-            "months": 12,
-            "rate": 14,
-            "fee": 30,
-            "insMonth": 6
-          },
-          "log": [
-            {
-              "at": 1791870190059,
-              "status": "sent",
-              "by": "მომხმარებელი: მარიამ ხუციშვილი"
-            },
-            {
-              "at": 1791870670059,
-              "status": "interested",
-              "by": "ნინო კაპანაძე (თიბისი ბანკი)"
-            },
-            {
-              "at": 1791871090059,
-              "status": "offer",
-              "by": "ნინო კაპანაძე (თიბისი ბანკი)"
-            },
-            {
-              "at": 1791873490059,
-              "status": "accepted",
-              "by": "მომხმარებელი: მარიამ ხუციშვილი"
-            },
-            {
-              "at": 1791964690059,
-              "status": "done",
-              "by": "ნინო კაპანაძე (თიბისი ბანკი)"
-            }
-          ]
-        },
-        {
-          "name": "ლიბერთი ბანკი",
-          "status": "expired",
-          "sentAt": 1791870190059,
-          "statusAt": 1791873790059,
-          "log": [
-            {
-              "at": 1791870190059,
-              "status": "sent",
-              "by": "მომხმარებელი: მარიამ ხუციშვილი"
-            },
-            {
-              "at": 1791873790059,
-              "status": "expired",
-              "by": "სისტემა"
             }
           ]
         }
@@ -3191,7 +2472,7 @@
           ]
         },
         {
-          "name": "საქართველოს ბანკი",
+          "name": "მისო A",
           "status": "declined",
           "sentAt": 1791438190059,
           "statusAt": 1791442570059,
@@ -3259,13 +2540,13 @@
       "amount": "5 000 ₾",
       "name": "ეკა ნოზაძე",
       "city": "თბილისი",
-      "orgs": 3,
+      "orgs": 2,
       "phone": "555 01 11 33",
       "email": "client9@example.com",
       "pid": "01011071271",
       "orgList": [
         {
-          "name": "საქართველოს ბანკი",
+          "name": "სუბიექტი A",
           "status": "done",
           "sentAt": 1792064590059,
           "statusAt": 1792068190059,
@@ -3301,42 +2582,6 @@
           ]
         },
         {
-          "name": "ლიბერთი ბანკი",
-          "status": "declined",
-          "sentAt": 1792064590059,
-          "statusAt": 1792069030059,
-          "offerAt": 1792066630059,
-          "terms": {
-            "amount": 5000,
-            "months": 60,
-            "rate": 15.5,
-            "fee": 50,
-            "insMonth": 10
-          },
-          "log": [
-            {
-              "at": 1792064590059,
-              "status": "sent",
-              "by": "მომხმარებელი: ეკა ნოზაძე"
-            },
-            {
-              "at": 1792065070059,
-              "status": "interested",
-              "by": "თამარ ბერიძე (ლიბერთი ბანკი)"
-            },
-            {
-              "at": 1792066630059,
-              "status": "offer",
-              "by": "თამარ ბერიძე (ლიბერთი ბანკი)"
-            },
-            {
-              "at": 1792069030059,
-              "status": "declined",
-              "by": "მომხმარებელი: ეკა ნოზაძე"
-            }
-          ]
-        },
-        {
           "name": "მისო A",
           "status": "expired",
           "sentAt": 1792064590059,
@@ -3351,118 +2596,6 @@
               "at": 1792068190059,
               "status": "expired",
               "by": "სისტემა"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "credit": "კარგი",
-      "sector": "თვითდასაქმებული",
-      "incomes": [
-        {
-          "src": "ხელფასი",
-          "amount": 5000
-        }
-      ],
-      "banks": [
-        {
-          "name": "საქართველოს ბანკი",
-          "services": [
-            "ხელფასის ანგარიში",
-            "ბარათი"
-          ]
-        }
-      ],
-      "dob": "2005-02-11",
-      "district": "ვაკე",
-      "id": "ad10",
-      "demo": true,
-      "date": "2026-10-14T11:43:10.059Z",
-      "loan": "იპოთეკური სესხი",
-      "amount": "120 000 ₾",
-      "name": "ირაკლი ბაქრაძე",
-      "city": "თბილისი",
-      "orgs": 2,
-      "phone": "555 01 23 70",
-      "email": "client10@example.com",
-      "pid": "01011079190",
-      "orgList": [
-        {
-          "name": "თიბისი ბანკი",
-          "status": "done",
-          "sentAt": 1791978190059,
-          "statusAt": 1792074250059,
-          "offerAt": 1791980650059,
-          "terms": {
-            "amount": 120000,
-            "months": 24,
-            "rate": 12.9,
-            "fee": 1200,
-            "insMonth": 240
-          },
-          "log": [
-            {
-              "at": 1791978190059,
-              "status": "sent",
-              "by": "მომხმარებელი: ირაკლი ბაქრაძე"
-            },
-            {
-              "at": 1791978670059,
-              "status": "interested",
-              "by": "ლევან ხუციშვილი (თიბისი ბანკი)"
-            },
-            {
-              "at": 1791980650059,
-              "status": "offer",
-              "by": "ლევან ხუციშვილი (თიბისი ბანკი)"
-            },
-            {
-              "at": 1791983050059,
-              "status": "accepted",
-              "by": "მომხმარებელი: ირაკლი ბაქრაძე"
-            },
-            {
-              "at": 1792074250059,
-              "status": "done",
-              "by": "ლევან ხუციშვილი (თიბისი ბანკი)"
-            }
-          ]
-        },
-        {
-          "name": "პროკრედიტ ბანკი",
-          "status": "cancelled",
-          "sentAt": 1791978190059,
-          "statusAt": 1791983290059,
-          "offerAt": 1791981490059,
-          "terms": {
-            "amount": 120000,
-            "months": 24,
-            "rate": 12.9,
-            "fee": 1200,
-            "insMonth": 240
-          },
-          "reason": "შეთავაზების პირობები შეიცვალა",
-          "log": [
-            {
-              "at": 1791978190059,
-              "status": "sent",
-              "by": "მომხმარებელი: ირაკლი ბაქრაძე"
-            },
-            {
-              "at": 1791978670059,
-              "status": "interested",
-              "by": "ლევან ხუციშვილი (პროკრედიტ ბანკი)"
-            },
-            {
-              "at": 1791981490059,
-              "status": "offer",
-              "by": "ლევან ხუციშვილი (პროკრედიტ ბანკი)"
-            },
-            {
-              "at": 1791983290059,
-              "status": "cancelled",
-              "by": "ლევან ხუციშვილი (პროკრედიტ ბანკი)"
             }
           ]
         }
@@ -3574,13 +2707,13 @@
       "amount": "40 000 ₾",
       "name": "ნიკა ჩიქოვანი",
       "city": "რუსთავი",
-      "orgs": 3,
+      "orgs": 2,
       "phone": "555 01 48 44",
       "email": "client12@example.com",
       "pid": "01011095028",
       "orgList": [
         {
-          "name": "ბაზისბანკი",
+          "name": "მისო A",
           "status": "declined",
           "sentAt": 1791726190059,
           "statusAt": 1791730870059,
@@ -3631,47 +2764,6 @@
               "at": 1791727990059,
               "status": "cancelled",
               "by": "გიორგი მაისურაძე (სუბიექტი A)"
-            }
-          ]
-        },
-        {
-          "name": "კრედო ბანკი",
-          "status": "done",
-          "sentAt": 1791726190059,
-          "statusAt": 1791821530059,
-          "offerAt": 1791727930059,
-          "terms": {
-            "amount": 40000,
-            "months": 12,
-            "rate": 14,
-            "fee": 400,
-            "insMonth": 80
-          },
-          "log": [
-            {
-              "at": 1791726190059,
-              "status": "sent",
-              "by": "მომხმარებელი: ნიკა ჩიქოვანი"
-            },
-            {
-              "at": 1791726670059,
-              "status": "interested",
-              "by": "დავით ლომიძე (კრედო ბანკი)"
-            },
-            {
-              "at": 1791727930059,
-              "status": "offer",
-              "by": "დავით ლომიძე (კრედო ბანკი)"
-            },
-            {
-              "at": 1791730330059,
-              "status": "accepted",
-              "by": "მომხმარებელი: ნიკა ჩიქოვანი"
-            },
-            {
-              "at": 1791821530059,
-              "status": "done",
-              "by": "დავით ლომიძე (კრედო ბანკი)"
             }
           ]
         }

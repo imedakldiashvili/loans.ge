@@ -33,8 +33,8 @@ const waitFor = async (pred, ms = 6000) => {
   return null;
 };
 
-// ── back office of საქართველოს ბანკი: API key and webhook
-await login('partner', 'office@1.ge');
+// ── back office of მისო A: API key and webhook
+await login('partner', 'office@7.ge');
 const me = (await call('GET', '/partner/auth/me')).json.Data;
 const orgId = me.Profile.Organization.ID;
 ok((await call('POST', '/partner/apiKey/add', { Name: 'x', Scopes: ['everything'] })).status === 400, 'API key: unknown scope → 400');
@@ -66,10 +66,15 @@ ok((await withKey('PUT', `/partner/application/changeStatus/${one.ID}/${one.UID}
 ok((await withKey('POST', '/partner/staff/find/1/10', {})).status === 403, 'API key: staff is not reachable (403)');
 ok((await withKey('GET', '/partner/auth/me')).status === 403, 'API key: no session endpoints (403)');
 ok((await withKey('POST', '/partner/application/find/1/5', {}, `${key.slice(0, -2)}xx`)).status === 401, 'wrong key → 401');
-const log = await prisma.actionLog.findFirst({ where: { url: { contains: '/partner/application/find/1/50' }, actorType: 'integration' }, orderBy: { id: 'desc' } });
+// the log row is written after the response has gone out — wait for it (up to 3 s)
+let log = null;
+for (let i = 0; i < 30 && !log; i++) {
+  log = await prisma.actionLog.findFirst({ where: { url: { contains: '/partner/application/find/1/50' }, actorType: 'integration' }, orderBy: { id: 'desc' } });
+  if (!log) await new Promise((r) => setTimeout(r, 100));
+}
 ok(log && log.createdBy === null, 'actionLog: calls with a key logged as integration');
 
-// ── a customer applies to საქართველოს ბანკი → webhook, the bell, staff e-mail
+// ── a customer applies to მისო A → webhook, the bell, staff e-mail
 const email = `int.${stamp}@example.com`;
 const phone = `5${String(Number(stamp) + 7).slice(-8)}`;
 await login('client', email);
@@ -82,7 +87,7 @@ const add = await call('POST', '/client/application/add', {
   OrganizationIDs: [orgId], Pid: '01001012399', FirstName: 'ინტ', LastName: 'ტესტი', BirthDate: '1991-01-01', Phone: phone, CityID: Number(city.id),
   Otp: { ID: s.json.Data.ID, UID: s.json.Data.UID, Code: code },
 });
-ok(add.status === 200, 'customer application to საქართველოს ბანკი', add.json);
+ok(add.status === 200, 'customer application to მისო A', add.json);
 const created = await waitFor((r) => r.headers['x-loans-event'] === 'application.created' && JSON.parse(r.body).Data.ApplicationID === add.json.Data.ID);
 const data = created && JSON.parse(created.body).Data;
 ok(created && verify(created) && data.Status === 'sent' && data.ApplicationOrgUID, 'webhook: application.created, signed', data);
@@ -93,7 +98,7 @@ await sleep(500);
 const bell = (await call('POST', '/partner/notification/find/1/10', {})).json.Data;
 ok(bell.UnreadCount >= 1 && bell.Items[0].Title === 'ახალი განაცხადი' && bell.Items[0].ApplicationOrgID === data.ApplicationOrgID, 'staff bell: "new application"', bell.Items[0]);
 ok((await call('PUT', '/partner/notification/readAll')).status === 200 && (await call('POST', '/partner/notification/find/1/10', {})).json.Data.UnreadCount === 0, 'read all → no unread');
-ok(readFileSync(LOG, 'utf8').includes('→ office@1.ge | loans.ge — ახალი განაცხადი'), 'staff e-mail about the new application');
+ok(readFileSync(LOG, 'utf8').includes('→ office@7.ge | loans.ge — ახალი განაცხადი'), 'staff e-mail about the new application');
 
 // ── partner reviews → the customer's bell; receiver down → retry scheduled
 failing = true;
@@ -112,7 +117,7 @@ const deliveries = (await call('POST', '/partner/webhookDelivery/find/1/20', {})
 ok(deliveries.Items.every((x) => x.OrganizationID === orgId), 'delivery log: own organisation only');
 
 const cbell = (await call('POST', '/client/notification/find/1/10', {})).json.Data;
-ok(cbell.Items[0]?.Title === 'საქართველოს ბანკი განიხილავს შენს განაცხადს' && cbell.UnreadCount === 1, 'customer bell: "საქართველოს ბანკი is reviewing"', cbell.Items[0]);
+ok(cbell.Items[0]?.Title === 'მისო A განიხილავს შენს განაცხადს' && cbell.UnreadCount === 1, 'customer bell: "მისო A is reviewing"', cbell.Items[0]);
 ok((await call('PUT', `/client/notification/read/${cbell.Items[0].ID}/${cbell.Items[0].UID}`)).status === 200, 'customer marks it read');
 ok((await call('PUT', `/partner/notification/read/${cbell.Items[0].ID}/${cbell.Items[0].UID}`)).status === 404, "staff can't touch the customer's notification");
 

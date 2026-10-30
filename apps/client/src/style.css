@@ -239,8 +239,10 @@
   .opt-row input:checked + i::after { transform: scale(1); }
   .opt-row input:focus-visible + i { outline: 2px solid var(--orange); outline-offset: 2px; }
   .opt-check i { border-radius: 4px; }
-  /* bank list: the bank's logo before its name */
-  .banks-list .lg { flex: none; width: 32px; height: 32px; border-radius: 50%; }
+  /* bank list: the bank's logo at the right end of the row */
+  .banks-list .lg { flex: none; width: 32px; height: 32px; border-radius: 50%; order: 1; margin-inline-start: auto; }
+  /* organisation selection: the logo at the right end of the row too */
+  .org-list .org .lg { order: 1; margin-inline-start: auto; }
   .opt-check i::after { width: 10px; height: 6px; border-radius: 0; background: none; border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff; transform: rotate(-45deg) translate(1px, -1px) scale(0); }
   .opt-check input:checked + i { background: var(--green); }
   .opt-check input:checked + i::after { transform: rotate(-45deg) translate(1px, -1px) scale(1); }
