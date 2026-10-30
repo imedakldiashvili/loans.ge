@@ -64,7 +64,7 @@ export function AppsPage() {
   return (
     <ListPage
       title="განაცხადები"
-      desc="მომხმარებლების განაცხადები: ერთი ბარათი = ერთი განაცხადი, რამდენ ორგანიზაციასაც არ უნდა გაეგზავნოს. განაცხადი ან მიმდინარეა (ერთ ორგანიზაციასთან მაინც მიმდინარეა), ან დასრულებული. ისრით — რა ხდება თითოეულ ორგანიზაციასთან, 👁-ში — განაცხადის დეტალები."
+      desc="მომხმარებლების განაცხადები: ერთი ბარათი = ერთი განაცხადი, რამდენ ორგანიზაციასაც არ უნდა გაეგზავნოს. განაცხადი ან მიმდინარეა (ერთ ორგანიზაციასთან მაინც მიმდინარეა), ან დასრულებული. ისრით - რა ხდება თითოეულ ორგანიზაციასთან, 👁-ში - განაცხადის დეტალები."
       filters={
         <>
           <input className="search" type="search" placeholder="ძებნა: სახელი, პირადი №, მობილური" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -124,7 +124,7 @@ function AppCard({ a, open, onToggle, onView }: { a: Application; open: boolean;
         </span>
         {/* the middle column: the customer (personal number, name), the mobile, the e-mail — one line each */}
         <span className="who-col">
-          <b>{[a.Pid, fullName(a)].filter(Boolean).join(' · ') || '—'}</b>
+          <b>{[a.Pid, fullName(a)].filter(Boolean).join(' · ') || '-'}</b>
           {a.Phone && <small>{phone(a.Phone)}</small>}
           {a.Email && <small>{a.Email}</small>}
         </span>
@@ -169,7 +169,7 @@ function AppBlocks({ app }: { app: Application }) {
       {rows.map(([k, v]) => (
         <span key={k} style={{ display: 'contents' }}>
           <span>{k}</span>
-          <b>{v || '—'}</b>
+          <b>{v || '-'}</b>
         </span>
       ))}
     </div>
@@ -250,7 +250,7 @@ function AppDialog({ app, onClose }: { app: Application; onClose: () => void }) 
       {rows.map(([k, v], i) => (
         <div key={i} className="view-row">
           <span>{k}</span>
-          <b>{v || '—'}</b>
+          <b>{v || '-'}</b>
         </div>
       ))}
     </div>
@@ -310,7 +310,7 @@ export function ComparePage() {
         <td>{label}</td>
         {vals.map((v, i) => (
           <td key={i} className={bv !== null && v === bv && many ? 'best' : ''}>
-            {typeof v === 'number' ? f(v) : '—'}
+            {typeof v === 'number' ? f(v) : '-'}
           </td>
         ))}
         <td className="fill" />

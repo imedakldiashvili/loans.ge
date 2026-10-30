@@ -18,7 +18,7 @@ interface Staff {
   User: { ID: number; Email: string | null; Phone: string | null };
 }
 
-const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((x) => x.Message)].join(' — ') : 'შეცდომა');
+const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((x) => x.Message)].join(' - ') : 'შეცდომა');
 
 export function UsersPage() {
   const { me } = useSession();

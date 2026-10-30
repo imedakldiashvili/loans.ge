@@ -73,7 +73,7 @@ export function useLookups() {
   const districts = useAll<{ ID: number; CityID: number; NameKa: string }>('district', { Sort: [{ Field: 'Sort', Dir: 'asc' }] }).data ?? [];
   const st = (k: string) => statuses.find((s) => s.Key === k);
   const place = (a: Pick<Application, 'CityID' | 'DistrictID' | 'Village'>) =>
-    [cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((d) => d.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(' - ') || '—';
+    [cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((d) => d.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(' - ') || '-';
   return { statuses, cities, districts, st, place };
 }
 
@@ -301,7 +301,7 @@ export function StatusLog({ o, st }: { o: AppOrg; st: (k: string) => StatusRow |
                     {nx ? (
                       <span className="dur">{fmtDur(new Date(nx.CreatedOn).getTime() - at)}</span>
                     ) : s?.Category === 'progress' ? (
-                      <span className="dur live">{fmtDur(now - at)} — მიმდინარე</span>
+                      <span className="dur live">{fmtDur(now - at)} - მიმდინარე</span>
                     ) : null}
                   </b>
                   <span>
@@ -338,7 +338,7 @@ export function OfferTable({ app, o, st, opts = {} }: { app: Application; o: App
         <td>{label}</td>
         {vals.map((v, i) => (
           <td key={i} className={[bestV !== null && v === bestV && !allSame ? 'best' : '', sep(i) ?? ''].join(' ').trim()}>
-            {v === null || v === undefined ? '—' : f(v)}
+            {v === null || v === undefined ? '-' : f(v)}
           </td>
         ))}
       </tr>

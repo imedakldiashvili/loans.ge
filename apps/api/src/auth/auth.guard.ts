@@ -58,7 +58,7 @@ export class AuthGuard implements CanActivate {
     const token = bearer ?? cookieValue(req.headers.cookie, sessionCookie(gateway));
     if (!token) throw new AppError('UNAUTHORIZED', 'საჭიროა ავტორიზაცია');
     const auth = await this.sessions.resolve(gateway as AuthGateway, token);
-    if (!auth) throw new AppError('UNAUTHORIZED', 'სესია არ არის ან ვადა გაუვიდა — შედი თავიდან');
+    if (!auth) throw new AppError('UNAUTHORIZED', 'სესია არ არის ან ვადა გაუვიდა - შედი თავიდან');
 
     req.auth = auth;
     const rc = currentContext();

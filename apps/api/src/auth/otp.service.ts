@@ -38,7 +38,7 @@ export class OtpService {
 
   async send(channel: OtpChannel, target: string, purpose: string) {
     const cfg = await this.settings(channel);
-    if (!cfg.on) throw new AppError('VALIDATION_ERROR', channel === 'sms' ? 'SMS კოდი გამორთულია — გამოიყენე ელ.ფოსტა' : 'ელ.ფოსტის კოდი გამორთულია — გამოიყენე მობილური');
+    if (!cfg.on) throw new AppError('VALIDATION_ERROR', channel === 'sms' ? 'SMS კოდი გამორთულია - გამოიყენე ელ.ფოსტა' : 'ელ.ფოსტის კოდი გამორთულია - გამოიყენე მობილური');
     const last = await this.prisma.otpChallenge.findFirst({ where: { target, purpose, isDeleted: false }, orderBy: { createdOn: 'desc' } });
     if (last && Date.now() - last.createdOn.getTime() < cfg.resend * 1000) {
       const wait = Math.ceil((cfg.resend * 1000 - (Date.now() - last.createdOn.getTime())) / 1000);
@@ -51,7 +51,7 @@ export class OtpService {
     await this.prisma.otpChallenge.update({ where: { id: row.id }, data: { codeHash: hashCode(row.uid, code) } });
     const text = cfg.tpl.replace('{code}', code);
     if (channel === 'sms') await this.sms.send(target, text);
-    else await this.email.send(target, 'loans.ge — ერთჯერადი კოდი', text);
+    else await this.email.send(target, 'loans.ge - ერთჯერადი კოდი', text);
     // test environments only (DEV_OUTBOX=true): keep a copy for the OTP viewer
     await this.outbox.record({ channel, target, purpose, code, text, expiresOn: row.expiresOn, challengeUid: row.uid });
     // the length — the keypad shows as many places
@@ -63,14 +63,14 @@ export class OtpService {
     const ch = await this.prisma.otpChallenge.findFirst({ where: { id, uid, isDeleted: false } });
     if (!ch || ch.consumedOn) throw notFound('კოდი');
     const cfg = await this.settings(ch.channel as OtpChannel);
-    if (ch.expiresOn < new Date()) throw new AppError('VALIDATION_ERROR', 'კოდის ვადა გავიდა — მოითხოვე ახალი', [{ field: 'Otp', message: 'ვადა გავიდა' }]);
-    if (ch.attempts >= cfg.tries) throw new AppError('RATE_LIMITED', 'მცდელობები ამოიწურა — მოითხოვე ახალი კოდი');
+    if (ch.expiresOn < new Date()) throw new AppError('VALIDATION_ERROR', 'კოდის ვადა გავიდა - მოითხოვე ახალი', [{ field: 'Otp', message: 'ვადა გავიდა' }]);
+    if (ch.attempts >= cfg.tries) throw new AppError('RATE_LIMITED', 'მცდელობები ამოიწურა - მოითხოვე ახალი კოდი');
     const a = Buffer.from(hashCode(ch.uid, code));
     const b = Buffer.from(ch.codeHash);
     if (a.length !== b.length || !timingSafeEqual(a, b)) {
       await this.prisma.otpChallenge.update({ where: { id: ch.id }, data: { attempts: { increment: 1 } } });
       const left = cfg.tries - ch.attempts - 1;
-      throw new AppError('VALIDATION_ERROR', left > 0 ? `კოდი არასწორია — დარჩა ${left} მცდელობა` : 'კოდი არასწორია — მცდელობები ამოიწურა', [{ field: 'Otp', message: 'არასწორია' }]);
+      throw new AppError('VALIDATION_ERROR', left > 0 ? `კოდი არასწორია - დარჩა ${left} მცდელობა` : 'კოდი არასწორია - მცდელობები ამოიწურა', [{ field: 'Otp', message: 'არასწორია' }]);
     }
     await this.prisma.otpChallenge.update({ where: { id: ch.id }, data: { consumedOn: new Date(), attempts: { increment: 1 } } });
     return ch;

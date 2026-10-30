@@ -55,7 +55,7 @@ export function MonitorPage() {
         {n}
       </button>
     ) : (
-      <span className="mz">—</span>
+      <span className="mz">-</span>
     );
 
   return (
@@ -63,7 +63,7 @@ export function MonitorPage() {
       <div className="lp-top">
         <div className="lp-title">
           <h2>მონიტორინგი</h2>
-          <p>ზემოთ — განაცხადები და შეთავაზებები სამ კატეგორიად (In Progress, Complete, Canceled); ცხრილში სტრიქონი — ორგანიზაცია, სვეტი — სტატუსი, უჯრა — რამდენი ჩანაწერი გაიარა ამ სტატუსში (დაჭერით იხსნება სია).</p>
+          <p>ზემოთ - განაცხადები და შეთავაზებები სამ კატეგორიად (In Progress, Complete, Canceled); ცხრილში სტრიქონი - ორგანიზაცია, სვეტი - სტატუსი, უჯრა - რამდენი ჩანაწერი გაიარა ამ სტატუსში (დაჭერით იხსნება სია).</p>
         </div>
       </div>
       <div className="lp-filters">

@@ -37,7 +37,7 @@ function ApiKeysPage() {
       title="ინტეგრაცია · API გასაღებები"
       desc={
         <>
-          ორგანიზაციების API გასაღებები — ბანკის სისტემა მათით მუშაობს partner API-ზე (X-Api-Key). გასაღებებს ორგანიზაციის ბექ-ოფისი ქმნის კაბინეტში (ინტეგრაცია); თავად გასაღები არსად ინახება.{' '}
+          ორგანიზაციების API გასაღებები - ბანკის სისტემა მათით მუშაობს partner API-ზე (X-Api-Key). გასაღებებს ორგანიზაციის ბექ-ოფისი ქმნის კაბინეტში (ინტეგრაცია); თავად გასაღები არსად ინახება.{' '}
           <a href={API_DOCS} target="_blank" rel="noreferrer">
             API დოკუმენტაცია (Swagger)
           </a>
@@ -68,7 +68,7 @@ function ApiKeysPage() {
                 <code>lgk_{k.Prefix}_…</code>
               </td>
               <td>{k.Scopes.join(', ')}</td>
-              <td>{k.LastUsedOn ? fmtDate(k.LastUsedOn) : '—'}</td>
+              <td>{k.LastUsedOn ? fmtDate(k.LastUsedOn) : '-'}</td>
               <td>
                 <span className={`tag ${k.IsEnable ? 'green' : 'grey'}`}>{k.IsEnable ? 'აქტიური' : 'გამორთული'}</span>
               </td>
@@ -150,7 +150,7 @@ function WebhookLogPage() {
                 <code>{d.Event}</code>
               </td>
               <td className="num">{d.Attempts}</td>
-              <td className="num">{d.ResponseCode ?? '—'}</td>
+              <td className="num">{d.ResponseCode ?? '-'}</td>
               <td>
                 <span className={`tag ${ST[d.Status][1]}`}>{ST[d.Status][0]}</span>
               </td>
@@ -193,7 +193,7 @@ function WebhookLogPage() {
             </div>
             <div className="oe-col">
               <h5>პასუხი</h5>
-              <pre style={{ margin: 0, maxHeight: 260, overflow: 'auto', fontSize: 12, background: 'var(--bg-soft)', padding: 10, borderRadius: 6 }}>{open.ResponseBody || '—'}</pre>
+              <pre style={{ margin: 0, maxHeight: 260, overflow: 'auto', fontSize: 12, background: 'var(--bg-soft)', padding: 10, borderRadius: 6 }}>{open.ResponseBody || '-'}</pre>
             </div>
           </div>
         </Dialog>

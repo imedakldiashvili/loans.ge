@@ -51,7 +51,7 @@ function ActionLogPage() {
   return (
     <ListPage
       title="ლოგები · ქმედებების ლოგი"
-      desc="ყველა API ზარი UID-ით — წარმატებულიც და შეცდომითაც (actionLog). ინახება სამუდამოდ; მოთხოვნა და პასუხი — ცალკე, uid-ით. ძებნა URL-ით ან UID-ით."
+      desc="ყველა API ზარი UID-ით - წარმატებულიც და შეცდომითაც (actionLog). ინახება სამუდამოდ; მოთხოვნა და პასუხი - ცალკე, uid-ით. ძებნა URL-ით ან UID-ით."
       filters={
         <>
           <input className="search" type="search" placeholder="ძებნა: URL ან UID" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -99,14 +99,14 @@ function ActionLogPage() {
                 {l.ErrorMessage && <span className="sub" style={{ color: 'var(--red)' }}>{l.ErrorCode} · {l.ErrorMessage}</span>}
               </td>
               <td>
-                {l.Module ?? '—'}
+                {l.Module ?? '-'}
                 <span className="sub">{l.Action ?? ''}</span>
               </td>
               <td className="num">
                 <span className={`tag ${l.IsSuccess ? 'green' : 'red'}`}>{l.ResponseCode}</span>
               </td>
               <td className="num">{l.DurationMs}</td>
-              <td>{l.CreatedBy ?? '—'}</td>
+              <td>{l.CreatedBy ?? '-'}</td>
               <td className="acts">
                 <button type="button" className="ib" title="დეტალები" onClick={() => setOpen(l)}>
                   <Icon.eye />
@@ -145,7 +145,7 @@ function LogDialog({ log, onClose }: { log: Log; onClose: () => void }) {
           {log.ResponseCode} {log.ErrorCode ? `· ${log.ErrorCode} · ${log.ErrorMessage}` : ''}
         </b>
         <span>IP</span>
-        <b>{log.Ip ?? '—'}</b>
+        <b>{log.Ip ?? '-'}</b>
       </div>
       {!detail ? (
         <p>იტვირთება…</p>
@@ -248,12 +248,12 @@ function JobLogPage() {
               </td>
               <td className="num">{r.Checked}</td>
               <td className="num">{r.Changed ? <b>{r.Changed}</b> : 0}</td>
-              <td className="num">{r.DurationMs ?? '—'}</td>
+              <td className="num">{r.DurationMs ?? '-'}</td>
               <td>
                 <span className={`tag ${r.Status === 'ok' ? 'green' : 'red'}`}>{r.Status === 'ok' ? 'OK' : 'შეცდომა'}</span>
               </td>
               <td>
-                <code style={{ fontSize: 12 }}>{r.Instance ?? '—'}</code>
+                <code style={{ fontSize: 12 }}>{r.Instance ?? '-'}</code>
               </td>
               <td className="acts">
                 <button type="button" className="ib" title="დეტალები" onClick={() => setOpen(r)}>
@@ -272,10 +272,10 @@ function JobLogPage() {
               <code>{open.UID}</code>
             </b>
             <span>რას აკეთებს</span>
-            <b>{JOBS[open.Job]?.desc ?? '—'}</b>
+            <b>{JOBS[open.Job]?.desc ?? '-'}</b>
             <span>დრო</span>
             <b>
-              {fmtDate(open.StartedOn)} · {open.DurationMs ?? '—'} მწმ
+              {fmtDate(open.StartedOn)} · {open.DurationMs ?? '-'} მწმ
             </b>
             <span>შედეგი</span>
             <b>

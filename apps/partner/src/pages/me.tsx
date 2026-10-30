@@ -16,13 +16,13 @@ export function MePage({ dark, setDark }: { dark: boolean; setDark: (d: boolean)
       <div className="card me-card">
         <div className="kv">
           <span>სახელი</span>
-          <b>{p.DisplayName || '—'}</b>
+          <b>{p.DisplayName || '-'}</b>
           <span>როლი</span>
           <b>{ROLES[p.Role]}</b>
           <span>ელ. ფოსტა</span>
-          <b>{u.Email || '—'}</b>
+          <b>{u.Email || '-'}</b>
           <span>მობილური</span>
-          <b>{u.Phone ? `+995 ${u.Phone.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')}` : '—'}</b>
+          <b>{u.Phone ? `+995 ${u.Phone.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')}` : '-'}</b>
           <span>ორგანიზაცია</span>
           {me.Profiles.length > 1 ? (
             <select className="me-org" aria-label="ორგანიზაცია" value={p.ID} onChange={(e) => switchTo(me.Profiles.find((x) => x.ID === Number(e.target.value))!)}>

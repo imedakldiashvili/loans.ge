@@ -46,7 +46,7 @@ interface Delivery extends Ref {
   Endpoint: { Url: string };
 }
 
-const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : 'შეცდომა');
+const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' - ') : 'შეცდომა');
 const items = <T,>(path: string, body: object = {}) => api<Page<T>>('POST', path, body).then((p) => p.Items);
 
 export function IntegrationPage() {
@@ -135,7 +135,7 @@ function Keys() {
                   <code>lgk_{k.Prefix}_…</code> · {k.Scopes.map((s) => SCOPES.find((x) => x[0] === s)?.[1] ?? s).join(', ')}
                 </small>
                 <small>
-                  ბოლო გამოყენება: {k.LastUsedOn ? fmtDate(k.LastUsedOn) : '—'}
+                  ბოლო გამოყენება: {k.LastUsedOn ? fmtDate(k.LastUsedOn) : '-'}
                   {k.ExpiresOn ? ` · მოქმედებს ${fmtDate(k.ExpiresOn)}-მდე` : ''}
                 </small>
               </span>
@@ -163,7 +163,7 @@ function Keys() {
           }}
         />
       )}
-      {shown && <SecretBox title="ახალი API გასაღები" value={shown} note="გასაღები მხოლოდ ახლა ჩანს — შეინახე უსაფრთხო ადგილას. თუ დაიკარგა, წაშალე და ახალი შექმენი." onClose={() => setShown(null)} />}
+      {shown && <SecretBox title="ახალი API გასაღები" value={shown} note="გასაღები მხოლოდ ახლა ჩანს - შეინახე უსაფრთხო ადგილას. თუ დაიკარგა, წაშალე და ახალი შექმენი." onClose={() => setShown(null)} />}
     </>
   );
 }

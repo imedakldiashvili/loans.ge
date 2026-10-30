@@ -156,7 +156,7 @@ export function App() {
         </nav>
         <div className="sb-foot">
           {/* the user → my data (details, organisation, theme); the organisation's logo, the name, the role */}
-          <NavLink to="/me" className={({ isActive }) => `who${isActive ? ' on' : ''}`} title={`${p.DisplayName} — ჩემი მონაცემები (${org?.NameKa ?? ''})`}>
+          <NavLink to="/me" className={({ isActive }) => `who${isActive ? ' on' : ''}`} title={`${p.DisplayName} - ჩემი მონაცემები (${org?.NameKa ?? ''})`}>
             <span className="lg img">
               <img src={org?.LogoPath ? `/fs/${org.LogoPath}` : '/fs/default/org-logo.png'} alt="" />
             </span>
@@ -240,7 +240,7 @@ function Login({ top }: { top: ReactNode }) {
     <section className="login">
       {top}
       <h2>პარტნიორის კაბინეტი</h2>
-      <p>{challenge ? `კოდი გაიგზავნა: ${login}` : 'შეიყვანე ელ.ფოსტა — ერთჯერად კოდს გამოგიგზავნით'}</p>
+      <p>{challenge ? `კოდი გაიგზავნა: ${login}` : 'შეიყვანე ელ.ფოსტა - ერთჯერად კოდს გამოგიგზავნით'}</p>
       {!challenge ? (
         <form className="f" onSubmit={send}>
           <div className="fld">
@@ -267,7 +267,7 @@ function Login({ top }: { top: ReactNode }) {
       )}
       {error && <div className="lerr">{error}</div>}
       <div className="demo-note">
-        დემო: <code>sales1@7.ge</code> (გაყიდვები, მისო A), <code>office@7.ge</code> (ბექ-ოფისი, მისო A), <code>sales2@7.ge</code> (გაყიდვები, შეზღუდული). კოდი — OTP კოდების გვერდზე (სატესტო გარემო).
+        დემო: <code>sales1@7.ge</code> (გაყიდვები, მისო A), <code>office@7.ge</code> (ბექ-ოფისი, მისო A), <code>sales2@7.ge</code> (გაყიდვები, შეზღუდული). კოდი - OTP კოდების გვერდზე (სატესტო გარემო).
       </div>
     </section>
   );

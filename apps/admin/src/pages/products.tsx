@@ -61,7 +61,7 @@ export function ProductsPage() {
   return (
     <ListPage
       title="პროდუქტის ტიპები"
-      desc="ცნობარი, რომლიდანაც პარტნიორი პროდუქტს ირჩევს (თავისუფალი სახელი არ არის). თითო ტიპს აქვს შეთავაზების ველების სქემა — რა ივსება შეთავაზების ტიპში პარტნიორის კაბინეტში."
+      desc="ცნობარი, რომლიდანაც პარტნიორი პროდუქტს ირჩევს (თავისუფალი სახელი არ არის). თითო ტიპს აქვს შეთავაზების ველების სქემა - რა ივსება შეთავაზების ტიპში პარტნიორის კაბინეტში."
       add={writable && <button type="button" className="btn btn-green" onClick={() => setDialog({ row: null })}>+ პროდუქტის ტიპი</button>}
       foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} size={size} onPage={setPage} onSize={setSize} />}
     >
@@ -209,7 +209,7 @@ function ProductDialog({ row, onClose }: { row: ProductType | null; onClose: () 
             </label>
           ))}
         </div>
-        <small>შეთავაზების ველები — სიიდან ☰ ღილაკით</small>
+        <small>შეთავაზების ველები - სიიდან ☰ ღილაკით</small>
       </div>
     </Dialog>
   );
@@ -241,7 +241,7 @@ export function ProductFieldsPage() {
     >
       <div className="tbl">
         {list.length === 0 ? (
-          <div className="empty">{q.isLoading ? 'იტვირთება…' : 'ველი არ არის — შეთავაზების ფორმა ცარიელი იქნება'}</div>
+          <div className="empty">{q.isLoading ? 'იტვირთება…' : 'ველი არ არის - შეთავაზების ფორმა ცარიელი იქნება'}</div>
         ) : (
           list.map((f, i) => (
             <div className="frow" key={f.ID}>

@@ -122,8 +122,8 @@ export function OffersPage() {
                       <span className="pid">{a.Pid}</span>
                       {fullName(a)}
                     </span>
-                    <span className="sub">{a.Email || '—'}</span>
-                    <span className="sub">{a.Phone || '—'}</span>
+                    <span className="sub">{a.Email || '-'}</span>
+                    <span className="sub">{a.Phone || '-'}</span>
                   </td>
                   <td>
                     <OrgStatus o={o} st={st} reason />

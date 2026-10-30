@@ -103,7 +103,7 @@ function App() {
       </header>
       <main className="wrap">
         <p className="warn">
-          მხოლოდ სატესტო გარემოსთვის. აქ ჩანს ყველა ერთჯერადი კოდი, რომელიც სისტემამ „გაგზავნა" (SMS / ელ.ფოსტა ჯერ არ იგზავნება). რეალურ სერვერზე ეს გვერდი არ მუშაობს — API მას მხოლოდ <code>DEV_OUTBOX=true</code>-ით რთავს და არასდროს <code>NODE_ENV=production</code>-ზე.
+          მხოლოდ სატესტო გარემოსთვის. აქ ჩანს ყველა ერთჯერადი კოდი, რომელიც სისტემამ „გაგზავნა" (SMS / ელ.ფოსტა ჯერ არ იგზავნება). რეალურ სერვერზე ეს გვერდი არ მუშაობს - API მას მხოლოდ <code>DEV_OUTBOX=true</code>-ით რთავს და არასდროს <code>NODE_ENV=production</code>-ზე.
         </p>
         <div className="bar">
           <input type="search" placeholder="ძებნა: ელ.ფოსტა ან მობილური" value={search} onChange={(e) => setSearch(e.target.value)} autoFocus />
@@ -111,9 +111,9 @@ function App() {
             სიის გასუფთავება
           </button>
         </div>
-        {state === 'off' && <div className="note">API გაშვებულია <code>DEV_OUTBOX</code>-ის გარეშე — კოდები არ ინახება. ჩართე <code>.env</code>-ში: <code>DEV_OUTBOX=true</code> და გადატვირთე API.</div>}
+        {state === 'off' && <div className="note">API გაშვებულია <code>DEV_OUTBOX</code>-ის გარეშე - კოდები არ ინახება. ჩართე <code>.env</code>-ში: <code>DEV_OUTBOX=true</code> და გადატვირთე API.</div>}
         {state === 'down' && <div className="note">API არ პასუხობს (http://localhost:4000). გაუშვი: <code>npm run dev:api</code></div>}
-        {state === 'ok' && !items.length && <div className="note">კოდი ჯერ არ არის. მოითხოვე კოდი ადმინში, პარტნიორის კაბინეტში ან საიტზე — აქ 2 წამში გამოჩნდება.</div>}
+        {state === 'ok' && !items.length && <div className="note">კოდი ჯერ არ არის. მოითხოვე კოდი ადმინში, პარტნიორის კაბინეტში ან საიტზე - აქ 2 წამში გამოჩნდება.</div>}
         <div className="list">
           {items.map((m) => {
             const gw = m.Purpose.replace(/^login:/, '');

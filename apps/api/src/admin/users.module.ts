@@ -22,7 +22,7 @@ export const userInclude = { user: { select: { id: true, uid: true, email: true,
 
 /** Normalises email/phone through the same rules as login; email is required — admins and staff log in by email only. */
 const normContacts = (d: { email: string | null; phone: string | null }) => {
-  if (!d.email) throw validation([{ field: 'Email', message: 'ელ.ფოსტა სავალდებულოა — შესვლა ელ.ფოსტით' }]);
+  if (!d.email) throw validation([{ field: 'Email', message: 'ელ.ფოსტა სავალდებულოა - შესვლა ელ.ფოსტით' }]);
   const phone = d.phone ? parseLogin(d.phone).target : null;
   return { email: d.email, phone };
 };
@@ -91,7 +91,7 @@ class ProfileService extends CrudService {
 const lastProfileGuard = async (row: Record<string, unknown>, prisma: PrismaService) => {
   notSelf(row);
   const n = await prisma.userProfile.count({ where: { userId: row.userId as bigint, isDeleted: false } });
-  if (n <= 1) throw conflict('მომხმარებლის ბოლო პროფილს ვერ წაშლი — გამორთე');
+  if (n <= 1) throw conflict('მომხმარებლის ბოლო პროფილს ვერ წაშლი - გამორთე');
 };
 
 export const profileModule = (

@@ -107,7 +107,7 @@ function CompareView({ a, onBack, reload }: { a: App; onBack: () => void; reload
         <td>{t(label)}</td>
         {vals.map((v, i) => (
           <td key={cols[i].key} className={[mark && v === min ? 'best' : '', v === undefined ? 'none' : '', chosen(cols[i].of)].filter(Boolean).join(' ') || undefined}>
-            {v === undefined ? '—' : f(v)}
+            {v === undefined ? '-' : f(v)}
           </td>
         ))}
       </tr>

@@ -74,7 +74,7 @@ export function OfferNum({ o, of, i }: { o: AppOrg; of: OfferRow; i: number }) {
 }
 
 export const stCls = (k: string) => (k === 'expired' || k === 'rejected' ? 'cancelled' : k === 'withdrawn' ? 'declined' : k);
-const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : t('შეცდომა'));
+const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' - ') : t('შეცდომა'));
 
 export const useStatus = () => {
   const { statuses } = useRefs();
@@ -290,7 +290,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               {a.FirstName} {a.LastName}
             </span>
             <small className="when">
-              {[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '—'} · {fmtDate(a.CreatedOn)}
+              {[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '-'} · {fmtDate(a.CreatedOn)}
             </small>
           </span>
           <span className="right">
@@ -452,7 +452,7 @@ function ViewModal({ a, onClose }: { a: App; onClose: () => void }) {
       {rows.map(([k, v, cls], i) => (
         <div key={i} className="view-row">
           <span>{t(k)}</span>
-          <b>{cls ? <em className={`status ${cls}`}>{v}</em> : v || '—'}</b>
+          <b>{cls ? <em className={`status ${cls}`}>{v}</em> : v || '-'}</b>
         </div>
       ))}
     </div>
@@ -567,7 +567,7 @@ export function OfferModal({ o, onClose }: { o: AppOrg; onClose: () => void }) {
             </table>
           </div>
         )}
-        {!o.Offers.length && <p style={{ textAlign: 'center' }}>{t('შეთავაზება ჯერ არ არის — გაგზავნილია')} {fmtDate(o.SentOn)}</p>}
+        {!o.Offers.length && <p style={{ textAlign: 'center' }}>{t('შეთავაზება ჯერ არ არის - გაგზავნილია')} {fmtDate(o.SentOn)}</p>}
       </div>
     </Modal>
   );
@@ -750,22 +750,22 @@ function Profile() {
         <div className="prof-info">
           <div className="prof-row">
             <span>{t('ელ. ფოსტა')}</span>
-            <b>{d.User.Email ?? '—'}</b>
+            <b>{d.User.Email ?? '-'}</b>
             <i />
           </div>
           <div className="prof-row">
             <span>{t('მომხმარებლის სახელი')}</span>
-            <b>{d.User.UserName || d.User.Email?.split('@')[0] || '—'}</b>
+            <b>{d.User.UserName || d.User.Email?.split('@')[0] || '-'}</b>
             {btn('user')}
           </div>
           <div className="prof-row">
             <span>{t('მობილური')}</span>
-            <b>{d.User.Phone ? fmtPhone(d.User.Phone) : '—'}</b>
+            <b>{d.User.Phone ? fmtPhone(d.User.Phone) : '-'}</b>
             {btn('phone')}
           </div>
           <div className="prof-row">
             <span>{t('ლოკაცია')}</span>
-            <b>{loc || '—'}</b>
+            <b>{loc || '-'}</b>
             {btn('loc')}
           </div>
         </div>
@@ -786,17 +786,17 @@ function Profile() {
         <div className="prof-info prof-info-2">
           <div className="prof-row prof-row-3">
             <span>{t('პირადი ნომერი')}</span>
-            <b>{c?.Pid || '—'}</b>
+            <b>{c?.Pid || '-'}</b>
             {btn('pid')}
           </div>
           <div className="prof-row prof-row-3">
             <span>{t('სახელი')}</span>
-            <b>{c?.FirstName || '—'}</b>
+            <b>{c?.FirstName || '-'}</b>
             {btn('first')}
           </div>
           <div className="prof-row prof-row-3">
             <span>{t('გვარი')}</span>
-            <b>{c?.LastName || '—'}</b>
+            <b>{c?.LastName || '-'}</b>
             {btn('last')}
           </div>
           <div className="prof-row prof-row-3">

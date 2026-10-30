@@ -56,7 +56,7 @@ export function LoginPage() {
           <span className="tag">ადმინი</span>
         </div>
         <h2>ადმინისტრაციული კონსოლი</h2>
-        <p>{challenge ? `კოდი გაიგზავნა: ${login}` : 'შეიყვანე ელ.ფოსტა — ერთჯერად კოდს გამოგიგზავნით'}</p>
+        <p>{challenge ? `კოდი გაიგზავნა: ${login}` : 'შეიყვანე ელ.ფოსტა - ერთჯერად კოდს გამოგიგზავნით'}</p>
         {!challenge ? (
           <form onSubmit={send}>
             <div className="f">

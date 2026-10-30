@@ -35,12 +35,12 @@ const NOTE: Record<string, string> = {
   offerTypes: 'პარტნიორის შეთავაზების ტიპები (ბარათის ტიპი)',
   regions: 'ქალაქების ჯგუფები ლოკაციის ფილტრისთვის; ქალაქი რეგიონს ეკუთვნის',
   cities: 'ლოკაციის ფილტრი და ვიზარდი; ქალაქი რეგიონით',
-  districts: 'დიდი ქალაქების უბნები — ლოკაციის ჩაშლა',
+  districts: 'დიდი ქალაქების უბნები - ლოკაციის ჩაშლა',
   rejectReasons: 'პარტნიორი უარს ეუბნება შემოსულ / განხილვაში განაცხადს',
   cancelReasons: 'პარტნიორი აუქმებს გაგზავნილ / დადასტურებულ შეთავაზებას',
-  sectors: 'ვიზარდის მე-2 ნაბიჯი — საქმიანობის სფერო',
-  incomes: 'ვიზარდის მე-3 ნაბიჯი — შემოსავლის წყარო',
-  creditHistory: 'ვიზარდის 1-ლი ნაბიჯი — საკრედიტო ისტორია',
+  sectors: 'ვიზარდის მე-2 ნაბიჯი - საქმიანობის სფერო',
+  incomes: 'ვიზარდის მე-3 ნაბიჯი - შემოსავლის წყარო',
+  creditHistory: 'ვიზარდის 1-ლი ნაბიჯი - საკრედიტო ისტორია',
 };
 
 export function RefsPage() {
@@ -146,7 +146,7 @@ function RefList({ panelKey, module, title }: { panelKey: string; module: string
                     {panelKey === 'cities' && (
                       <>
                         <td>{groupName(r.RegionID) && <BiView ka={groupName(r.RegionID)!.NameKa} en={groupName(r.RegionID)!.NameEn} />}</td>
-                        <td>{districts?.filter((d) => d.CityID === r.ID).length || '—'}</td>
+                        <td>{districts?.filter((d) => d.CityID === r.ID).length || '-'}</td>
                       </>
                     )}
                     {panelKey === 'districts' && <td>{groupName(r.CityID)?.NameKa}</td>}
@@ -230,7 +230,7 @@ function RefDialog({
   };
 
   return (
-    <Dialog title={`${title} — ${row ? 'რედაქტირება' : 'დამატება'}`} okLabel={row ? 'შენახვა' : 'დამატება'} onOk={submit} onClose={onClose} onErrors={setErrors}>
+    <Dialog title={`${title} - ${row ? 'რედაქტირება' : 'დამატება'}`} okLabel={row ? 'შენახვა' : 'დამატება'} onOk={submit} onClose={onClose} onErrors={setErrors}>
       {isCurrency ? (
         <div className="fgrid" style={{ padding: 0 }}>
           <div className="f">

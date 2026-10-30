@@ -43,7 +43,7 @@ function StatusesPage() {
   return (
     <ListPage
       title="პარამეტრები · სტატუსები"
-      desc="სტატუსების ტექსტები სამივე ზედაპირისთვის, კატეგორია (In Progress / Complete / Canceled — მონიტორინგი ამით ჯგუფდება), ტაიმერი სტატუსის დაწყებიდან და ქცევის მონიშვნები. სტატუსები და გადასვლები ბაზაშია — ახლის დამატება კოდის შეცვლის გარეშე."
+      desc="სტატუსების ტექსტები სამივე ზედაპირისთვის, კატეგორია (In Progress / Complete / Canceled - მონიტორინგი ამით ჯგუფდება), ტაიმერი სტატუსის დაწყებიდან და ქცევის მონიშვნები. სტატუსები და გადასვლები ბაზაშია - ახლის დამატება კოდის შეცვლის გარეშე."
       add={writable && <button type="button" className="btn btn-green" onClick={() => setDialog({ row: null })}>+ სტატუსი</button>}
     >
       <DataTable
@@ -79,7 +79,7 @@ function StatusesPage() {
               <td>
                 <span className={`tag ${CAT_TAG[s.Category]}`}>{catLabel(s.Category)}</span>
               </td>
-              <td className="num">{s.TtlMinutes ? `${s.TtlMinutes} წთ` : '—'}</td>
+              <td className="num">{s.TtlMinutes ? `${s.TtlMinutes} წთ` : '-'}</td>
               <td>
                 <div className="chips">
                   {flags(s).map((f) => (
@@ -118,7 +118,7 @@ function StatusesPage() {
       {del && (
         <Confirm
           title={`წავშალოთ სტატუსი „${del.Key}"?`}
-          text="გამოყენებულ სტატუსს ვერ წაშლი — გამორთე."
+          text="გამოყენებულ სტატუსს ვერ წაშლი - გამორთე."
           onOk={async () => {
             await act.remove(del);
             toast('წაშლილია');
@@ -168,7 +168,7 @@ function StatusDialog({ row, onSave, onClose }: { row: StatusRow | null; onSave:
         </div>
         <div className="f">
           <label htmlFor="sColor">ფერი</label>
-          <input id="sColor" value={color} placeholder="#f47429 (ცარიელი — ნაგულისხმევი)" onChange={(e) => setColor(e.target.value)} />
+          <input id="sColor" value={color} placeholder="#f47429 (ცარიელი - ნაგულისხმევი)" onChange={(e) => setColor(e.target.value)} />
           <FieldError errors={errors} field="Color" />
         </div>
       </div>
@@ -200,7 +200,7 @@ function StatusDialog({ row, onSave, onClose }: { row: StatusRow | null; onSave:
         </div>
         <div className="f">
           <label htmlFor="sT">ტაიმერი, წთ</label>
-          <input id="sT" type="number" min={1} value={ttl} placeholder="ცარიელი — ვადის გარეშე" onChange={(e) => setTtl(e.target.value)} />
+          <input id="sT" type="number" min={1} value={ttl} placeholder="ცარიელი - ვადის გარეშე" onChange={(e) => setTtl(e.target.value)} />
         </div>
       </div>
       <div className="f">
@@ -292,7 +292,7 @@ function TransitionsPage() {
                 <Chip id={t.ToStatusID} />
               </td>
               <td>{ACTORS[t.Actor] ?? t.Actor}</td>
-              <td>{t.ReasonKind ? REASONS[t.ReasonKind] : '—'}</td>
+              <td>{t.ReasonKind ? REASONS[t.ReasonKind] : '-'}</td>
               <td>
                 <Switch checked={t.IsEnable} disabled={!writable} onChange={(on) => act.enable.mutate({ r: t, on })} />
               </td>
@@ -518,7 +518,7 @@ function OtpDialog({ label, channel, value, onSave, onClose }: { label: string; 
       <div className="f">
         <label htmlFor="oTpl">შეტყობინების შაბლონი</label>
         <textarea id="oTpl" rows={2} value={c.Tpl} onChange={(e) => setC({ ...c, Tpl: e.target.value })} />
-        <small>{'{code}'} — კოდის ადგილი</small>
+        <small>{'{code}'} - კოდის ადგილი</small>
         {err('Tpl')}
       </div>
     </Dialog>
@@ -612,7 +612,7 @@ function PinPage() {
   return (
     <ListPage
       title="პარამეტრები · PIN-კოდი"
-      desc="მომხმარებლის PIN-კოდი (შესვლა ელ.ფოსტით და PIN-ით). სიგრძე ეხება ახალ და შეცვლილ PIN-ებს — უკვე დაყენებული PIN თავის სიგრძეს ინარჩუნებს, სანამ მომხმარებელი არ შეცვლის."
+      desc="მომხმარებლის PIN-კოდი (შესვლა ელ.ფოსტით და PIN-ით). სიგრძე ეხება ახალ და შეცვლილ PIN-ებს - უკვე დაყენებული PIN თავის სიგრძეს ინარჩუნებს, სანამ მომხმარებელი არ შეცვლის."
     >
       <DataTable
         head={
@@ -628,7 +628,7 @@ function PinPage() {
           <tr>
             <td>
               <b style={{ fontWeight: 600 }}>PIN-ის სიგრძე</b>
-              <span className="sub">რამდენი ციფრი — კლავიატურაზე ზუსტად ამდენი წერტილი ჩანს</span>
+              <span className="sub">რამდენი ციფრი - კლავიატურაზე ზუსტად ამდენი წერტილი ჩანს</span>
             </td>
             <td>
               <select aria-label="PIN-ის სიგრძე" value={length} disabled={!writable} onChange={(e) => void set(Number(e.target.value))}>

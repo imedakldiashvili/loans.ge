@@ -195,7 +195,7 @@ export function AppsPage() {
             const ds = refs.districts.filter((d) => d.CityID === c.ID);
             return ds.length ? (
               <optgroup key={c.ID} label={c.NameKa}>
-                <option value={`c:${c.ID}`}>{c.NameKa} — ყველა</option>
+                <option value={`c:${c.ID}`}>{c.NameKa} - ყველა</option>
                 {ds.map((d) => (
                   <option key={d.ID} value={`d:${c.ID}|${d.ID}`}>
                     {d.NameKa}
@@ -378,7 +378,7 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
             {a.ProductType.NameKa} <span className="app-no">- #{a.ID}/{r.ID}</span>
           </b>
           {/* the city - district, under the product */}
-          <small>{[cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((x) => x.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(' - ') || '—'}</small>
+          <small>{[cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((x) => x.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(' - ') || '-'}</small>
           {/* the date — under the city - district */}
           <small>{fmtDate(a.CreatedOn)}</small>
           {taker && (
@@ -441,7 +441,7 @@ function AppDetail({ d, st, bottom }: { d: Detail; st: (k: string) => StatusRow 
       {rows.map(([k, v]) => (
         <span key={k} style={{ display: 'contents' }}>
           <span>{k}</span>
-          <b>{v || '—'}</b>
+          <b>{v || '-'}</b>
         </span>
       ))}
     </div>
@@ -514,7 +514,7 @@ function AppDetail({ d, st, bottom }: { d: Detail; st: (k: string) => StatusRow 
         {d.Events.map((e) => (
           <div key={e.ID} className="lg-e">
             <span className="by">{ACTOR[e.Actor] ?? e.Actor}</span>
-            <b>{fmtDate(e.CreatedOn)}</b> — {e.ToStatus === 'sent' ? 'განაცხადი მიღებულია' : st(e.ToStatus)?.PartnerLabel ?? e.ToStatus}
+            <b>{fmtDate(e.CreatedOn)}</b> - {e.ToStatus === 'sent' ? 'განაცხადი მიღებულია' : st(e.ToStatus)?.PartnerLabel ?? e.ToStatus}
           </div>
         ))}
       </div>
@@ -576,7 +576,7 @@ function ActionModal({ d, act, st, onClose, onDone }: { d: Detail; act: Act; st:
       await api('PUT', `/partner/application/changeStatus/${d.ID}/${d.UID}`, { Status: act.Status, ...body });
       onDone();
     } catch (e) {
-      setError(e instanceof ApiError ? [e.message, ...e.details.map((x) => x.Message)].join(' — ') : 'შეცდომა');
+      setError(e instanceof ApiError ? [e.message, ...e.details.map((x) => x.Message)].join(' - ') : 'შეცდომა');
     } finally {
       setBusy(false);
     }
@@ -600,7 +600,7 @@ function ActionModal({ d, act, st, onClose, onDone }: { d: Detail; act: Act; st:
           <div className="mright">
             <b>{money(a.Amount, a.Currency)}</b>
             <small>
-              {cities.find((c) => c.ID === a.CityID)?.NameKa ?? '—'} · {fmtDate(a.CreatedOn)}
+              {cities.find((c) => c.ID === a.CityID)?.NameKa ?? '-'} · {fmtDate(a.CreatedOn)}
             </small>
           </div>
         </>

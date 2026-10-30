@@ -98,7 +98,7 @@ await sleep(500);
 const bell = (await call('POST', '/partner/notification/find/1/10', {})).json.Data;
 ok(bell.UnreadCount >= 1 && bell.Items[0].Title === 'ახალი განაცხადი' && bell.Items[0].ApplicationOrgID === data.ApplicationOrgID, 'staff bell: "new application"', bell.Items[0]);
 ok((await call('PUT', '/partner/notification/readAll')).status === 200 && (await call('POST', '/partner/notification/find/1/10', {})).json.Data.UnreadCount === 0, 'read all → no unread');
-ok(readFileSync(LOG, 'utf8').includes('→ office@7.ge | loans.ge — ახალი განაცხადი'), 'staff e-mail about the new application');
+ok(readFileSync(LOG, 'utf8').includes('→ office@7.ge | loans.ge - ახალი განაცხადი'), 'staff e-mail about the new application');
 
 // ── partner reviews → the customer's bell; receiver down → retry scheduled
 failing = true;

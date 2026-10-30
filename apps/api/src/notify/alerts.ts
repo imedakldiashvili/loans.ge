@@ -81,9 +81,9 @@ export class AlertService implements OnModuleInit {
       const staff = await this.staffFor(e, ao.assignedToId);
       await this.deliver(staff.map((s) => s.id), { ...base, title: staffTitle, body: what }, '/');
       if (e.type === 'application.created') {
-        const text = `loans.ge: ${staffTitle} — ${what}`;
+        const text = `loans.ge: ${staffTitle} - ${what}`;
         for (const s of staff) {
-          if (cfg.staffEmail && s.user.email) await this.email.send(s.user.email, `loans.ge — ${staffTitle}`, text);
+          if (cfg.staffEmail && s.user.email) await this.email.send(s.user.email, `loans.ge - ${staffTitle}`, text);
           if (cfg.staffSms && s.user.phone) await this.sms.send(s.user.phone, text);
         }
       }
@@ -99,9 +99,9 @@ export class AlertService implements OnModuleInit {
       if (profile) {
         await this.deliver([profile.id], { ...base, title: customerText, body: what }, '/');
         if (e.status === 'offer') {
-          const text = `loans.ge: ${customerText} — ${what}. ნახე კაბინეტში.`;
+          const text = `loans.ge: ${customerText} - ${what}. ნახე კაბინეტში.`;
           if (cfg.customerSms && profile.user.phone) await this.sms.send(profile.user.phone, text);
-          if (cfg.customerEmail && profile.user.email) await this.email.send(profile.user.email, `loans.ge — ${customerText}`, text);
+          if (cfg.customerEmail && profile.user.email) await this.email.send(profile.user.email, `loans.ge - ${customerText}`, text);
         }
       }
     }

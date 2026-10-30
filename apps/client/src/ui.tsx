@@ -8,7 +8,7 @@ export const fmtDate = (t: string | number | Date) => {
   const d = new Date(t);
   return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
-export const fmtDay = (iso: string | null | undefined) => (iso ? iso.slice(0, 10).split('-').reverse().join('.') : '—');
+export const fmtDay = (iso: string | null | undefined) => (iso ? iso.slice(0, 10).split('-').reverse().join('.') : '-');
 /** mm:ss, over an hour h:mm:ss. */
 export const fmtCd = (ms: number) => {
   const t = Math.floor(Math.max(0, ms) / 1000);

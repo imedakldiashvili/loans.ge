@@ -31,7 +31,7 @@ export interface Product {
 
 /** Values keys come back PascalCased by the API (minAmt → MinAmt). */
 const pk = (k: string) => k.charAt(0).toUpperCase() + k.slice(1);
-const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((x) => `${x.Field}: ${x.Message}`)].join(' — ') : 'შეცდომა');
+const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((x) => `${x.Field}: ${x.Message}`)].join(' - ') : 'შეცდომა');
 const cardsLabel = (n: number) => `${n} შეთავაზება`;
 
 export const useProducts = () => useQuery({ queryKey: ['products'], queryFn: () => findAll<Product>('partner', 'product') });
@@ -160,14 +160,14 @@ function CardInfo({ p, k }: { p: Product; k: CardRow }) {
     .filter((f) => !BASE.includes(f.Key))
     .map((f) => {
       const x = k.Values[pk(f.Key)] ?? f.DefaultValue;
-      return f.Kind === 'bool' ? (x ? f.LabelKa : '') : `${f.LabelKa.replace(/,.*$/, '')}: ${f.Kind === 'money' ? `${fmt(Number(x))} ${cur}` : x ?? '—'}`;
+      return f.Kind === 'bool' ? (x ? f.LabelKa : '') : `${f.LabelKa.replace(/,.*$/, '')}: ${f.Kind === 'money' ? `${fmt(Number(x))} ${cur}` : x ?? '-'}`;
     })
     .filter(Boolean)
     .join(' · ');
   return (
     <span className="pinfo">
       <b>
-        {offerTypes.find((o) => o.ID === k.OfferTypeID)?.NameKa ?? '—'}
+        {offerTypes.find((o) => o.ID === k.OfferTypeID)?.NameKa ?? '-'}
         {!k.IsEnable && <small className="muted"> (გამორთული)</small>}
       </b>
       <small>{l1}</small>

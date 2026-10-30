@@ -49,7 +49,7 @@ export function OtpModal({ where, target, send, verify, onClose }: { where: stri
     try {
       await verify(ref, code);
     } catch (e) {
-      setError(e instanceof ApiError ? [e.message, ...e.details.filter((d) => d.Field !== 'Otp').map((d) => d.Message)].join(' — ') : t('შეცდომა'));
+      setError(e instanceof ApiError ? [e.message, ...e.details.filter((d) => d.Field !== 'Otp').map((d) => d.Message)].join(' - ') : t('შეცდომა'));
       setCode('');
     } finally {
       setBusy(false);
@@ -157,7 +157,7 @@ export function PinModal({ isSet, fresh = false, title, intro, onClose, onDone, 
   const save = async () => {
     if (b.length !== len || busy) return;
     if (a !== b) {
-      toast(t('PIN-ები არ ემთხვევა — გაიმეორე'));
+      toast(t('PIN-ები არ ემთხვევა - გაიმეორე'));
       setB('');
       return;
     }
@@ -399,7 +399,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isSet={hadPin}
           fresh
           title={hadPin ? 'ახალი PIN' : 'PIN-ის დაყენება'}
-          intro={hadPin ? 'შეიყვანე ახალი PIN-კოდი — ძველი ჩანაცვლდება.' : 'შემდეგ ჯერზე შეხვალ ელ. ფოსტით და PIN-ით, კოდის გარეშე.'}
+          intro={hadPin ? 'შეიყვანე ახალი PIN-კოდი - ძველი ჩანაცვლდება.' : 'შემდეგ ჯერზე შეხვალ ელ. ფოსტით და PIN-ით, კოდის გარეშე.'}
           onClose={() => finish(true)}
           onDone={() => (remember(email.trim().toLowerCase()), finish(true))}
           onLater={() => finish(true)}

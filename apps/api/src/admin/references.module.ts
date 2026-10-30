@@ -141,14 +141,14 @@ const configs: CrudConfig[] = [
       if (selfId) {
         // the key is referenced by records — it can't be renamed
         const cur = await prisma.status.findUnique({ where: { id: selfId } });
-        if (cur && cur.key !== d.key && (await prisma.applicationOrg.count({ where: { status: cur.key } }))) throw conflict('სტატუსი გამოიყენება ჩანაწერებში — გასაღებს ვერ შეცვლი');
+        if (cur && cur.key !== d.key && (await prisma.applicationOrg.count({ where: { status: cur.key } }))) throw conflict('სტატუსი გამოიყენება ჩანაწერებში - გასაღებს ვერ შეცვლი');
       }
     },
     beforeDelete: async (row, prisma) => {
       const used = await prisma.applicationOrg.count({ where: { status: row.key as string } });
-      if (used) throw conflict(`სტატუსი გამოიყენება ${used} ჩანაწერში — წაშლის ნაცვლად გამორთე`);
+      if (used) throw conflict(`სტატუსი გამოიყენება ${used} ჩანაწერში - წაშლის ნაცვლად გამორთე`);
       const links = await prisma.statusTransition.count({ where: { isDeleted: false, OR: [{ fromStatusId: row.id as bigint }, { toStatusId: row.id as bigint }] } });
-      if (links) throw conflict(`სტატუსს აქვს ${links} გადასვლა — ჯერ ისინი წაშალე`);
+      if (links) throw conflict(`სტატუსს აქვს ${links} გადასვლა - ჯერ ისინი წაშალე`);
     },
   },
   {

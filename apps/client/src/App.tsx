@@ -192,7 +192,7 @@ export function App() {
           <p className="done-sum">
             <b>{sent.amount}</b> · <span>{sent.loan}</span> · <b>{sent.orgs}</b> <span>{t('ორგანიზაცია')}</span>
           </p>
-          <p>{t('შეთავაზებებს მიიღებ კაბინეტში — ორგანიზაციების პასუხები იქ გამოჩნდება.')}</p>
+          <p>{t('შეთავაზებებს მიიღებ კაბინეტში - ორგანიზაციების პასუხები იქ გამოჩნდება.')}</p>
           <button type="button" className="btn btn-green full" onClick={toCabinet}>
             {t('კაბინეტში გადასვლა')}
           </button>

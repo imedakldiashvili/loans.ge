@@ -40,7 +40,7 @@ interface Named extends Base {
 const TABS = {
   customers: { title: 'მომხმარებლები', module: 'customer', desc: 'მომხმარებლის საიტის ანგარიშები (მსესხებლები). პირველ შესვლაზე იქმნება ავტომატურად. გამორთული მომხმარებელი ვერ შედის.' },
   staff: { title: 'თანამშრომლები', module: 'staff', desc: 'პარტნიორის კაბინეტის ანგარიშები. გაყიდვების მენეჯერს შეზღუდვები აქვს ლოკაციაზე (და პროდუქტებზე); ცარიელი = ყველა. ერთი ადამიანი შეიძლება რამდენიმე ორგანიზაციაში იყოს.' },
-  admins: { title: 'ადმინისტრატორები', module: 'admin', desc: 'ამ კონსოლის ანგარიშები. შესვლა — ელ.ფოსტა + ერთჯერადი კოდი.' },
+  admins: { title: 'ადმინისტრატორები', module: 'admin', desc: 'ამ კონსოლის ანგარიშები. შესვლა - ელ.ფოსტა + ერთჯერადი კოდი.' },
 } as const;
 type Tab = keyof typeof TABS;
 
@@ -153,12 +153,12 @@ function UsersList({ tab }: { tab: Tab }) {
             <tr key={p.ID} className={p.IsEnable && p.User.IsEnable ? '' : 'inactive'}>
               {tab === 'customers' ? (
                 <>
-                  <td>{[p.Customer?.FirstName, p.Customer?.LastName].filter(Boolean).join(' ') || p.DisplayName || p.User.UserName || '—'}</td>
-                  <td>{p.User.Email ?? '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{p.User.Phone ?? '—'}</td>
-                  <td>{p.Customer?.Pid ?? '—'}</td>
+                  <td>{[p.Customer?.FirstName, p.Customer?.LastName].filter(Boolean).join(' ') || p.DisplayName || p.User.UserName || '-'}</td>
+                  <td>{p.User.Email ?? '-'}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{p.User.Phone ?? '-'}</td>
+                  <td>{p.Customer?.Pid ?? '-'}</td>
                   <td>{p.User.IsVerified ? <span className="tag green">ვერიფიცირებული</span> : <span className="tag grey">არა</span>}</td>
-                  <td>{p.User.LastLoginOn ? new Date(p.User.LastLoginOn).toLocaleString('ka-GE') : '—'}</td>
+                  <td>{p.User.LastLoginOn ? new Date(p.User.LastLoginOn).toLocaleString('ka-GE') : '-'}</td>
                   <td>
                     <Switch checked={p.IsEnable} disabled={!writable} onChange={(on) => toggle(p, on)} />
                   </td>
@@ -216,7 +216,7 @@ function UsersList({ tab }: { tab: Tab }) {
       {del && (
         <Confirm
           title={`წავშალოთ ${del.DisplayName}?`}
-          text={tab === 'staff' ? `${del.Organization?.NameKa} — თანამშრომელი პარტნიორის კაბინეტში ვეღარ შევა.` : 'ანგარიშით კონსოლში ვეღარ შევა.'}
+          text={tab === 'staff' ? `${del.Organization?.NameKa} - თანამშრომელი პარტნიორის კაბინეტში ვეღარ შევა.` : 'ანგარიშით კონსოლში ვეღარ შევა.'}
           onOk={async () => {
             await act.remove(del);
             toast('წაშლილია');

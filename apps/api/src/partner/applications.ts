@@ -188,7 +188,7 @@ export class PartnerApplicationService {
           ...(target.flags.revealsContacts && !row.contactsOpenedOn ? { contactsOpenedOn: now } : {}),
         },
       });
-      if (!upd.count) throw conflict('განაცხადი უკვე აიღო სხვა თანამშრომელმა ან შეიცვალა — განაახლე');
+      if (!upd.count) throw conflict('განაცხადი უკვე აიღო სხვა თანამშრომელმა ან შეიცვალა - განაახლე');
       for (const o of offers) await tx.offer.create({ data: { ...o, applicationOrgId: row.id, createdBy: by } });
       await tx.statusEvent.create({
         data: { applicationOrgId: row.id, fromStatus: row.status, toStatus: d.status, actor: 'partner', createdBy: by, requestUid: currentContext()?.uid ?? null },

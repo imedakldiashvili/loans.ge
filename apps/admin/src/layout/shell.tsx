@@ -121,7 +121,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </nav>
         {/* the user (→ my data) and logout to its right — at the very bottom of the menu */}
         <div className="sb-foot">
-          <button type="button" className={`who${loc.pathname === '/me' ? ' on' : ''}`} title={`${name} — ჩემი მონაცემები`} onClick={() => nav('/me')}>
+          <button type="button" className={`who${loc.pathname === '/me' ? ' on' : ''}`} title={`${name} - ჩემი მონაცემები`} onClick={() => nav('/me')}>
             {/* the loans.ge logo — as the organisation's logo in partner */}
             <span className="lg img">
               <img src="/fs/default/org-logo.png" alt="" />

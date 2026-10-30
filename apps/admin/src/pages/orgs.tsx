@@ -155,7 +155,7 @@ function OrgDialog({ row, links, onClose }: { row: Org | null; links: OrgPt[]; o
       await invalidate('organization');
       toast(file ? 'ლოგო აიტვირთა' : 'ლოგო წაიშალა');
     } catch (e) {
-      setLogoError(e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' — ') : 'შეცდომა');
+      setLogoError(e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' - ') : 'შეცდომა');
     } finally {
       setLogoBusy(false);
     }
@@ -225,17 +225,17 @@ function OrgDialog({ row, links, onClose }: { row: Org | null; links: OrgPt[]; o
           ) : null}
         </div>
         {logoError && <small style={{ color: 'var(--red)' }}>{logoError}</small>}
-        <small>{row ? 'PNG, JPG, WebP ან SVG, მაქსიმუმ 512 KB; ინახება მაშინვე. ლოგოს გარეშე — loans.ge-ს ლოგო' : 'ლოგოს ატვირთვა — ორგანიზაციის შენახვის შემდეგ'}</small>
+        <small>{row ? 'PNG, JPG, WebP ან SVG, მაქსიმუმ 512 KB; ინახება მაშინვე. ლოგოს გარეშე - loans.ge-ს ლოგო' : 'ლოგოს ატვირთვა - ორგანიზაციის შენახვის შემდეგ'}</small>
       </div>
       <div className="f">
         <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Switch checked={isPartner} onChange={setIsPartner} /> პარტნიორია — იღებს განაცხადებს
+          <Switch checked={isPartner} onChange={setIsPartner} /> პარტნიორია - იღებს განაცხადებს
         </label>
         <small>გამორთულზე ორგანიზაცია მხოლოდ ცნობარისთვისაა (მაგ. ბანკი ვიზარდის მე-4 ნაბიჯში)</small>
       </div>
       {isPartner && (
         <div className="f">
-          <label>იღებს პროდუქტის ტიპებს — თანხა მინ. / მაქს. (₾)</label>
+          <label>იღებს პროდუქტის ტიპებს - თანხა მინ. / მაქს. (₾)</label>
           <div className="pt-amounts">
             {(productTypes.data ?? []).map((p) => {
               const on = pts.includes(p.ID);
@@ -256,8 +256,8 @@ function OrgDialog({ row, links, onClose }: { row: Org | null; links: OrgPt[]; o
                   </label>
                   {on && (
                     <>
-                      <input type="number" min={0} step={100} inputMode="numeric" placeholder="მინ." aria-label={`${p.NameKa} — მინიმუმი`} value={a.min} onChange={(e) => set('min', e.target.value)} />
-                      <input type="number" min={0} step={100} inputMode="numeric" placeholder="მაქს." aria-label={`${p.NameKa} — მაქსიმუმი`} value={a.max} onChange={(e) => set('max', e.target.value)} />
+                      <input type="number" min={0} step={100} inputMode="numeric" placeholder="მინ." aria-label={`${p.NameKa} - მინიმუმი`} value={a.min} onChange={(e) => set('min', e.target.value)} />
+                      <input type="number" min={0} step={100} inputMode="numeric" placeholder="მაქს." aria-label={`${p.NameKa} - მაქსიმუმი`} value={a.max} onChange={(e) => set('max', e.target.value)} />
                     </>
                   )}
                 </div>
@@ -265,7 +265,7 @@ function OrgDialog({ row, links, onClose }: { row: Org | null; links: OrgPt[]; o
             })}
           </div>
           <FieldError errors={errors} field="MaxAmount" />
-          <small>ვიზარდში ორგანიზაცია მხოლოდ ამ თანხებზე გამოჩნდება; ცარიელი — შეზღუდვის გარეშე</small>
+          <small>ვიზარდში ორგანიზაცია მხოლოდ ამ თანხებზე გამოჩნდება; ცარიელი - შეზღუდვის გარეშე</small>
         </div>
       )}
     </Dialog>
