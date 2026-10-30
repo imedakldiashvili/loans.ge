@@ -368,16 +368,19 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
           <b>
             {a.ProductType.NameKa} <span className="app-no">- #{a.ID}/{r.ID}</span>
           </b>
+          {/* the city - district, under the product */}
+          <small>{[cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((x) => x.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(' - ') || '—'}</small>
           {taker && (
             <small className="taker" title="აიღო">
               👤 {taker}
             </small>
           )}
         </span>
-        {/* the middle column: the applicant (personal number, name) and, once the contacts are open, the mobile and the e-mail */}
+        {/* the middle column: the applicant (personal number, name) and, once the contacts are open, the mobile and the e-mail — one line each */}
         <span className="who-col">
           {!r.IsMasked && <small>{applicantName(r)}</small>}
-          {(a.Phone || a.Email) && <small>{[a.Phone && `+995 ${a.Phone.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')}`, a.Email].filter(Boolean).join(' · ')}</small>}
+          {a.Phone && <small>+995 {a.Phone.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')}</small>}
+          {a.Email && <small>{a.Email}</small>}
         </span>
         <span className="right">
           <span className="amt">{money(a.Amount, a.Currency)}</span>
@@ -387,10 +390,8 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
               {s?.ChipLabel ?? r.Status}
             </span>
           </span>
-          {/* the city and, when there is one, the district (or village); the date — on the right, under the status */}
-          <small className="r-date">
-            {[cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((x) => x.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(' - ') || '—'} · {fmtDate(a.CreatedOn)}
-          </small>
+          {/* the date — on the right, under the status */}
+          <small className="r-date">{fmtDate(a.CreatedOn)}</small>
         </span>
         <button type="button" className="ib tg" aria-label="ჩამოშლა" aria-expanded={open} onClick={onToggle}>
           <Chevron />

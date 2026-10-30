@@ -114,12 +114,15 @@ function AppCard({ a, open, onToggle, onView }: { a: Application; open: boolean;
         <span className="info">
           <b>{a.ProductType.NameKa}</b>
           <small className="app-no">#{a.ID}</small>
+          {/* the city - district, under the product */}
+          <small>{place(a)}</small>
           {a.Source && <small>{a.Source}</small>}
         </span>
-        {/* the middle column: the customer (personal number, name), the mobile and the e-mail */}
+        {/* the middle column: the customer (personal number, name), the mobile, the e-mail — one line each */}
         <span className="who-col">
           <small>{[a.Pid, fullName(a)].filter(Boolean).join(' · ') || '—'}</small>
-          {(a.Phone || a.Email) && <small>{[phone(a.Phone), a.Email].filter(Boolean).join(' · ')}</small>}
+          {a.Phone && <small>{phone(a.Phone)}</small>}
+          {a.Email && <small>{a.Email}</small>}
         </span>
         <span className="right">
           <span className="amt">{money(a.Amount, a.Currency)}</span>
@@ -133,10 +136,8 @@ function AppCard({ a, open, onToggle, onView }: { a: Application; open: boolean;
               </span>
             ))}
           </span>
-          {/* the city - district and the date — on the right, under the statuses */}
-          <small className="r-date">
-            {place(a)} · {fmtDate(a.CreatedOn)}
-          </small>
+          {/* the date — on the right, under the statuses */}
+          <small className="r-date">{fmtDate(a.CreatedOn)}</small>
         </span>
         <span className="aacts">
           <button type="button" className="ib" title="შეთავაზებები" onClick={() => nav(`/apps/${a.ID}/${a.UID}/compare`)}>
