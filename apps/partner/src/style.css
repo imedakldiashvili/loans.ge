@@ -68,7 +68,7 @@
   .prow .ico { width: 40px; height: 40px; border-radius: 8px; background: var(--green-soft); color: var(--green); display: grid; place-items: center; } .prow .ico svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; } .prow .pinfo small { color: var(--muted); font-size: 12px; }
   .prow .pmeta { text-align: right; display: grid; gap: 3px; justify-items: end; } .prow .pmeta small { color: var(--muted); font-size: 12px; white-space: nowrap; }
   .prow .pmeta b { font-size: 15px; }
-  .st.on { background: var(--green); color: var(--on-accent); } .st.off { background: var(--grey-status); color: var(--on-accent); } .st.role { background: var(--blue); color: var(--on-accent); } .st.role.sales { background: var(--teal); }
+  .st.on { background: var(--green); color: var(--on-accent); } .st.off { background: var(--grey-status); color: var(--on-accent); } .st.role { background: none; color: var(--muted); padding: 0; border-radius: 0; font-weight: 500; font-size: 13px; }   /* the role under the name: plain text, no badge */ 
   .racts.p { justify-self: end; display: flex; gap: 10px; align-items: center; }
   .sw { position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; flex: none; } .sw input { position: absolute; opacity: 0; width: 0; height: 0; }
   .sw i { position: absolute; inset: 0; background: var(--grey-status); border-radius: 999px; transition: background .15s; } .sw i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.25); }

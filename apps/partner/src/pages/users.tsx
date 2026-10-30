@@ -31,9 +31,16 @@ export function UsersPage() {
   const q = useQuery({ queryKey: ['staff'], queryFn: () => findAll<Staff>('partner', 'staff') });
   const [form, setForm] = useState<Staff | 'new' | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ['staff'] });
-  const list = q.data ?? [];
-  const { shown, pager } = usePaged(list);
+  // filters: role, product, location — no limit (and back office) covers every product / city
+  const [fRole, setFRole] = useState('');
+  const [fProd, setFProd] = useState('');
+  const [fCity, setFCity] = useState('');
+  const covers = (u: Staff, ids: number[], id: string) => !id || u.Role !== 'sales' || !ids.length || ids.includes(Number(id));
+  const list = (q.data ?? []).filter((u) => (!fRole || u.Role === fRole) && covers(u, u.ScopeProducts, fProd) && covers(u, u.ScopeCities, fCity));
+  const { shown, pager } = usePaged(list, [fRole, fProd, fCity]);
   const self = (u: Staff) => u.ID === me?.Profile?.ID;
+  const org = me?.Profile?.Organization;
+  const logo = org?.LogoPath ? `/fs/${org.LogoPath}` : '/fs/default/org-logo.png';
   // the scope in full (the row's expanded part): names; no limit (and back office) — all
   const limited = (u: Staff, ids: number[]) => u.Role === 'sales' && ids.length > 0;
   const prodNames = (u: Staff) => (limited(u, u.ScopeProducts) ? u.ScopeProducts.map((id) => products.data?.find((p) => p.ID === id)?.ProductType.NameKa).filter(Boolean).join(', ') : 'ყველა');
@@ -47,13 +54,37 @@ export function UsersPage() {
           + მომხმარებელი
         </button>
       </div>
+      <div className="srow">
+        <select className="fsel" aria-label="როლი" value={fRole} onChange={(e) => setFRole(e.target.value)}>
+          <option value="">აირჩიე როლი</option>
+          <option value="sales">{ROLES.sales}</option>
+          <option value="back">{ROLES.back}</option>
+        </select>
+        <select className="fsel" aria-label="პროდუქტი" value={fProd} onChange={(e) => setFProd(e.target.value)}>
+          <option value="">აირჩიე პროდუქტი</option>
+          {(products.data ?? []).map((x) => (
+            <option key={x.ID} value={x.ID}>
+              {x.ProductType.NameKa}
+            </option>
+          ))}
+        </select>
+        <select className="fsel" aria-label="ლოკაცია" value={fCity} onChange={(e) => setFCity(e.target.value)}>
+          <option value="">აირჩიე ლოკაცია</option>
+          {cities.map((c) => (
+            <option key={c.ID} value={c.ID}>
+              {c.NameKa}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="list">
-        {!list.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'მომხმარებელი არ არის'}</div>}
+        {!list.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : q.data?.length ? 'ფილტრით მომხმარებელი არ მოიძებნა' : 'მომხმარებელი არ არის'}</div>}
         {shown.map((u) => (
           <div key={u.ID} className={`card${open === u.ID ? ' open' : ''}`}>
             <div className="prow urow">
-              <span className="lg" style={{ background: 'var(--blue)', width: 40, height: 40, borderRadius: '50%', color: '#fff', fontWeight: 700, display: 'grid', placeItems: 'center' }}>
-                {u.DisplayName.slice(0, 1)}
+              {/* the organisation's logo (staff are all of this organisation) */}
+              <span className="lg img" style={{ width: 40, height: 40, borderRadius: 8 }}>
+                <img src={logo} alt="" />
               </span>
               {/* the name, and under it the role */}
               <span className="pinfo">
@@ -126,7 +157,6 @@ function UserForm({ u, self, onClose, onSaved }: { u: Staff | null; self: boolea
   const [role, setRole] = useState<'sales' | 'back'>(u?.Role ?? 'sales');
   const [phone, setPhone] = useState(u?.User.Phone ?? '');
   const [email, setEmail] = useState(u?.User.Email ?? '');
-  const [active, setActive] = useState(u?.IsEnable ?? true);
   const [prods, setProds] = useState<number[]>(u?.ScopeProducts ?? []);
   const [cits, setCits] = useState<number[]>(u?.ScopeCities ?? []);
   const [error, setError] = useState('');
@@ -140,13 +170,9 @@ function UserForm({ u, self, onClose, onSaved }: { u: Staff | null; self: boolea
     try {
       const body = { DisplayName: name.trim(), Role: role, Phone: phone.trim() || null, Email: email.trim() || null, ScopeProducts: role === 'sales' ? prods : [], ScopeCities: role === 'sales' ? cits : [] };
       const api = crud('partner', 'staff');
-      if (u) {
-        await api.edit(u, body);
-        if (active !== u.IsEnable) await api.enable(u, active);
-      } else {
-        const r = await api.add(body);
-        if (!active) await api.enable(r, false);
-      }
+      // on / off is on the list row, not in the form (a new one starts on)
+      if (u) await api.edit(u, body);
+      else await api.add(body);
       toast(u ? 'მომხმარებელი შეინახა' : 'მომხმარებელი დაემატა');
       onSaved();
     } catch (e) {
@@ -179,11 +205,6 @@ function UserForm({ u, self, onClose, onSaved }: { u: Staff | null; self: boolea
             <label htmlFor="uEmail">ელ. ფოსტა</label>
             <input id="uEmail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
-        </div>
-        <div className="fld">
-          <label className="chk">
-            <Switch on={active} onChange={setActive} disabled={self} /> აქტიური
-          </label>
         </div>
         {role === 'sales' && (
           <>
