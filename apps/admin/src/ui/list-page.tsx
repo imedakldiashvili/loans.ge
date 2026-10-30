@@ -125,8 +125,8 @@ export function ListPage({ title, desc, add, filters, extra, back, caption, chil
     <>
       <div className="lp-top">
         {back && (
-          <button type="button" className="back" title={back.label} onClick={back.onClick}>
-            ‹ უკან
+          <button type="button" className="btn btn-ghost back" title={back.label} onClick={back.onClick}>
+            « უკან
           </button>
         )}
         <div className="lp-title">

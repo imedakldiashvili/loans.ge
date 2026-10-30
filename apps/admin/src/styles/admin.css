@@ -133,8 +133,8 @@
   .top { display: flex; align-items: center; gap: 12px; min-height: 42px; flex-wrap: wrap; }
   .top h2 { font-size: 20px; margin-inline-end: auto; }
   .top p { width: 100%; margin: -6px 0 0; font-size: 13px; color: var(--muted); }
-  .top .back { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; color: var(--fg); cursor: pointer; padding: 6px 8px 6px 0; font-weight: 500; }
-  .top .back:hover { color: var(--green); }
+  .top .back:not(.btn) { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; color: var(--fg); cursor: pointer; padding: 6px 8px 6px 0; font-weight: 500; }
+  .top .back:not(.btn):hover { color: var(--green); }
   .search { height: 40px; width: 240px; max-width: 100%; }
   .top select { width: auto; height: 40px; padding-block: 0; }
   .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
