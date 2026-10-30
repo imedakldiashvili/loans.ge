@@ -194,7 +194,7 @@
     .ws > .main { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; }
     .ws > .main > * { flex: none; }
     .ws > .main:has(> .list):not(:has(> .list ~ .list)) { overflow: hidden; }
-    .ws > .main:has(> .list):not(:has(> .list ~ .list)) > .list { flex: 1 1 auto; min-height: 120px; overflow-y: auto; align-content: start; grid-auto-rows: max-content; padding-inline-end: 4px; scrollbar-width: thin; }   /* rows keep their height (cards are overflow: hidden) */
+    .ws > .main:has(> .list):not(:has(> .list ~ .list)) > .list { flex: 1 1 auto; min-height: 120px; overflow-y: auto; align-content: start; grid-auto-rows: max-content; scrollbar-width: thin; }   /* rows keep their height (cards are overflow: hidden) */
   }
   .chips { display: flex; flex-wrap: nowrap; gap: 4px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; min-width: 0; }
   .main > * { min-width: 0; }
@@ -272,8 +272,12 @@
   .cd.quiet { color: var(--muted); border-color: var(--line); background: var(--bg-soft); }
   .empty { padding: 36px 20px; text-align: center; color: var(--muted); background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; }
   .pager { display: flex; justify-content: center; gap: 6px; } .pg-dots { padding: 0 4px; color: var(--muted); }
-  .pfoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 14px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }   /* სიის ქვედა ზოლი: გვერდზე ჩანაწერი მარცხნივ, გვერდები მარჯვნივ */
-  .pfoot .pp { display: inline-flex; align-items: center; gap: 8px; } .pfoot .pp select { width: auto; height: 34px; padding: 0 24px 0 10px; border: 1px solid var(--line); border-radius: 6px; background-color: var(--bg); color: var(--fg); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23808080' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 7px center; background-size: 12px; }   /* იგივე, რაც გვერდის ღილაკები (.pg) */
+  /* the list and its pager are one panel (as the admin's grid): the list framed on top, the pager its bottom bar, all on the right */
+  .pfoot { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-soft); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .list:has(+ .pfoot) { border: 1px solid var(--line); border-bottom: 0; border-radius: 8px 8px 0 0; padding: 10px; background: var(--bg-soft); }
+  .list + .pfoot { margin-top: -16px; border-radius: 0 0 8px 8px; }
+  .pfoot .pager { gap: 4px; } .pfoot .pg { min-width: 32px; height: 32px; padding: 0 8px; }   /* as in the admin's bar */   /* -16px: .main's gap — the bar sits right under the list */
+  .pfoot .pp { display: inline-flex; align-items: center; gap: 8px; margin-inline-end: 6px; } .pfoot .pp select { width: auto; height: 32px; padding: 0 24px 0 10px; border: 1px solid var(--line); border-radius: 6px; background-color: var(--bg); color: var(--fg); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23808080' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 7px center; background-size: 12px; }   /* იგივე, რაც გვერდის ღილაკები (.pg) */
   .pfoot .pright { display: inline-flex; align-items: center; gap: 12px; flex-wrap: wrap; } .pfoot .pcount { white-space: nowrap; }
   .pg { min-width: 34px; height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font-size: 13px; font-weight: 600; cursor: pointer; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
   .pg.on { background: var(--green); border-color: var(--green); color: var(--on-accent); } .pg:disabled { opacity: .4; cursor: default; }
