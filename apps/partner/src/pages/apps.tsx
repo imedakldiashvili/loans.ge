@@ -422,8 +422,11 @@ function AppDetail({ d, st, bottom }: { d: Detail; st: (k: string) => StatusRow 
       ))}
     </div>
   );
-  const sec = (title: string, body: React.ReactNode, date?: string) => (
-    <details className="dsec" open>
+  // the blocks are listed first; only the last one opens on its own
+  const secs: { title: string; body: React.ReactNode; date?: string }[] = [];
+  const sec = (title: string, body: React.ReactNode, date?: string) => void secs.push({ title, body, date });
+  const block = ({ title, body, date }: (typeof secs)[number], open: boolean) => (
+    <details key={title} className="dsec" open={open}>
       <summary>
         <h4>{title}</h4>
         {date && <span className="sdate">{date}</span>}
@@ -435,64 +438,53 @@ function AppDetail({ d, st, bottom }: { d: Detail; st: (k: string) => StatusRow 
   const place = [cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((x) => x.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(', ');
   const total = (a.Incomes ?? []).reduce((t, i) => t + (+i.Amount || 0), 0);
   const reasons = [...[...rejectReasons, ...cancelReasons].filter((x) => d.ReasonIDs.includes(x.ID)).map((x) => x.NameKa), ...(d.ReasonText ? [`სხვა: ${d.ReasonText}`] : [])];
+  if (d.Offers.length > 0)
+    sec(
+      d.Offers.length > 1 ? 'გაგზავნილი შეთავაზებები' : 'გაგზავნილი შეთავაზება',
+      <OffersRO offers={d.Offers} status={d.Status} st={st} />,
+      d.OfferOn ? fmtDate(d.OfferOn) : undefined,
+    );
+  if (['cancelled', 'rejected'].includes(d.Status) && reasons.length > 0)
+    sec(
+      reasons.length > 1 ? 'გაუქმების მიზეზები' : 'გაუქმების მიზეზი',
+      <div className="tpl ro">
+        {reasons.map((x) => (
+          <div key={x}>
+            <b>{x}</b>
+          </div>
+        ))}
+      </div>,
+    );
+  // an incoming application hides the applicant — no applicant block until it is taken into review
+  if (!d.IsMasked)
+    sec(
+      'განმცხადებელი',
+      <>
+        {kv([
+          ['სახელი, გვარი', `${a.FirstName} ${a.LastName}`],
+          ['პირადი ნომერი', a.Pid],
+          ['დაბადების თარიღი', a.BirthDate ? a.BirthDate.slice(0, 10).split('-').reverse().join('.') : ''],
+          ['მობილური', d.ContactsHidden ? '🔒 დამალულია' : a.Phone ? `+995 ${a.Phone}` : ''],
+          ['ელ. ფოსტა', d.ContactsHidden ? '🔒 დამალულია' : a.Email],
+          ['ლოკაცია', place],
+        ])}
+        {d.ContactsHidden && <div className="lock">საკონტაქტო ინფორმაცია (მობილური, ელ.ფოსტა) გამოჩნდება განხილვის დაწყებისას.</div>}
+      </>,
+    );
+  sec(
+    'ფინანსური მდგომარეობა',
+    kv([
+      ['საკრედიტო ისტორია', a.CreditHistory],
+      ['საქმიანობის სფერო', a.Sector],
+      ['შემოსავლები', (a.Incomes ?? []).map((i) => `${i.Src}: ${fmt(i.Amount)} ₾`).join(', ')],
+      ['ჯამური თვიური', total ? `${fmt(total)} ₾` : ''],
+      ['ბანკის სერვისები', (a.Banks ?? []).map((b) => (typeof b === 'string' ? b : b.Name)).join(', ')],
+      ['მოთხოვნილი თანხა', money(a.Amount, a.Currency)],
+    ]),
+  );
   return (
     <>
-      <div className="dgrid">
-        {d.Offers.length > 0 &&
-          sec(
-            d.Offers.length > 1 ? 'გაგზავნილი შეთავაზებები' : 'გაგზავნილი შეთავაზება',
-            <OffersRO offers={d.Offers} status={d.Status} st={st} />,
-            d.OfferOn ? fmtDate(d.OfferOn) : undefined,
-          )}
-        {['cancelled', 'rejected'].includes(d.Status) &&
-          reasons.length > 0 &&
-          sec(
-            reasons.length > 1 ? 'გაუქმების მიზეზები' : 'გაუქმების მიზეზი',
-            <div className="tpl ro">
-              {reasons.map((x) => (
-                <div key={x}>
-                  <b>{x}</b>
-                </div>
-              ))}
-            </div>,
-          )}
-        {sec(
-          'განმცხადებელი',
-          d.IsMasked ? (
-            <>
-              {kv([
-                ['განმცხადებელი', a.LastName],
-                ['ლოკაცია', place],
-                ['სესხის მიზანი', a.ProductType.NameKa],
-              ])}
-              <div className="lock">პერსონალური მონაცემები (სახელი, პირადი ნომერი, კონტაქტი) გაიხსნება განხილვაში აყვანის შემდეგ.</div>
-            </>
-          ) : (
-            <>
-              {kv([
-                ['სახელი, გვარი', `${a.FirstName} ${a.LastName}`],
-                ['პირადი ნომერი', a.Pid],
-                ['დაბადების თარიღი', a.BirthDate ? a.BirthDate.slice(0, 10).split('-').reverse().join('.') : ''],
-                ['მობილური', d.ContactsHidden ? '🔒 დამალულია' : a.Phone ? `+995 ${a.Phone}` : ''],
-                ['ელ. ფოსტა', d.ContactsHidden ? '🔒 დამალულია' : a.Email],
-                ['ლოკაცია', place],
-              ])}
-              {d.ContactsHidden && <div className="lock">საკონტაქტო ინფორმაცია (მობილური, ელ.ფოსტა) გამოჩნდება განხილვის დაწყებისას.</div>}
-            </>
-          ),
-        )}
-        {sec(
-          'ფინანსური მდგომარეობა',
-          kv([
-            ['საკრედიტო ისტორია', a.CreditHistory],
-            ['საქმიანობის სფერო', a.Sector],
-            ['შემოსავლები', (a.Incomes ?? []).map((i) => `${i.Src}: ${fmt(i.Amount)} ₾`).join(', ')],
-            ['ჯამური თვიური', total ? `${fmt(total)} ₾` : ''],
-            ['ბანკის სერვისები', (a.Banks ?? []).map((b) => (typeof b === 'string' ? b : b.Name)).join(', ')],
-            ['მოთხოვნილი თანხა', money(a.Amount, a.Currency)],
-          ]),
-        )}
-      </div>
+      <div className="dgrid">{secs.map((x, i) => block(x, i === secs.length - 1))}</div>
       {bottom}
       <div className="hist">
         {d.Events.map((e) => (
