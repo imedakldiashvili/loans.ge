@@ -290,8 +290,8 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
   const [cancel, setCancel] = useState(false);
   const refresh = () => qc.invalidateQueries({ queryKey: ['apps'] });
   const isClosed = a.Orgs.every((o) => !o.Next.length);
-  // the offers received (every one counts — an organisation may send several); an answer awaited while one is in "offer"
-  const received = a.Orgs.reduce((n, o) => n + o.Offers.length, 0);
+  // offers: how many organisations sent one, of how many it was sent to (2/10); an answer awaited while one is in "offer"
+  const received = a.Orgs.filter((o) => o.Offers.length > 0).length;
   const waiting = a.Orgs.some((o) => o.Status === 'offer' && o.Offers.length > 0);
   // closed without any offer accepted (nothing completed) — the application is cancelled
   const isCancelled = isClosed && !a.Orgs.some((o) => s.categoryOf(o.Status) === 'complete');
@@ -347,7 +347,9 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             >
               {I.compare}
               <span>{t('შეთავაზებები')}</span>
-              <b>{received}</b>
+              <b>
+                {received}/{a.Orgs.length}
+              </b>
             </button>
             {/* the detailed view (its own page), after the offers; styled as the application icon (its state's colours) */}
             <button type="button" className={`cab-details-ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
