@@ -21,6 +21,8 @@ const EVENTS: [string, string][] = [
   ['application.created', 'ახალი განაცხადი'],
   ['application.status', 'სტატუსის ცვლილება'],
 ];
+/** the delivery log also has the test pings */
+const EVENT_LABEL = (e: string) => (e === 'ping' ? 'ტესტი (ping)' : EVENTS.find((x) => x[0] === e)?.[1] ?? e);
 
 interface Key extends Ref {
   IsEnable: boolean;
@@ -406,28 +408,39 @@ function Deliveries() {
   const qc = useQueryClient();
   const toast = useToast();
   const [status, setStatus] = useState('');
-  const q = useQuery({ queryKey: ['deliveries', status], queryFn: () => items<Delivery>('/partner/webhookDelivery/find/1/100', { Filter: status ? { Status: status } : {} }), refetchInterval: 10_000 });
+  // the event: the real ones or the test pings apart
+  const [event, setEvent] = useState('');
+  const filter = { ...(status ? { Status: status } : {}), ...(event ? { Event: event } : {}) };
+  const q = useQuery({ queryKey: ['deliveries', status, event], queryFn: () => items<Delivery>('/partner/webhookDelivery/find/1/100', { Filter: filter }), refetchInterval: 10_000 });
   // the last 100 deliveries, paged here
-  const { shown: pageRows, pager } = usePaged(q.data ?? [], [status]);
+  const { shown: pageRows, pager } = usePaged(q.data ?? [], [status, event]);
   return (
     <>
-      <div className="top">
-        <span />
-        <select className="fsel" style={{ maxWidth: 200, justifySelf: 'end' }} aria-label="სტატუსი" value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">ყველა</option>
+      <div className="srow">
+        <select className="fsel" aria-label="მოვლენა" value={event} onChange={(e) => setEvent(e.target.value)}>
+          <option value="">აირჩიე მოვლენა</option>
+          {EVENTS.map(([k, label]) => (
+            <option key={k} value={k}>
+              {label}
+            </option>
+          ))}
+          <option value="ping">ტესტი (ping)</option>
+        </select>
+        <select className="fsel" aria-label="სტატუსი" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value="">აირჩიე სტატუსი</option>
           <option value="ok">მიწოდებული</option>
           <option value="pending">მოლოდინში</option>
           <option value="failed">ვერ მიეწოდა</option>
         </select>
       </div>
       <div className="list">
-        {!q.data?.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'მიწოდება ჯერ არ ყოფილა'}</div>}
+        {!q.data?.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : status || event ? 'ფილტრით მიწოდება არ მოიძებნა' : 'მიწოდება ჯერ არ ყოფილა'}</div>}
         {pageRows.map((d) => (
           <div key={d.ID} className="card">
             <div className="prow wide">
               <span className="pinfo">
                 <b>
-                  {d.Event} · <span style={{ color: ST[d.Status][1] }}>{ST[d.Status][0]}</span>
+                  {EVENT_LABEL(d.Event)} · <span style={{ color: ST[d.Status][1] }}>{ST[d.Status][0]}</span>
                 </b>
                 <small style={{ wordBreak: 'break-all' }}>
                   {fmtDate(d.CreatedOn)} · {d.Endpoint.Url}
