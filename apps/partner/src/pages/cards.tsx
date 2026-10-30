@@ -2,12 +2,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { crud } from '../api';
-import { curSym, EditIcon, Switch, useToast } from '../ui/ui';
-import { CardForm, CardInfo, errText, useProducts } from './products';
+import { Chevron, curSym, EditIcon, Switch, useToast } from '../ui/ui';
+import { CardForm, CardInfo, CopyIcon, DelIcon, errText, removeCard, useProducts } from './products';
 
 // Product cards (back office): every card of the organisation's products in one list. A card = an offer — its terms by
 // offer type and currency, several on different amount ranges; a sales manager picks one when sending an offer.
-// Switch on-off here; add / edit / delete on the card's own page: /cards/new (?product=…&cur=…) and /cards/{id}.
+// A row: the type, the amount · term · rate; the other terms open below it (chevron). On the row: on-off, copy, edit, delete;
+// add / edit on the card's own page: /cards/new (?product=…&cur=… or ?copy={id}) and /cards/{id}.
 
 export function CardsPage() {
   const q = useProducts();
@@ -15,6 +16,7 @@ export function CardsPage() {
   const toast = useToast();
   const [prod, setProd] = useState('');
   const [cur, setCur] = useState('');
+  const [open, setOpen] = useState<number | null>(null);
   const nav = useNavigate();
   const refresh = () => qc.invalidateQueries({ queryKey: ['products'] });
   const products = q.data ?? [];
@@ -53,14 +55,14 @@ export function CardsPage() {
       <div className="list">
         {!rows.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'ბარათი არ არის'}</div>}
         {rows.map(({ p, k }) => (
-          <div key={k.ID} className="card">
-            <div className="prow">
+          <div key={k.ID} className={`card${open === k.ID ? ' open' : ''}`}>
+            <div className="prow pr4 crd">
               <span className="ico">
                 <svg viewBox="0 0 24 24">
                   <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5" />
                 </svg>
               </span>
-              <CardInfo p={p} k={k} />
+              <CardInfo p={p} k={k} part="brief" />
               <span className="pmeta">
                 <b>{p.ProductType.NameKa}</b>
                 <small>
@@ -81,11 +83,25 @@ export function CardsPage() {
                     }
                   }}
                 />
+                <button type="button" className="ib" title="ასლი - ახალი ბარათი ამ პირობებით" aria-label="ასლი" onClick={() => nav(`/cards/new?copy=${k.ID}`)}>
+                  <CopyIcon />
+                </button>
                 <button type="button" className="ib edit" title="რედაქტირება" aria-label="რედაქტირება" onClick={() => nav(`/cards/${k.ID}`)}>
                   <EditIcon />
                 </button>
+                <button type="button" className="ib del" title="წაშლა" aria-label="წაშლა" onClick={async () => (await removeCard(k, toast)) && refresh()}>
+                  <DelIcon />
+                </button>
               </span>
+              <button type="button" className="ib tg" aria-label="ჩამოშლა" aria-expanded={open === k.ID} onClick={() => setOpen(open === k.ID ? null : k.ID)}>
+                <Chevron />
+              </button>
             </div>
+            {open === k.ID && (
+              <div className="det cards">
+                <CardInfo p={p} k={k} part="rest" />
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -104,15 +120,18 @@ export function CardFormPage() {
   const q = useProducts();
   const products = q.data ?? [];
   const isNew = id === 'new';
-  const own = isNew ? null : products.flatMap((p) => p.Cards.map((k) => ({ p, k }))).find((x) => x.k.ID === Number(id));
+  const all = products.flatMap((p) => p.Cards.map((k) => ({ p, k })));
+  const own = isNew ? null : all.find((x) => x.k.ID === Number(id));
+  // ?copy={id}: a new card from that one's product, currency, type and values
+  const copy = isNew && params.get('copy') ? all.find((x) => x.k.ID === Number(params.get('copy'))) ?? null : null;
   const [pid, setPid] = useState(Number(params.get('product')) || 0);
   const [cur, setCur] = useState(params.get('cur') ?? '');
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, []);
   // a new card: the first product / its first currency until chosen
-  const p = own?.p ?? products.find((x) => x.ID === pid) ?? products[0];
-  const c = own?.k.Currency ?? (p?.Currencies.includes(cur) ? cur : p?.Currencies[0] ?? '');
+  const p = own?.p ?? products.find((x) => x.ID === (pid || copy?.p.ID)) ?? products[0];
+  const c = own?.k.Currency ?? (p?.Currencies.includes(cur || copy?.k.Currency || '') ? cur || copy!.k.Currency : p?.Currencies[0] ?? '');
   const back = () => {
     void qc.invalidateQueries({ queryKey: ['products'] });
     nav(from);
@@ -144,12 +163,13 @@ export function CardFormPage() {
     );
   return (
     <div className="main">
-      {head(isNew ? 'ახალი ბარათი' : 'რედაქტირება', true)}
+      {head(isNew ? (copy ? 'ახალი ბარათი (ასლი)' : 'ახალი ბარათი') : 'რედაქტირება', true)}
       <CardForm
         key={`${p.ID}|${c}|${id}`}
         p={p}
         cur={c}
         k={own?.k ?? null}
+        copy={copy && copy.p.ID === p.ID ? copy.k : null}
         onSaved={back}
         head={
           <>

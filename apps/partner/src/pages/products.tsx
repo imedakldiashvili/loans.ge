@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { ApiError, crud, findAll, Ref } from '../api';
+import { ApiError, crud, findAll } from '../api';
 import { Field, useRefs } from '../session';
 import { Chevron, curSym, EditIcon, ErrorLine, fmt, Switch, useToast } from '../ui/ui';
 
@@ -35,6 +35,30 @@ export interface Product {
 const pk = (k: string) => k.charAt(0).toUpperCase() + k.slice(1);
 export const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((x) => `${x.Field}: ${x.Message}`)].join(' - ') : 'შეცდომა');
 const cardsLabel = (n: number) => `${n} შეთავაზება`;
+
+/** Delete a card (from its row): asks first; true when deleted. */
+export async function removeCard(k: CardRow, toast: (t: string) => void) {
+  if (!confirm(`წავშალოთ ბარათი (${k.Currency})?`)) return false;
+  try {
+    await crud('partner', 'card').remove(k);
+    toast('ბარათი წაიშალა');
+    return true;
+  } catch (e) {
+    toast(errText(e));
+    return false;
+  }
+}
+
+export const DelIcon = () => (
+  <svg viewBox="0 0 24 24">
+    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" />
+  </svg>
+);
+export const CopyIcon = () => (
+  <svg viewBox="0 0 24 24">
+    <path d="M9 9h11v11H9zM5 15H4V4h11v1" />
+  </svg>
+);
 
 export const useProducts = () => useQuery({ queryKey: ['products'], queryFn: () => findAll<Product>('partner', 'product') });
 
@@ -139,8 +163,9 @@ export function ProductsPage() {
   );
 }
 
-/** Card name + short summary from the schema (prototype cardSummary). */
-export function CardInfo({ p, k }: { p: Product; k: CardRow }) {
+/** Card name + short summary from the schema (prototype cardSummary).
+ *  part: 'brief' — the type, then the amount · term · rate on one line (a row); 'rest' — the other terms (its expanded part). */
+export function CardInfo({ p, k, part }: { p: Product; k: CardRow; part?: 'brief' | 'rest' }) {
   const { fields, offerTypes } = useRefs();
   const fs = fields.filter((f) => f.ProductTypeID === p.ProductTypeID);
   const has = (key: string) => fs.some((f) => f.Key === key);
@@ -168,12 +193,32 @@ export function CardInfo({ p, k }: { p: Product; k: CardRow }) {
     })
     .filter(Boolean)
     .join(' · ');
+  const name = (
+    <b>
+      {offerTypes.find((o) => o.ID === k.OfferTypeID)?.NameKa ?? '-'}
+      {!k.IsEnable && <small className="muted"> (გამორთული)</small>}
+    </b>
+  );
+  if (part === 'brief')
+    return (
+      <span className="pinfo">
+        {name}
+        <small>{[l1, has('rate') && `${v('rate')}%`].filter(Boolean).join(' · ')}</small>
+      </span>
+    );
+  // the rest: without the rate (it is on the row)
+  const rest = l2.replace(/^[\d.]+%( · )?/, '');
+  if (part === 'rest')
+    return (
+      <span className="pinfo">
+        {rest && <small>{rest}</small>}
+        {extra && <small className="extra">{extra}</small>}
+        {!rest && !extra && <small>სხვა პირობა არ არის</small>}
+      </span>
+    );
   return (
     <span className="pinfo">
-      <b>
-        {offerTypes.find((o) => o.ID === k.OfferTypeID)?.NameKa ?? '-'}
-        {!k.IsEnable && <small className="muted"> (გამორთული)</small>}
-      </b>
+      {name}
       <small>{l1}</small>
       <small>{l2}</small>
       {extra && <small className="extra">{extra}</small>}
@@ -354,6 +399,9 @@ function ProductForm({ id, onBack }: { id: number; onBack: () => void }) {
                                 <button type="button" className="ib edit" title="რედაქტირება" aria-label="რედაქტირება" onClick={() => nav(`/cards/${k.ID}`, { state: { from: `/products/${id}` } })}>
                                   <EditIcon />
                                 </button>
+                                <button type="button" className="ib del" title="წაშლა" aria-label="წაშლა" onClick={async () => (await removeCard(k, toast)) && refresh()}>
+                                  <DelIcon />
+                                </button>
                               </span>
                             </div>
                           ))
@@ -383,12 +431,14 @@ const PAIRS: [string, string, string][] = [
 
 /** Card form (#dlg2, on its own page): offer type + fields from the product type schema; min/max and pairs on one line.
  *  `head` — the rows above it (product and currency). The page header's save button submits it (form="cardf"). */
-export function CardForm({ p, cur, k, head, onSaved }: { p: Product; cur: string; k: CardRow | null; head?: React.ReactNode; onSaved: () => void }) {
+export function CardForm({ p, cur, k, copy, head, onSaved }: { p: Product; cur: string; k: CardRow | null; copy?: CardRow | null; head?: React.ReactNode; onSaved: () => void }) {
   const { fields, offerTypes } = useRefs();
   const toast = useToast();
   const fs = fields.filter((f) => f.ProductTypeID === p.ProductTypeID);
-  const [ot, setOt] = useState<number>(k?.OfferTypeID ?? offerTypes[0]?.ID ?? 0);
-  const [vals, setVals] = useState<Record<string, Val>>(() => Object.fromEntries(fs.map((f) => [f.Key, k ? k.Values[pk(f.Key)] ?? null : f.DefaultValue])));
+  // a copy starts from another card's type and values (a new card all the same)
+  const src = k ?? copy ?? null;
+  const [ot, setOt] = useState<number>(src?.OfferTypeID ?? offerTypes[0]?.ID ?? 0);
+  const [vals, setVals] = useState<Record<string, Val>>(() => Object.fromEntries(fs.map((f) => [f.Key, src ? src.Values[pk(f.Key)] ?? null : f.DefaultValue])));
   const [active, setActive] = useState(k?.IsEnable ?? true);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -496,16 +546,6 @@ export function CardForm({ p, cur, k, head, onSaved }: { p: Product; cur: string
       setBusy(false);
     }
   };
-  const remove = async (r: Ref) => {
-    if (!confirm(`წავშალოთ შეთავაზება (${cur})?`)) return;
-    try {
-      await crud('partner', 'card').remove(r);
-      toast('შეთავაზება წაიშალა');
-      onSaved();
-    } catch (e) {
-      setError(errText(e));
-    }
-  };
 
   return (
     <div className="card">
@@ -539,13 +579,6 @@ export function CardForm({ p, cur, k, head, onSaved }: { p: Product; cur: string
           </div>
         )}
         <ErrorLine error={error} />
-        {k && (
-          <div className="fbtns">
-            <button type="button" className="btn btn-red" style={{ marginInlineStart: 'auto' }} onClick={() => remove(k)}>
-              წაშლა
-            </button>
-          </div>
-        )}
       </form>
     </div>
   );
