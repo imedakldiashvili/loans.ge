@@ -115,6 +115,18 @@ async function main() {
     orgByName.set(o.name, row.id);
   }
 
+  // ── bank logos (NBG register, seed-data/banks): copied into the file storage the API serves at /fs/
+  const FS_ROOT = path.resolve(process.env.FS_ROOT ?? path.join(__dirname, '..', 'storage', 'fs'));
+  const banksDir = path.join(__dirname, 'seed-data/banks');
+  for (const b of JSON.parse(fs.readFileSync(path.join(banksDir, 'banks.json'), 'utf8')).banks) {
+    const id = orgByName.get(b.nameKa);
+    if (!id) continue;
+    const key = `org/${b.code}-nbg${path.extname(b.logo)}`;
+    fs.mkdirSync(path.join(FS_ROOT, 'org'), { recursive: true });
+    fs.copyFileSync(path.join(banksDir, b.logo), path.join(FS_ROOT, key));
+    await prisma.organization.update({ where: { id }, data: { logoPath: key } });
+  }
+
   // ── partner products and offer cards (partner.html TEMPLATES), only the product types the organisation accepts
   const offerType = Object.fromEntries((await prisma.referenceItem.findMany({ where: { kind: 'offer_type' } })).map((r) => [r.code, r.id]));
   const OT: Record<string, string> = { ot1: 'standard', ot2: 'special' };

@@ -84,7 +84,7 @@ ok(save.status === 200 && reread.Value.Sms.Len === 6, 'setting: edit round trip'
 await call('PUT', `/admin/setting/edit/${otp.ID}/${otp.UID}`, { Key: 'otp', Value: otp.Value });
 
 // ── organization product types
-const org = (await find('organization', { Filter: { Search: 'ბანკი A' } })).json.Data.Items[0];
+const org = (await find('organization', { Filter: { Search: 'საქართველოს ბანკი' } })).json.Data.Items[0];
 const opt = (await find('organizationProductType', { Filter: { OrganizationID: org.ID } })).json.Data.Items;
 ok(opt.length === 7 && opt[0].ProductType.NameKa, 'organizationProductType: by organisation with product type');
 
@@ -106,7 +106,7 @@ const key1 = up1.json?.Data?.LogoPath;
 ok(up1.status === 200 && /^org\/.+\.png$/.test(key1), 'logo: PNG uploaded, key org/….png', up1.json);
 const f1 = await fetch(`${B}/fs/${key1}`);
 ok(f1.status === 200 && f1.headers.get('content-type') === 'image/png' && /immutable/.test(f1.headers.get('cache-control') ?? '') && /sandbox/.test(f1.headers.get('content-security-policy') ?? ''), 'logo: served at /fs/ (image/png, cached, sandboxed)');
-ok((await find('organization', { Filter: { Search: 'ბანკი A' } })).json.Data.Items[0].LogoPath === key1, 'logo: organisation has the key');
+ok((await find('organization', { Filter: { Search: 'საქართველოს ბანკი' } })).json.Data.Items[0].LogoPath === key1, 'logo: organisation has the key');
 const up2 = await upload('logo.svg', Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5"/></svg>'));
 const key2 = up2.json?.Data?.LogoPath;
 ok(up2.status === 200 && key2.endsWith('.svg') && (await fetch(`${B}/fs/${key1}`)).status === 404, 'logo: replaced by SVG, the old file is gone', up2.json);

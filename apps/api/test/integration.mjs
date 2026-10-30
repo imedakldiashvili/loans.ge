@@ -33,7 +33,7 @@ const waitFor = async (pred, ms = 6000) => {
   return null;
 };
 
-// ── back office of ბანკი A: API key and webhook
+// ── back office of საქართველოს ბანკი: API key and webhook
 await login('partner', 'office@1.ge');
 const me = (await call('GET', '/partner/auth/me')).json.Data;
 const orgId = me.Profile.Organization.ID;
@@ -69,7 +69,7 @@ ok((await withKey('POST', '/partner/application/find/1/5', {}, `${key.slice(0, -
 const log = await prisma.actionLog.findFirst({ where: { url: { contains: '/partner/application/find/1/50' }, actorType: 'integration' }, orderBy: { id: 'desc' } });
 ok(log && log.createdBy === null, 'actionLog: calls with a key logged as integration');
 
-// ── a customer applies to ბანკი A → webhook, the bell, staff e-mail
+// ── a customer applies to საქართველოს ბანკი → webhook, the bell, staff e-mail
 const email = `int.${stamp}@example.com`;
 const phone = `5${String(Number(stamp) + 7).slice(-8)}`;
 await login('client', email);
@@ -82,7 +82,7 @@ const add = await call('POST', '/client/application/add', {
   OrganizationIDs: [orgId], Pid: '01001012399', FirstName: 'ინტ', LastName: 'ტესტი', BirthDate: '1991-01-01', Phone: phone, CityID: Number(city.id),
   Otp: { ID: s.json.Data.ID, UID: s.json.Data.UID, Code: code },
 });
-ok(add.status === 200, 'customer application to ბანკი A', add.json);
+ok(add.status === 200, 'customer application to საქართველოს ბანკი', add.json);
 const created = await waitFor((r) => r.headers['x-loans-event'] === 'application.created' && JSON.parse(r.body).Data.ApplicationID === add.json.Data.ID);
 const data = created && JSON.parse(created.body).Data;
 ok(created && verify(created) && data.Status === 'sent' && data.ApplicationOrgUID, 'webhook: application.created, signed', data);
@@ -112,7 +112,7 @@ const deliveries = (await call('POST', '/partner/webhookDelivery/find/1/20', {})
 ok(deliveries.Items.every((x) => x.OrganizationID === orgId), 'delivery log: own organisation only');
 
 const cbell = (await call('POST', '/client/notification/find/1/10', {})).json.Data;
-ok(cbell.Items[0]?.Title === 'ბანკი A განიხილავს შენს განაცხადს' && cbell.UnreadCount === 1, 'customer bell: "ბანკი A is reviewing"', cbell.Items[0]);
+ok(cbell.Items[0]?.Title === 'საქართველოს ბანკი განიხილავს შენს განაცხადს' && cbell.UnreadCount === 1, 'customer bell: "საქართველოს ბანკი is reviewing"', cbell.Items[0]);
 ok((await call('PUT', `/client/notification/read/${cbell.Items[0].ID}/${cbell.Items[0].UID}`)).status === 200, 'customer marks it read');
 ok((await call('PUT', `/partner/notification/read/${cbell.Items[0].ID}/${cbell.Items[0].UID}`)).status === 404, "staff can't touch the customer's notification");
 

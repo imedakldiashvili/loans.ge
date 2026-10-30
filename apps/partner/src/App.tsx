@@ -267,7 +267,7 @@ function Login({ top }: { top: ReactNode }) {
       )}
       {error && <div className="lerr">{error}</div>}
       <div className="demo-note">
-        დემო: <code>sales1@2.ge</code> (გაყიდვები, ბანკი B), <code>office@2.ge</code> (ბექ-ოფისი, ბანკი B), <code>sales2@2.ge</code> (გაყიდვები, შეზღუდული). კოდი — OTP კოდების გვერდზე (სატესტო გარემო).
+        დემო: <code>sales1@2.ge</code> (გაყიდვები, თიბისი ბანკი), <code>office@2.ge</code> (ბექ-ოფისი, თიბისი ბანკი), <code>sales2@2.ge</code> (გაყიდვები, შეზღუდული). კოდი — OTP კოდების გვერდზე (სატესტო გარემო).
       </div>
     </section>
   );

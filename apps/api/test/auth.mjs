@@ -53,7 +53,7 @@ ok(me.status === 200 && me.json.Data.Profile.Role === 'operator' && me.json.Data
 ok((await call('POST', '/admin/city/find/1/5', {})).status === 200, 'operator: read references');
 const addCur = await call('POST', '/admin/currency/add', { Code: 'XOP', Symbol: 'X' });
 ok(addCur.status === 403 && addCur.json.Error.Code === 'FORBIDDEN', 'operator: cannot change references → 403');
-const org = (await call('POST', '/admin/organization/find/1/1', { Filter: { Search: 'ბანკი F' } })).json.Data.Items[0];
+const org = (await call('POST', '/admin/organization/find/1/1', { Filter: { Search: 'კრედო ბანკი' } })).json.Data.Items[0];
 const dis = await call('PUT', `/admin/organization/disable/${org.ID}/${org.UID}`);
 const orgRow = await prisma.organization.findUnique({ where: { id: BigInt(org.ID) } });
 ok(dis.status === 200 && orgRow.updatedBy === BigInt(v.json.Data.ID), 'operator: changes organisations; UpdatedBy = operator');
@@ -70,7 +70,7 @@ ok((await call('PUT', `/admin/organization/disable/${org.ID}/${org.UID}`)).statu
 // ── partner: session is per gateway
 const p = await login('partner', 'sales1@1.ge');
 const pme = await call('GET', '/partner/auth/me');
-ok(p.verify.status === 200 && pme.json.Data.Profile.ProfileType === 'staff' && pme.json.Data.Profile.Organization.NameKa === 'ბანკი A', 'partner: staff profile with organisation');
+ok(p.verify.status === 200 && pme.json.Data.Profile.ProfileType === 'staff' && pme.json.Data.Profile.Organization.NameKa === 'საქართველოს ბანკი', 'partner: staff profile with organisation');
 const partnerToken = decodeURIComponent(getCookie('partner').split('=')[1]);
 const cross = await call('POST', '/admin/city/find/1/5', {}, { Authorization: `Bearer ${partnerToken}`, Cookie: '' });
 ok(cross.status === 401, 'partner session is not valid on admin');

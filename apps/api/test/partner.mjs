@@ -6,7 +6,7 @@ import { call, done, forget, login, ok } from './lib.mjs';
 const prisma = new PrismaClient();
 const find = (m, body = {}, size = 50) => call('POST', `/partner/${m}/find/1/${size}`, body);
 
-// ── sales of ბანკი A (no scope)
+// ── sales of საქართველოს ბანკი (no scope)
 await login('partner', 'sales1@1.ge');
 const all = (await find('application')).json.Data;
 const byStatus = (s) => all.Items.filter((x) => x.Status === s);
@@ -70,13 +70,13 @@ const after3 = (await call('GET', `/partner/application/detail/${sent.ID}/${sent
 ok(r3.status === 200 && after3.Status === 'cancelled' && after3.ExpiresOn === null && after3.ReasonIDs[0] === Number(reason.id) && after3.Next.length === 0, 'cancel with reason: final, no deadline, no next steps');
 
 // another organisation's record is invisible
-const foreign = await prisma.applicationOrg.findFirst({ where: { organization: { nameKa: 'ბანკი B' } } });
+const foreign = await prisma.applicationOrg.findFirst({ where: { organization: { nameKa: 'თიბისი ბანკი' } } });
 ok((await call('GET', `/partner/application/detail/${foreign.id}/${foreign.uid}`)).status === 404, "another organisation's record → 404");
 
 // ── sales with scope: cities თბილისი, რუსთავი; products p1, p3
-// test data: all of ბანკი A's records free incoming ones, so the scope decides
+// test data: all of საქართველოს ბანკი's records free incoming ones, so the scope decides
 const cities = await prisma.city.findMany({ where: { nameKa: { in: ['თბილისი', 'რუსთავი'] } } });
-const bankA = await prisma.applicationOrg.findMany({ where: { organization: { nameKa: 'ბანკი A' } }, include: { application: true } });
+const bankA = await prisma.applicationOrg.findMany({ where: { organization: { nameKa: 'საქართველოს ბანკი' } }, include: { application: true } });
 const sales2 = await prisma.userProfile.findFirst({ where: { user: { email: 'sales2@1.ge' } } });
 await prisma.applicationOrg.updateMany({ where: { id: { in: bankA.map((x) => x.id) } }, data: { status: 'sent', assignedToId: null, assignedOn: null, contactsOpenedOn: null } });
 const outside = bankA.find((x) => !cities.some((c) => c.id === x.application.cityId));
@@ -113,13 +113,13 @@ if (free) {
 forget('partner');
 await login('partner', 'office@1.ge');
 const pts = await prisma.productType.findMany();
-const quick = pts.find((p) => p.code === 'quick_loan'); // ბანკი A does not accept it
+const quick = pts.find((p) => p.code === 'quick_loan'); // საქართველოს ბანკი does not accept it
 const consumer = pts.find((p) => p.code === 'consumer_loan');
 ok((await call('POST', '/partner/product/add', { ProductTypeID: Number(quick.id), Currencies: ['GEL'] })).status === 400, 'product type not accepted by the organisation → 400');
 const np = await call('POST', '/partner/product/add', { ProductTypeID: Number(consumer.id), Description: 'ტესტი', Currencies: ['GEL'] });
 ok(np.status === 200, 'back: add product', np.json);
 const npRow = await prisma.partnerProduct.findUnique({ where: { id: BigInt(np.json.Data.ID) }, include: { organization: true } });
-ok(npRow.organization.nameKa === 'ბანკი A', 'product belongs to the caller organisation');
+ok(npRow.organization.nameKa === 'საქართველოს ბანკი', 'product belongs to the caller organisation');
 const ot = await prisma.referenceItem.findFirst({ where: { kind: 'offer_type' } });
 const bad = await call('POST', '/partner/card/add', { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'GEL', Values: { rate: 'x', minAmt: 5000, maxAmt: 100, unknownKey: 1 } });
 ok(bad.status === 400 && ['Values.rate', 'Values.unknownKey', 'Values.maxAmt', 'Values.minM'].every((f) => bad.json.Error.Details.some((d) => d.Field === f)), 'card values checked against the product field schema', bad.json.Error);

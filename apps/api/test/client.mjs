@@ -38,7 +38,7 @@ const withCode = async (b) => {
 };
 const body = {
   ProductTypeID: Number(pt.id), Amount: 5000, Currency: 'GEL', CreditHistory: 'პოზიტიური', Sector: 'კერძო სექტორი',
-  Incomes: [{ Src: 'ხელფასი', Amount: 2500 }], Banks: ['ბანკი A'], OrganizationIDs: accepting.slice(0, 2).map((o) => o.ID),
+  Incomes: [{ Src: 'ხელფასი', Amount: 2500 }], Banks: ['საქართველოს ბანკი'], OrganizationIDs: accepting.slice(0, 2).map((o) => o.ID),
   Pid: '01001012345', FirstName: 'ტესტ', LastName: 'კლიენტი', BirthDate: '1990-05-01', Phone: phone, CityID: Number(city.id), DistrictID: Number(district.id),
 };
 

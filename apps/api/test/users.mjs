@@ -37,10 +37,10 @@ ok((await call('POST', '/admin/admin/add', { Email: `x.${stamp}@loans.ge`, Displ
 await login('admin', 'admin@loans.ge'); // back to super
 
 // ── staff
-const bankA = (await find('organization', { Filter: { Search: 'ბანკი A' } })).json.Data.Items[0];
-const bankG = (await find('organization', { Filter: { Search: 'ბანკი G' } })).json.Data.Items[0];
+const bankA = (await find('organization', { Filter: { Search: 'საქართველოს ბანკი' } })).json.Data.Items[0];
+const bankG = (await find('organization', { Filter: { Search: 'ტერაბანკი' } })).json.Data.Items[0];
 const staffA = (await find('staff', { Filter: { OrganizationID: bankA.ID } })).json.Data.Items;
-ok(staffA.length === 4 && staffA[0].Organization.NameKa === 'ბანკი A', 'staff: filter by organisation');
+ok(staffA.length === 4 && staffA[0].Organization.NameKa === 'საქართველოს ბანკი', 'staff: filter by organisation');
 const notPartner = await call('POST', '/admin/staff/add', { Email: `s.${stamp}@g.ge`, DisplayName: 'x', OrganizationID: bankG.ID, Role: 'sales' });
 ok(notPartner.status === 400 && notPartner.json.Error.Details[0].Field === 'OrganizationID', 'staff: organisation must be a partner');
 const tbilisi = (await find('city', { Filter: { Search: 'თბილისი' } })).json.Data.Items[0];
@@ -51,7 +51,7 @@ await call('PUT', `/admin/staff/edit/${st.json.Data.ID}/${st.json.Data.UID}`, { 
 const stBack = (await call('GET', `/admin/staff/detail/${st.json.Data.ID}/${st.json.Data.UID}`)).json.Data;
 ok(stBack.Role === 'back' && stBack.ScopeCities.length === 0, 'staff: back role has no scope');
 // the same person in a second organisation
-const bankB = (await find('organization', { Filter: { Search: 'ბანკი B' } })).json.Data.Items[0];
+const bankB = (await find('organization', { Filter: { Search: 'თიბისი ბანკი' } })).json.Data.Items[0];
 const st2 = await call('POST', '/admin/staff/add', { Email: `s.${stamp}@a.ge`, DisplayName: 'იგივე პირი', OrganizationID: bankB.ID, Role: 'sales' });
 ok(st2.status === 200, 'staff: same user in another organisation → second staff profile');
 const p = await login('partner', `s.${stamp}@a.ge`);
