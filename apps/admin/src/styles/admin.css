@@ -363,7 +363,7 @@
   .arow .right { display: grid; gap: 4px; justify-items: end; text-align: right; } .arow .amt { font-size: 18px; font-weight: 700; color: var(--fg); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .arow .scs { margin-top: 0; justify-content: flex-end; align-items: center; } .arow .scs .otot { height: 22px; min-width: 24px; font-size: 12px; } .arow .r-date { white-space: nowrap; }
   .arow .aacts { display: flex; gap: 6px; } .acard.open .arow .ib.tg svg { transform: rotate(180deg); } .acard.open .arow .ib.tg { color: var(--green); border-color: var(--green); }
-  .arow .who-col { display: grid; gap: 3px; } .arow .who-col small { font-size: 13px; color: var(--fg); } .arow .who-col small + small { font-size: 12px; color: var(--muted); }
+  .arow .who-col { display: grid; gap: 3px; } .arow .who-col b { font-size: 15px; color: var(--fg); overflow-wrap: anywhere; }
   .adet { display: grid; gap: 10px; padding: 0 16px 16px; }
   .dsec { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
   .dsec summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: var(--bg-soft); } .dsec summary::-webkit-details-marker { display: none; }

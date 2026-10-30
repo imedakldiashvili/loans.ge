@@ -120,7 +120,7 @@ function AppCard({ a, open, onToggle, onView }: { a: Application; open: boolean;
         </span>
         {/* the middle column: the customer (personal number, name), the mobile, the e-mail — one line each */}
         <span className="who-col">
-          <small>{[a.Pid, fullName(a)].filter(Boolean).join(' · ') || '—'}</small>
+          <b>{[a.Pid, fullName(a)].filter(Boolean).join(' · ') || '—'}</b>
           {a.Phone && <small>{phone(a.Phone)}</small>}
           {a.Email && <small>{a.Email}</small>}
         </span>

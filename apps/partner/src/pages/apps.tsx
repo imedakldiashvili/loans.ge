@@ -378,7 +378,7 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
         </span>
         {/* the middle column: the applicant (personal number, name) and, once the contacts are open, the mobile and the e-mail — one line each */}
         <span className="who-col">
-          {!r.IsMasked && <small>{applicantName(r)}</small>}
+          {!r.IsMasked && <b>{applicantName(r)}</b>}
           {a.Phone && <small>+995 {a.Phone.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')}</small>}
           {a.Email && <small>{a.Email}</small>}
         </span>
