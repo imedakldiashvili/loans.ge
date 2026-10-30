@@ -47,9 +47,10 @@
   .nav { display: flex; align-items: center; gap: 28px; height: 70px; }
   .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; color: var(--green); letter-spacing: -.2px; }
   .logo b { font-weight: inherit; }
-  /* phone: the header fits — smaller gaps; very narrow: the logo mark only */
+  /* phone: the header fits — smaller gaps; very narrow: a smaller logo, tighter still */
   @media (max-width: 560px) { .nav { gap: 8px; } .nav .lang, .nav .login, .nav .userbtn, .nav .logout { margin-inline-start: 0; } }   /* the -20px pulls make up for the 28px gap only */
-  @media (max-width: 420px) { .nav .logo b { display: none; } }
+  @media (max-width: 420px) { .nav { gap: 5px; padding-inline: 10px; } .nav .logo { font-size: 17px; gap: 5px; } .nav .logo img { width: 34px; height: auto; } .lang span { padding: 4px 5px; } }   /* narrow phones: "Loans.ge" stays — a smaller logo and tighter gaps */
+  @media (max-width: 349px) { .nav .logo b { display: none; } }   /* the smallest phones (320px): the logo mark only */
   .logo span { color: var(--orange); }
   .logo img { height: 36px; width: auto; }
   .menu { display: flex; gap: 22px; font-size: 13px; color: var(--fg); margin-inline-start: 8px; }
