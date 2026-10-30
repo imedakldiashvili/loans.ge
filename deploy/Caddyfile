@@ -1,4 +1,4 @@
-# DOMAIN = test.loans.ge → test.loans.ge (customers), admin., partner., otp. (one-time codes, test only, behind a password).
+# DOMAIN = test.loans.ge → test.loans.ge (customers), admin., partner., otp. (one-time codes — test servers only; the API drops /dev/* when APP_ENV=production).
 # Certificates come from Let's Encrypt automatically (the DNS records must point at this server).
 {
 	email {$ACME_EMAIL}
@@ -38,9 +38,6 @@ partner.{$DOMAIN} {
 }
 
 otp.{$DOMAIN} {
-	basic_auth {
-		{$OTP_USER} {$OTP_PASSWORD_HASH}
-	}
 	@api path /dev/*
 	handle @api {
 		reverse_proxy api:4000

@@ -40,8 +40,6 @@ services:
     environment:
       DOMAIN: ${DOMAIN}
       ACME_EMAIL: ${ACME_EMAIL}
-      OTP_USER: ${OTP_USER}
-      OTP_PASSWORD_HASH: ${OTP_PASSWORD_HASH}
     volumes: ["caddy_data:/data", "caddy_config:/config"]
 
 volumes:
