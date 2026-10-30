@@ -637,7 +637,7 @@ export function MarkBar({ m }: { m: OfferMarks }) {
         <button type="button" className="btn btn-green sm" disabled={!canSend} onClick={() => (m.setError(''), m.setAsking(true))}>
           {t('არჩეულების დადასტურება')}
           {/* how many are chosen — in its frame, inside the button */}
-          <span className="pick-n" title={t('არჩეულია')}>
+          <span className={`pick-n${m.chosenOffers.length ? ' on' : ''}`} title={t('არჩეულია')}>
             {m.chosenOffers.length}
           </span>
         </button>
