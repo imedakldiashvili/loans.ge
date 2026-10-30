@@ -338,7 +338,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           <span className="cab-right-col">
             <i className="amt">{money(a.Amount, a.Currency)}</i>
             {/* the detailed view (its own page), before the offers */}
-            <button type="button" className="cab-ico cab-details-ico" title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
+            <button type="button" className={`cab-details-ico recv-offers ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}${waiting ? ' wait' : ''}`} title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
               {I.eye}
             </button>
             {/* the offers that came in — in the application icon's colour; always shown (none yet: 0, not clickable); filled while an answer is awaited */}

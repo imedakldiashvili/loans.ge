@@ -458,16 +458,16 @@
   .cab-toggle { width: 28px; height: 28px; display: grid; place-items: center; border: 0; background: none; padding: 0; color: var(--muted); cursor: pointer; } .cab-toggle:hover { color: var(--green); } .cab-toggle:focus-visible { outline: 2px solid var(--orange); border-radius: 4px; }
   .cab-toggle svg { width: 18px; height: 18px; transition: transform .2s; }
   /* the offers received: under the amount; filled green while an answer is awaited, outlined after */
-  /* the offers button, no frame: on white with green (completed / stopped); an application in progress — in its icon's colour (orange) */
-  .recv-offers { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 10px 0 14px; border: 0; border-radius: 10px; background: var(--bg); color: var(--green); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  /* the offers and the detailed-view buttons (same style, framed): on white with green (completed / stopped); an application in progress — in its icon's colour (orange) */
+  .recv-offers { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 10px 0 14px; border: 1px solid var(--green); border-radius: 10px; background: var(--bg); color: var(--green); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .recv-offers svg { width: 18px; height: 18px; } .recv-offers b { min-width: 24px; height: 24px; padding: 0 6px; display: inline-grid; place-items: center; border-radius: 4px; background: var(--green-soft); color: var(--green); font-size: 12px; }
-  .recv-offers.none { color: var(--muted); cursor: default; } .recv-offers.none b { background: var(--bg-soft); color: var(--muted); }   /* none yet: 0, grey */
-  .recv-offers.st-on { background: var(--orange-soft); color: var(--orange); } .recv-offers.st-on b { background: var(--orange); color: #fff; }
+  .recv-offers.none { border-color: var(--line); color: var(--muted); cursor: default; } .recv-offers.none b { background: var(--bg-soft); color: var(--muted); }   /* none yet: 0, grey */
+  .recv-offers.st-on { border-color: var(--orange); background: var(--orange-soft); color: var(--orange); } .recv-offers.st-on b { background: var(--orange); color: #fff; }
   .recv-offers.st-on.wait { background: var(--orange); color: #fff; } .recv-offers.st-on.wait b { background: color-mix(in srgb, var(--orange) 70%, #000); }   /* an answer awaited: filled, the count a darker shade */
   .recv-offers:hover:not(.none) { filter: brightness(.96); }
   @media (max-width: 560px) { .recv-offers span { display: none; } }   /* phone: the icon and the number */
   /* the offers button is as tall as the application icon (44px) */
-  .cab-right .cab-details-ico { width: 44px; height: 44px; border-radius: 10px; border: 0; background: var(--bg); } .cab-right .cab-details-ico svg { width: 20px; height: 20px; }   /* the detailed view: an icon as tall as the offers */
+  .cab-right .cab-details-ico { width: 44px; padding: 0; justify-content: center; } .cab-right .cab-details-ico svg { width: 20px; height: 20px; }   /* the detailed view: as the offers button, the icon only */   /* the detailed view: an icon as tall as the offers */
   .cab-card.open .cab-toggle svg { transform: rotate(180deg); } .cab-card.open .cab-toggle { color: var(--green); }
   .cab-det { background: var(--bg); color: var(--fg); padding: 2px 18px 14px; display: grid; gap: 10px; }
   .cab-stat { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
