@@ -479,7 +479,7 @@ function CancelModal({ a, onClose, onDone }: { a: App; onClose: () => void; onDo
   );
 }
 
-/** /cabinet/view/{id}/{uid}: the application as sent — read only, on its own page; at the bottom (in progress) stopping it. */
+/** /cabinet/view/{id}/{uid}: the application as sent — read only, on its own page; top right (in progress) stopping it. */
 export function AppView({ id, uid, onBack }: { id: number; uid: string; onBack: () => void }) {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ['app', id], queryFn: () => api<App>('GET', `/client/application/detail/${id}/${uid}`) });
@@ -498,17 +498,16 @@ export function AppView({ id, uid, onBack }: { id: number; uid: string; onBack: 
           <h3 className="view-title">
             {n(a.ProductType)} · {money(a.Amount, a.Currency)}
           </h3>
+          {/* in progress: stopping the application — top right */}
+          {!isClosed && (
+            <button type="button" className="btn btn-ghost cab-end view-stop" onClick={() => setCancel(true)}>
+              {I.timer}
+              {t('განაცხადის შეწყვეტა')}
+            </button>
+          )}
         </div>
         <div className="view-page">
           <AppDetails a={a} />
-          {!isClosed && (
-            <div className="cab-det-foot">
-              <button type="button" className="btn btn-ghost cab-end" onClick={() => setCancel(true)}>
-                {I.timer}
-                {t('განაცხადის შეწყვეტა')}
-              </button>
-            </div>
-          )}
         </div>
       </div>
       {cancel && (
