@@ -131,8 +131,9 @@ function AppCard({ a, open, onToggle, onView }: { a: Application; open: boolean;
             ))}
           </span>
           {/* the city - district and the date — on the right, under the statuses */}
-          <small className="r-date">{place(a)}</small>
-          <small className="r-date">{fmtDate(a.CreatedOn)}</small>
+          <small className="r-date">
+            {place(a)} · {fmtDate(a.CreatedOn)}
+          </small>
         </span>
         <span className="aacts">
           <button type="button" className="ib" title="შეთავაზებები" onClick={() => nav(`/apps/${a.ID}/${a.UID}/compare`)}>
