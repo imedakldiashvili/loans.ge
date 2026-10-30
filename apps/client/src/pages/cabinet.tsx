@@ -282,7 +282,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           <span className="info">
             {/* the product with the application's number beside it — the same number the partners and the support see */}
             <b>
-              {n(a.ProductType)} <small className="app-no">#{a.ID}</small>
+              {n(a.ProductType)} <small className="app-no">- #{a.ID}</small>
             </b>
             <span className="who">
               {/* personal number before the name (as in the partner cabinet) */}
