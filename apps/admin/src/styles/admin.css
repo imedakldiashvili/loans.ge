@@ -349,6 +349,24 @@
   .cmp-f.f-rejected { color: var(--red); border-color: var(--red); } .cmp-f.f-rejected.on { background: var(--red); color: #fff; }
   .cmp-f.f-waiting { color: var(--muted); border-color: var(--muted); } .cmp-f.f-waiting.on { background: var(--muted); border-color: var(--muted); color: #fff; }
   /* the offer the customer chose */
-  .cmp thead small.chosen { color: var(--green); font-weight: 600; }
+  .cmp thead small.chosen { color: var(--green); font-weight: 600; } .cmp thead small.not-chosen { color: var(--muted); font-weight: 600; }
+  .cmp th.of-sep, .cmp td.of-sep { border-inline-start: 2px solid var(--muted); } .st.not-chosen { background: var(--grey-status); }
   /* an offer's number (several offers) in a filled frame, coloured by its status */
   .of-num { display: grid; place-items: center; width: fit-content; min-width: 20px; height: 20px; padding: 0 5px; margin: 4px auto 0; border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; }
+
+  /* applications — one card per application (as in the partner cabinet); opened: blocks, the first one open */
+  .acards { display: grid; align-content: start; gap: 10px; padding: 12px; background: var(--bg-soft); } .acards-empty { margin: 0; padding: 24px; text-align: center; color: var(--muted); }
+  .acard { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; } .acard.open { border-color: var(--green); }
+  .arow { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 12px 16px; } .arow > * { min-width: 0; }
+  .arow .ast svg { width: 36px; height: 36px; display: block; }
+  .arow .info { display: grid; gap: 3px; } .arow .info b { font-size: 15px; color: var(--fg); } .arow small { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+  .arow .right { display: grid; gap: 4px; justify-items: end; text-align: right; } .arow .amt { font-size: 18px; font-weight: 700; color: var(--fg); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .arow .scs { margin-top: 0; justify-content: flex-end; align-items: center; } .arow .scs .otot { height: 22px; min-width: 24px; font-size: 12px; } .arow .r-date { white-space: nowrap; }
+  .arow .aacts { display: flex; gap: 6px; } .acard.open .arow .ib.tg svg { transform: rotate(180deg); } .acard.open .arow .ib.tg { color: var(--green); border-color: var(--green); }
+  .adet { display: grid; gap: 10px; padding: 0 16px 16px; }
+  .dsec { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .dsec summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: var(--bg-soft); } .dsec summary::-webkit-details-marker { display: none; }
+  .dsec summary svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; color: var(--muted); transition: transform .2s; }
+  .dsec[open] summary svg { transform: rotate(180deg); } .dsec[open] summary { border-bottom: 1px solid var(--line); }
+  .dsec h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin: 0; } .dbody { padding: 12px 14px; }
+  @media (max-width: 700px) { .arow { grid-template-columns: 40px minmax(0, 1fr); } .arow .right { grid-column: 2; justify-items: start; text-align: left; } .arow .aacts { grid-column: 2; } .adet { padding-inline: 10px; } }

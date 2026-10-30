@@ -118,10 +118,10 @@ export function AppsPage() {
   const [ddOpen, setDdOpen] = useState(false);
   const ddBtn = useRef<HTMLButtonElement>(null);
 
-  // default view: everything except the cancelled categories
+  // default view: the records in progress only — completed (done) and cancelled are off until chosen
   const cancelKeys = refs.statuses.filter((s) => s.Category === 'canceled').map((s) => s.Key);
   const mainKeys = refs.statuses.filter((s) => s.Category !== 'canceled').map((s) => s.Key);
-  const shown = view ?? new Set(mainKeys);
+  const shown = view ?? new Set(refs.statuses.filter((s) => s.Category === 'progress').map((s) => s.Key));
 
   const filter = useMemo(() => {
     const [t, v] = [city.slice(0, 1), city.slice(2)];

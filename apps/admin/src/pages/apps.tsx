@@ -1,18 +1,18 @@
 import { calcOffer } from '@loans/shared';
 import { useQuery } from '@tanstack/react-query';
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { crud } from '../api/client';
 import { useAll, useFind, useRoutedItem } from '../api/hooks';
 import { fmt, fmtDate } from '../ui/controls';
 import { Dialog } from '../ui/dialog';
 import { Icon } from '../ui/icons';
-import { DataTable, ListPage, Pager, StateRow, usePageSize } from '../ui/list-page';
+import { ListPage, Pager, usePageSize } from '../ui/list-page';
 import { OrgMark, statusColor } from './common';
 import { Application, AppOrg, fullName, LocationFilter, money, OfferDetail, OrgStatus, PeriodFilter, scopeFilter, toggleIn, useLookups, useScope } from './app-parts';
 
-// Applications (prototype renderApps / appOrgsRow / appDialog / comparePage): one row per customer application,
-// expanded — one row per organisation, each expands to its offer and status history.
+// Applications (prototype renderApps / appOrgsRow / appDialog / comparePage): one card per customer application (as in the
+// partner cabinet), opened — blocks: the organisations (each expands to its offer and status history), the applicant, the finances.
 
 const AstIcon = ({ active }: { active: boolean }) => (
   <span className={`ast ${active ? 'active' : 'done'}`} title={active ? 'მიმდინარე' : 'დასრულებული'}>
@@ -64,7 +64,7 @@ export function AppsPage() {
   return (
     <ListPage
       title="განაცხადები"
-      desc="მომხმარებლების განაცხადები: ერთი რიგი = ერთი განაცხადი, რამდენ ორგანიზაციასაც არ უნდა გაეგზავნოს. განაცხადი ან მიმდინარეა (ერთ ორგანიზაციასთან მაინც მიმდინარეა), ან დასრულებული. ისრით — რა ხდება თითოეულ ორგანიზაციასთან, 👁-ში — განაცხადის დეტალები."
+      desc="მომხმარებლების განაცხადები: ერთი ბარათი = ერთი განაცხადი, რამდენ ორგანიზაციასაც არ უნდა გაეგზავნოს. განაცხადი ან მიმდინარეა (ერთ ორგანიზაციასთან მაინც მიმდინარეა), ან დასრულებული. ისრით — რა ხდება თითოეულ ორგანიზაციასთან, 👁-ში — განაცხადის დეტალები."
       filters={
         <>
           <input className="search" type="search" placeholder="ძებნა: სახელი, პირადი №, მობილური" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -87,106 +87,151 @@ export function AppsPage() {
       }
       foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} size={size} onPage={setPage} onSize={setSize} />}
     >
-      <DataTable
-        className="wide"
-        head={
-          <tr>
-            <th className="ast-c" title="სტატუსი" />
-            <th>პროდუქტი</th>
-            <th className="num w3">თანხა</th>
-            <th>მომხმარებელი</th>
-            <th className="num w4">ორგანიზაცია</th>
-            <th className="acts a3" />
-          </tr>
-        }
-      >
+      {/* one card per application (as in the partner cabinet); the arrow opens its blocks */}
+      <div className="tbl acards">
         {rows.length === 0 ? (
-          <StateRow span={6} loading={q.isLoading} error={q.error?.message} empty="განაცხადი არ მოიძებნა" />
+          <p className="acards-empty">{q.isLoading ? 'იტვირთება…' : q.error?.message ?? 'განაცხადი არ მოიძებნა'}</p>
         ) : (
-          rows.map((a) => (
-            <Fragment key={a.ID}>
-              <tr className={open.has(a.ID) ? 'open' : ''}>
-                <td className="ast-c">
-                  <AstIcon active={a.State === 'active'} />
-                </td>
-                <td className="big">
-                  <span className="loan-n">{a.ProductType.NameKa}</span>
-                  <span className="sub">{place(a)}</span>
-                  <span className="sub">
-                    {fmtDate(a.CreatedOn)}
-                    {a.Source ? ` · ${a.Source}` : ''}
-                  </span>
-                </td>
-                <td className="num big">{money(a.Amount, a.Currency)}</td>
-                <td className="cust">
-                  <span className="cust-n">
-                    <span className="pid">{a.Pid}</span>
-                    {fullName(a) || '—'}
-                  </span>
-                  <span className="sub">{a.Email || '—'}</span>
-                  <span className="sub">{a.Phone || '—'}</span>
-                </td>
-                <td className="num org-c">
-                  <span className="otot" title="ორგანიზაციები">
-                    {a.Orgs.length}
-                  </span>
-                  <span className="scs">
-                    {(a.StatusCounts ?? []).map((c) => (
-                      <span key={c.Status} className="sc" style={{ ['--c' as string]: statusColor(st(c.Status), c.Status) }} title={st(c.Status)?.PartnerLabel ?? c.Status}>
-                        {c.Count}
-                      </span>
-                    ))}
-                  </span>
-                </td>
-                <td className="acts">
-                  <button type="button" className="ib" title="შეთავაზებები" onClick={() => nav(`/apps/${a.ID}/${a.UID}/compare`)}>
-                    <CompareIcon />
-                  </button>{' '}
-                  <button type="button" className="ib" title="ნახვა" onClick={() => setView(a)}>
-                    <Icon.eye />
-                  </button>{' '}
-                  <button type="button" className="ib tg" title="ორგანიზაციები" aria-expanded={open.has(a.ID)} onClick={() => toggle(a.ID)}>
-                    <Chevron />
-                  </button>
-                </td>
-              </tr>
-              {open.has(a.ID) && <AppOrgsRow app={a} span={6} />}
-            </Fragment>
-          ))
+          rows.map((a) => <AppCard key={a.ID} a={a} open={open.has(a.ID)} onToggle={() => toggle(a.ID)} onView={() => setView(a)} />)
         )}
-      </DataTable>
+      </div>
       {view && <AppDialog app={view} onClose={closeView} />}
     </ListPage>
   );
 }
 
-/** Expanded application: one row per organisation, each expands to its offer and history. */
-function AppOrgsRow({ app, span }: { app: Application; span: number }) {
+const phone = (p: string | null) => (p ? `+995 ${p.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')}` : '');
+
+/** An application's card: product, the customer (personal number, name, mobile, e-mail, city - district) on the left,
+ *  the amount, the organisations' statuses and the date on the right. */
+function AppCard({ a, open, onToggle, onView }: { a: Application; open: boolean; onToggle: () => void; onView: () => void }) {
+  const nav = useNavigate();
+  const { st, place } = useLookups();
+  return (
+    <div className={`acard${open ? ' open' : ''}`}>
+      <div className="arow">
+        <AstIcon active={a.State === 'active'} />
+        <span className="info">
+          <b>{a.ProductType.NameKa}</b>
+          <small>{[a.Pid, fullName(a)].filter(Boolean).join(' · ') || '—'}</small>
+          {(a.Phone || a.Email) && <small>{[phone(a.Phone), a.Email].filter(Boolean).join(' · ')}</small>}
+          <small>
+            {place(a)}
+            {a.Source ? ` · ${a.Source}` : ''}
+          </small>
+        </span>
+        <span className="right">
+          <span className="amt">{money(a.Amount, a.Currency)}</span>
+          <span className="scs">
+            <span className="otot" title="ორგანიზაციები">
+              {a.Orgs.length}
+            </span>
+            {(a.StatusCounts ?? []).map((c) => (
+              <span key={c.Status} className="sc" style={{ ['--c' as string]: statusColor(st(c.Status), c.Status) }} title={st(c.Status)?.PartnerLabel ?? c.Status}>
+                {c.Count}
+              </span>
+            ))}
+          </span>
+          {/* the date — on the right, under the statuses */}
+          <small className="r-date">{fmtDate(a.CreatedOn)}</small>
+        </span>
+        <span className="aacts">
+          <button type="button" className="ib" title="შეთავაზებები" onClick={() => nav(`/apps/${a.ID}/${a.UID}/compare`)}>
+            <CompareIcon />
+          </button>
+          <button type="button" className="ib" title="ნახვა" onClick={onView}>
+            <Icon.eye />
+          </button>
+          <button type="button" className="ib tg" title="ჩამოშლა" aria-expanded={open} onClick={onToggle}>
+            <Chevron />
+          </button>
+        </span>
+      </div>
+      {open && <AppBlocks app={a} />}
+    </div>
+  );
+}
+
+/** The opened card: blocks as in the partner cabinet — the organisations (each opens to its offer and history), the applicant,
+ *  the financial situation; only the first block opens on its own. */
+function AppBlocks({ app }: { app: Application }) {
+  const { place } = useLookups();
+  const detail = useAppDetail(app);
+  const a = detail.data ?? app;
+  const kv = (rows: [string, React.ReactNode][]) => (
+    <div className="kv">
+      {rows.map(([k, v]) => (
+        <span key={k} style={{ display: 'contents' }}>
+          <span>{k}</span>
+          <b>{v || '—'}</b>
+        </span>
+      ))}
+    </div>
+  );
+  const total = (a.Incomes ?? []).reduce((t, i) => t + (+i.Amount || 0), 0);
+  const blocks: [string, React.ReactNode][] = [
+    ['ორგანიზაციები', <AppOrgs app={app} />],
+    [
+      'განმცხადებელი',
+      kv([
+        ['სახელი, გვარი', fullName(a)],
+        ['პირადი ნომერი', a.Pid],
+        ['დაბადების თარიღი', a.BirthDate ? a.BirthDate.slice(0, 10).split('-').reverse().join('.') : ''],
+        ['მობილური', phone(a.Phone)],
+        ['ელ. ფოსტა', a.Email],
+        ['ლოკაცია', place(a)],
+      ]),
+    ],
+    [
+      'ფინანსური მდგომარეობა',
+      kv([
+        ['საკრედიტო ისტორია', a.CreditHistory],
+        ['საქმიანობის სფერო', a.Sector],
+        ['შემოსავლები', (a.Incomes ?? []).map((i) => `${i.Src}: ${fmt(i.Amount)} ₾`).join(', ')],
+        ['ჯამური თვიური', total ? `${fmt(total)} ₾` : ''],
+        ['ბანკის სერვისები', (a.Banks ?? []).map((b) => (typeof b === 'string' ? b : b.Name)).join(', ')],
+        ['მოთხოვნილი თანხა', money(a.Amount, a.Currency)],
+      ]),
+    ],
+  ];
+  return (
+    <div className="adet">
+      {blocks.map(([title, body], i) => (
+        <details key={title} className="dsec" open={i === 0}>
+          <summary>
+            <h4>{title}</h4>
+            <Chevron />
+          </summary>
+          <div className="dbody">{body}</div>
+        </details>
+      ))}
+    </div>
+  );
+}
+
+/** The application's organisations: one row each, each expands to its offer and status history. */
+function AppOrgs({ app }: { app: Application }) {
   const { st } = useLookups();
   const detail = useAppDetail(app);
   const [open, setOpen] = useState<Set<number>>(new Set());
   const orgs: AppOrg[] = detail.data?.Orgs ?? app.Orgs;
   return (
-    <tr className="exp">
-      <td colSpan={span}>
-        <div className="orgs-exp">
-          {orgs.map((o) => {
-            const op = open.has(o.ID);
-            return (
-              <div key={o.ID} className={`oe ${op ? 'open' : ''}`}>
-                <div className="oe-top">
-                  <OrgStatus o={o} st={st} />
-                  <button type="button" className="ib tg" title="შეთავაზება" aria-expanded={op} onClick={() => setOpen((s) => toggleIn(s, o.ID))}>
-                    <Chevron />
-                  </button>
-                </div>
-                {op && <OfferDetail app={detail.data ?? app} o={o} st={st} />}
-              </div>
-            );
-          })}
-        </div>
-      </td>
-    </tr>
+    <div className="orgs-exp">
+      {orgs.map((o) => {
+        const op = open.has(o.ID);
+        return (
+          <div key={o.ID} className={`oe ${op ? 'open' : ''}`}>
+            <div className="oe-top">
+              <OrgStatus o={o} st={st} />
+              <button type="button" className="ib tg" title="შეთავაზება" aria-expanded={op} onClick={() => setOpen((s) => toggleIn(s, o.ID))}>
+                <Chevron />
+              </button>
+            </div>
+            {op && <OfferDetail app={detail.data ?? app} o={o} st={st} />}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

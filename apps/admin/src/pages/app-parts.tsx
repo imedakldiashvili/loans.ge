@@ -73,7 +73,7 @@ export function useLookups() {
   const districts = useAll<{ ID: number; CityID: number; NameKa: string }>('district', { Sort: [{ Field: 'Sort', Dir: 'asc' }] }).data ?? [];
   const st = (k: string) => statuses.find((s) => s.Key === k);
   const place = (a: Pick<Application, 'CityID' | 'DistrictID' | 'Village'>) =>
-    [cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((d) => d.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(' · ') || '—';
+    [cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((d) => d.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(' - ') || '—';
   return { statuses, cities, districts, st, place };
 }
 
@@ -320,7 +320,13 @@ export function StatusLog({ o, st }: { o: AppOrg; st: (k: string) => StatusRow |
 
 /** One organisation's offer(s) in the compare-table form (prototype cmpTable). */
 export function OfferTable({ app, o, st, opts = {} }: { app: Application; o: AppOrg; st: (k: string) => StatusRow | undefined; opts?: { head?: boolean; status?: boolean } }) {
-  const cols = (o.Offers.length ? o.Offers : [null]).map((t) => ({ t, c: t ? calcOffer({ amount: t.Amount, months: t.Months, rate: t.Rate, fee: t.Fee, insMonth: t.InsMonth }) : null }));
+  // the customer answered (an offer chosen): the chosen columns first, a line, then the ones not chosen — the numbers keep the sending order
+  const answered = ['accepted', 'done'].includes(o.Status) && o.Offers.some((t) => t.ChosenOn);
+  const cols = (o.Offers.length ? o.Offers : [null])
+    .map((t, n) => ({ t, n, c: t ? calcOffer({ amount: t.Amount, months: t.Months, rate: t.Rate, fee: t.Fee, insMonth: t.InsMonth }) : null }))
+    .sort((a, b) => (answered ? Number(!a.t?.ChosenOn) - Number(!b.t?.ChosenOn) : 0));
+  const sepAt = answered ? cols.findIndex((x) => !x.t?.ChosenOn) : -1;
+  const sep = (i: number) => (i === sepAt ? 'of-sep' : undefined);
   type Col = (typeof cols)[number];
   const row = (label: string, get: (x: Col) => number | null | undefined, f: (v: number) => string, best?: 'min' | 'max', cls = '') => {
     const vals = cols.map(get);
@@ -331,7 +337,7 @@ export function OfferTable({ app, o, st, opts = {} }: { app: Application; o: App
       <tr className={cls}>
         <td>{label}</td>
         {vals.map((v, i) => (
-          <td key={i} className={bestV !== null && v === bestV && !allSame ? 'best' : ''}>
+          <td key={i} className={[bestV !== null && v === bestV && !allSame ? 'best' : '', sep(i) ?? ''].join(' ').trim()}>
             {v === null || v === undefined ? '—' : f(v)}
           </td>
         ))}
@@ -350,7 +356,7 @@ export function OfferTable({ app, o, st, opts = {} }: { app: Application; o: App
                 {app.ProductType.NameKa} · {money(app.Amount, app.Currency)}
               </th>
               {cols.map((x, i) => (
-                <th key={i}>
+                <th key={i} className={sep(i)}>
                   <OrgMark org={o.Organization} cls="cm" />
                   <span className="cmp-on">{o.Organization.NameKa}</span>
                   {/* several offers: each one's number, coloured by its status (unchosen offer of an accepted record — grey) */}
@@ -360,10 +366,11 @@ export function OfferTable({ app, o, st, opts = {} }: { app: Application; o: App
                       style={{ background: ['accepted', 'done'].includes(o.Status) && !x.t.ChosenOn ? 'var(--grey-status)' : statusColor(s, o.Status) }}
                       title={['accepted', 'done'].includes(o.Status) && !x.t.ChosenOn ? 'მომხმარებელმა არ აირჩია' : s?.PartnerLabel}
                     >
-                      {i + 1}
+                      {x.n + 1}
                     </span>
                   )}
                   {x.t?.ChosenOn && <small className="chosen">✓ მომხმარებელმა აირჩია</small>}
+                  {x.t && !x.t.ChosenOn && ['accepted', 'done'].includes(o.Status) && <small className="not-chosen">✕ მომხმარებელმა არ აირჩია</small>}
                 </th>
               ))}
             </tr>
@@ -373,9 +380,9 @@ export function OfferTable({ app, o, st, opts = {} }: { app: Application; o: App
           {opts.status && (
             <tr className="r-st">
               <td>სტატუსი</td>
-              {cols.map((_, i) => (
-                <td key={i}>
-                  <span className={`st ${o.Status}`}>{s?.PartnerLabel ?? o.Status}</span>
+              {cols.map((x, i) => (
+                <td key={i} className={sep(i)}>
+                  {answered && !x.t?.ChosenOn ? <span className="st not-chosen">არ აირჩია</span> : <span className={`st ${o.Status}`}>{s?.PartnerLabel ?? o.Status}</span>}
                 </td>
               ))}
             </tr>
