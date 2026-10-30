@@ -308,7 +308,7 @@ type Act = Detail['Next'][number];
 function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; onToggle: () => void; st: (k: string) => StatusRow | undefined; onChanged: () => void }) {
   const s = st(r.Status);
   const a = r.Application;
-  const { cities } = useRefs();
+  const { cities, districts } = useRefs();
   const { me } = useSession();
   // back office sees everyone's records — with who took them
   const taker = me?.Profile?.Role === 'back' && r.AssignedTo ? (r.AssignedTo.ID === me.Profile.ID ? 'შენ' : r.AssignedTo.DisplayName) : null;
@@ -368,9 +368,8 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
             {applicantName(r)}
             {taker && <span className="taker" title="აიღო"> · 👤 {taker}</span>}
           </small>
-          <small>
-            {cities.find((c) => c.ID === a.CityID)?.NameKa ?? '—'} · {fmtDate(a.CreatedOn)}
-          </small>
+          {/* the city and, when there is one, the district (or village) */}
+          <small>{[cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((x) => x.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(', ') || '—'}</small>
         </span>
         <span className="right">
           <span className="amt">{money(a.Amount, a.Currency)}</span>
@@ -380,6 +379,8 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
               {s?.ChipLabel ?? r.Status}
             </span>
           </span>
+          {/* the date — on the right, under the status */}
+          <small className="r-date">{fmtDate(a.CreatedOn)}</small>
         </span>
         <button type="button" className="ib tg" aria-label="ჩამოშლა" aria-expanded={open} onClick={onToggle}>
           <Chevron />
