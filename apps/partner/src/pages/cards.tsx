@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { crud } from '../api';
 import { Chevron, curSym, EditIcon, Switch, usePaged, useToast } from '../ui/ui';
+import { useRefs } from '../session';
 import { CardForm, CardInfo, CopyIcon, DelIcon, errText, removeCard, useProducts } from './products';
 
 // Product cards (back office): every card of the organisation's products in one list. A card = an offer — its terms by
@@ -120,6 +121,7 @@ export function CardFormPage() {
   const qc = useQueryClient();
   const q = useProducts();
   const products = q.data ?? [];
+  const { fields, offerTypes } = useRefs();
   const isNew = id === 'new';
   const all = products.flatMap((p) => p.Cards.map((k) => ({ p, k })));
   const own = isNew ? null : all.find((x) => x.k.ID === Number(id));
@@ -166,7 +168,8 @@ export function CardFormPage() {
     <div className="main">
       {head(isNew ? (copy ? 'ახალი ბარათი (ასლი)' : 'ახალი ბარათი') : 'რედაქტირება', true)}
       <CardForm
-        key={`${p.ID}|${c}|${id}`}
+        // the form takes its starting values once: built again when the type's fields / the offer types arrive (a page opened directly)
+        key={`${p.ID}|${c}|${id}|${fields.filter((f) => f.ProductTypeID === p.ProductTypeID).length}|${offerTypes.length}`}
         p={p}
         cur={c}
         k={own?.k ?? null}

@@ -388,18 +388,6 @@ function ProductForm({ id, onBack }: { id: number; onBack: () => void }) {
                             <div key={k.ID} className="crow">
                               <CardInfo p={p} k={k} />
                               <span className="racts p">
-                                <Switch
-                                  on={k.IsEnable}
-                                  onChange={async (v) => {
-                                    try {
-                                      await crud('partner', 'card').enable(k, v);
-                                      toast(v ? 'შეთავაზების ტიპი ჩაირთო' : 'შეთავაზების ტიპი გამოირთო');
-                                      refresh();
-                                    } catch (e) {
-                                      toast(errText(e));
-                                    }
-                                  }}
-                                />
                                 <button type="button" className="ib edit" title="რედაქტირება" aria-label="რედაქტირება" onClick={() => nav(`/cards/${k.ID}`, { state: { from: `/products/${id}` } })}>
                                   <EditIcon />
                                 </button>
@@ -442,8 +430,8 @@ export function CardForm({ p, cur, k, copy, head, onSaved }: { p: Product; cur: 
   // a copy starts from another card's type and values (a new card all the same)
   const src = k ?? copy ?? null;
   const [ot, setOt] = useState<number>(src?.OfferTypeID ?? offerTypes[0]?.ID ?? 0);
-  const [vals, setVals] = useState<Record<string, Val>>(() => Object.fromEntries(fs.map((f) => [f.Key, src ? src.Values[pk(f.Key)] ?? null : f.DefaultValue])));
-  const [active, setActive] = useState(k?.IsEnable ?? true);
+  // a value the card lacks = the field's default (as its summary shows)
+  const [vals, setVals] = useState<Record<string, Val>>(() => Object.fromEntries(fs.map((f) => [f.Key, src ? src.Values[pk(f.Key)] ?? f.DefaultValue : f.DefaultValue])));
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -458,7 +446,14 @@ export function CardForm({ p, cur, k, copy, head, onSaved }: { p: Product; cur: 
           ))}
         </select>
       );
-    if (f.Kind === 'bool') return <Switch on={!!v} onChange={set} />;
+    // yes / no: a checkbox (no switches in the form — on / off is on the list rows)
+    if (f.Kind === 'bool')
+      return (
+        <label className="cb">
+          <input type="checkbox" checked={!!v} onChange={(e) => set(e.target.checked)} />
+          <i />
+        </label>
+      );
     if (f.Kind === 'pctMin') {
       // two inputs on one line: the percentage, then "მინ." the amount in the card's currency
       const o: PctMin = v && typeof v === 'object' ? (v as PctMin) : { Pct: null, Min: null };
@@ -538,10 +533,8 @@ export function CardForm({ p, cur, k, copy, head, onSaved }: { p: Product; cur: 
     try {
       const body = { ProductID: p.ID, OfferTypeID: ot, Currency: cur, Values: Object.fromEntries(Object.entries(vals).map(([key, v]) => [pk(key), v])) };
       const api = crud('partner', 'card');
-      if (k) {
-        await api.edit(k, body);
-        if (active !== k.IsEnable) await api.enable(k, active);
-      } else await api.add(body);
+      if (k) await api.edit(k, body);
+      else await api.add(body);
       toast(k ? 'შეთავაზება შეინახა' : 'შეთავაზება დაემატა');
       onSaved();
     } catch (e) {
@@ -575,13 +568,6 @@ export function CardForm({ p, cur, k, copy, head, onSaved }: { p: Product; cur: 
           </div>
         </div>
         {rows}
-        {k && (
-          <div className="fld">
-            <label className="chk">
-              <Switch on={active} onChange={setActive} /> აქტიური
-            </label>
-          </div>
-        )}
         <ErrorLine error={error} />
       </form>
     </div>
