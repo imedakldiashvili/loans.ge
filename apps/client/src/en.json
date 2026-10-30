@@ -206,7 +206,7 @@
  "განაცხადზე შეთავაზება დასრულდა": "Offer on application completed",
  "განაცხადზე შეთავაზება გაუქმებულია": "Offer on application cancelled",
  "შედარება": "Compare",
- "შეთავაზების შედარება": "Compare offers",
+ "შეთავაზების არჩევა": "Choose an offer",
  "დასადასტურებელი": "Pending",
  "დადასტურებული": "Accepted",
  "უარყოფილი": "Declined",
@@ -319,5 +319,6 @@
  "მონიშნე მიმდინარე, დასრულებული ან შეწყვეტილი": "Tick active, completed or stopped",
  "შეწყვეტილი განაცხადები": "Stopped applications",
  "შეწყვეტილი": "Stopped",
- "სულ გაეგზავნა": "Sent to in all"
+ "სულ გაეგზავნა": "Sent to in all",
+ "დეტალური ნახვა": "Details"
 }

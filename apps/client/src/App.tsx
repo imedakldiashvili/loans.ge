@@ -5,7 +5,7 @@ import { Bell } from './bell';
 import { n, t, useLang } from './i18n';
 import { useLiveEvents } from './live';
 import logo from './logo.png';
-import { Cabinet } from './pages/cabinet';
+import { AppView, Cabinet } from './pages/cabinet';
 import { Compare } from './pages/compare';
 import { AboutPage, Home, PartnersPage, QuickForm, Start, TermsPage } from './pages/home';
 import { Sent, Wizard } from './pages/wizard';
@@ -17,6 +17,7 @@ import { Modal } from './ui';
 //   /apply                the application wizard (started from the home page)
 //   /cabinet              current applications · /cabinet/closed · /cabinet/profile
 //   /cabinet/compare/{id}/{uid}   offers side by side
+//   /cabinet/view/{id}/{uid}      the application in detail
 //   /partners · /terms · /about
 // The body class (in-wizard / in-cabinet / in-partners) drives the prototype CSS.
 
@@ -53,6 +54,12 @@ function RequireLogin({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, me]);
   return me ? <>{children}</> : null;
+}
+
+function ViewPage() {
+  const { id, uid } = useParams();
+  const nav = useNavigate();
+  return <AppView id={Number(id)} uid={uid ?? ''} onBack={() => nav('/cabinet')} />;
 }
 
 function ComparePage() {
@@ -174,6 +181,7 @@ export function App() {
         <Route path="/cabinet/closed" element={<RequireLogin><Cabinet view="done" onNew={() => setNewApp(true)} /></RequireLogin>} />
         <Route path="/cabinet/profile" element={<RequireLogin><Cabinet view="profile" onNew={() => setNewApp(true)} /></RequireLogin>} />
         <Route path="/cabinet/compare/:id/:uid" element={<RequireLogin><ComparePage /></RequireLogin>} />
+        <Route path="/cabinet/view/:id/:uid" element={<RequireLogin><ViewPage /></RequireLogin>} />
         <Route path="/partners" element={<PartnersPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/about" element={<AboutPage />} />

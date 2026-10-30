@@ -281,11 +281,11 @@ function Countdown({ o }: { o: AppOrg }) {
 
 function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onCompare: () => void }) {
   const qc = useQueryClient();
+  const nav = useNavigate();
   const s = useStatus();
   const { cities, districts } = useRefs();
   const [open, setOpen] = useState(expanded);
   const [closed, setClosed] = useState<Set<string>>(new Set(GROUP_ORDER.filter((k) => !OPEN_GROUPS.includes(k))));
-  const [view, setView] = useState(false);
   const [offer, setOffer] = useState<AppOrg | null>(null);
   const [cancel, setCancel] = useState(false);
   const refresh = () => qc.invalidateQueries({ queryKey: ['apps'] });
@@ -348,14 +348,11 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           </span>
         </div>
         <div className="cab-acts">
-          <button type="button" className="cab-ico cab-view" aria-label={t('ნახვა')} title={t('ნახვა')} onClick={() => setView(true)}>
-            {I.eye}
-          </button>
-          {/* the offers that came in — side by side; on the row, before the expand */}
+          {/* choosing among the offers that came in (side by side); on the row */}
           {a.Orgs.some((o) => o.Status === 'offer') && (
-            <button type="button" className="grp-compare" title={t('შეთავაზების შედარება')} onClick={onCompare}>
+            <button type="button" className="grp-compare" title={t('შეთავაზების არჩევა')} onClick={onCompare}>
               {I.compare}
-              <span>{t('შეთავაზების შედარება')}</span>
+              <span>{t('შეთავაზების არჩევა')}</span>
             </button>
           )}
         </div>
@@ -430,18 +427,15 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               </div>
             );
           })}
-          {/* in progress: stopping the application — at the bottom of the expanded part, in the middle */}
-          {!isClosed && (
-            <div className="cab-det-foot">
-              <button type="button" className="btn btn-ghost cab-end" onClick={() => setCancel(true)}>
-                {I.timer}
-                {t('განაცხადის შეწყვეტა')}
-              </button>
-            </div>
-          )}
+          {/* the detailed view — its own page (stopping the application is at its bottom) */}
+          <div className="cab-det-foot">
+            <button type="button" className="btn btn-ghost cab-end" onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
+              {I.eye}
+              {t('დეტალური ნახვა')}
+            </button>
+          </div>
         </div>
       )}
-      {view && <ViewModal a={a} onClose={() => setView(false)} />}
       {offer && <OfferModal o={offer} onClose={() => setOffer(null)} />}
       {cancel && (
         <CancelModal
@@ -494,8 +488,54 @@ function CancelModal({ a, onClose, onDone }: { a: App; onClose: () => void; onDo
   );
 }
 
-/** Application as sent — read only (prototype viewModal). */
-function ViewModal({ a, onClose }: { a: App; onClose: () => void }) {
+/** /cabinet/view/{id}/{uid}: the application as sent — read only, on its own page; at the bottom (in progress) stopping it. */
+export function AppView({ id, uid, onBack }: { id: number; uid: string; onBack: () => void }) {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ['app', id], queryFn: () => api<App>('GET', `/client/application/detail/${id}/${uid}`) });
+  const [cancel, setCancel] = useState(false);
+  if (!q.data) return <section className="cabinet app-view"><div className="wrap"><p className="cab-group-empty">{t(q.isError ? 'შეცდომა' : 'იტვირთება…')}</p></div></section>;
+  const a = q.data;
+  const isClosed = a.Orgs.every((o) => !o.Next.length);
+  return (
+    <section className="cabinet app-view">
+      <div className="wrap">
+        <div className="cmp-head">
+          <button type="button" className="btn btn-ghost" onClick={onBack}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+              <path d="M15 6l-6 6 6 6" />
+            </svg>
+            {t('უკან')}
+          </button>
+        </div>
+        <div className="view-page">
+          <AppDetails a={a} />
+          {!isClosed && (
+            <div className="cab-det-foot">
+              <button type="button" className="btn btn-ghost cab-end" onClick={() => setCancel(true)}>
+                {I.timer}
+                {t('განაცხადის შეწყვეტა')}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      {cancel && (
+        <CancelModal
+          a={a}
+          onClose={() => setCancel(false)}
+          onDone={() => {
+            setCancel(false);
+            void qc.invalidateQueries({ queryKey: ['apps'] });
+            onBack();
+          }}
+        />
+      )}
+    </section>
+  );
+}
+
+/** The application's data (prototype viewModal). */
+function AppDetails({ a }: { a: App }) {
   const { cities, districts, creditHistory, sectors, incomeSources, organizations } = useRefs();
   const s = useStatus();
   const total = (a.Incomes ?? []).reduce((t, i) => t + (+i.Amount || 0), 0);
@@ -511,11 +551,11 @@ function ViewModal({ a, onClose }: { a: App; onClose: () => void }) {
     </div>
   );
   return (
-    <Modal onClose={onClose} className="view-box" labelledBy="viewTitle">
-      <h3 id="viewTitle">
+    <>
+      <h3 className="view-title">
         {n(a.ProductType)} · {money(a.Amount, a.Currency)}
       </h3>
-      <p>
+      <p className="view-sub">
         #{a.ID} · {t('გაგზავნილია')} {fmtDate(a.CreatedOn)}
       </p>
       <div className="view-body">
@@ -536,7 +576,7 @@ function ViewModal({ a, onClose }: { a: App; onClose: () => void }) {
           ['მობილური ნომერი', a.Phone ? fmtPhone(a.Phone) : ''],
         ])}
       </div>
-    </Modal>
+    </>
   );
 }
 
