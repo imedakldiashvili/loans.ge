@@ -98,6 +98,10 @@ ok(det3.Orgs.every((o) => o.Status === (o.Offers.length ? 'declined' : 'withdraw
 ok((await call('PUT', `/client/application/cancel/${app.ID}/${app.UID}`)).status === 409, 'closing again → 409');
 const counts = (await call('POST', '/client/application/find/1/10', { Filter: { State: 'done' } })).json.Data;
 ok(counts.Counts.Active === 1 && counts.Counts.Done === 1 && counts.Items[0].ID === app.ID, 'closed application moves to "done"', counts.Counts);
+// the period: applications sent since then — the list and the counts follow it
+const later = (await call('POST', '/client/application/find/1/10', { Filter: { State: 'active', From: new Date(Date.now() + 864e5).toISOString() } })).json.Data;
+const since = (await call('POST', '/client/application/find/1/10', { Filter: { State: 'active', From: new Date(Date.now() - 864e5).toISOString() } })).json.Data;
+ok(later.TotalCount === 0 && later.Counts.Active === 0 && later.Counts.Done === 0 && since.TotalCount === counts.Counts.Active, 'period: only the applications sent since then (counts too)');
 
 // ── the customer's answer: offers marked "choose" / "cancel" change together on "send"; unmarked ones stay
 // an organisation shows / takes only the amounts it lends for the product

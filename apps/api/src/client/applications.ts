@@ -48,7 +48,8 @@ const addSchema = z.object({
   otp: otpRef.nullable().default(null),
 });
 
-const findBody = z.preprocess((v) => v ?? {}, z.object({ filter: z.preprocess((v) => v ?? {}, z.object({ state: z.enum(['active', 'done']).default('active') })) }));
+// state: active / done; from: the period (applications sent since then — the counts follow it too)
+const findBody = z.preprocess((v) => v ?? {}, z.object({ filter: z.preprocess((v) => v ?? {}, z.object({ state: z.enum(['active', 'done']).default('active'), from: z.coerce.date().optional() })) }));
 const changeBody = z.object({ status: z.string().min(1) });
 // OfferIDs — the chosen offers (an organisation may have sent several); AcceptIDs — organisations (their only offer is chosen);
 // DeclineIDs — organisations to cancel
@@ -175,7 +176,7 @@ export class ClientApplicationService {
     if (pageNumber < 1 || pageSize < 1 || pageSize > PAGE_MAX) throw validation([{ field: 'PageSize', message: `1-დან ${PAGE_MAX}-მდე` }]);
     const { filter } = parse(findBody, body);
     const progress = await this.progressKeys();
-    const base: Prisma.ApplicationWhereInput = { userId: me(), isDeleted: false };
+    const base: Prisma.ApplicationWhereInput = { userId: me(), isDeleted: false, ...(filter.from ? { createdOn: { gte: filter.from } } : {}) };
     // active while at least one organisation is still in progress
     const active: Prisma.ApplicationWhereInput = { ...base, orgs: { some: { isDeleted: false, status: { in: progress } } } };
     const done: Prisma.ApplicationWhereInput = { ...base, NOT: { orgs: { some: { isDeleted: false, status: { in: progress } } } } };

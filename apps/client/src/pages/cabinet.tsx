@@ -92,6 +92,7 @@ export const changeOrg = (o: AppOrg, status: string) => api<Ref>('PUT', `/client
 
 type CabView = 'active' | 'done' | 'profile';
 /** The view comes from the address: /cabinet, /cabinet/closed, /cabinet/profile. */
+const PERIODS = { '24h': 1, '7d': 7, '30d': 30 } as const;
 const PATHS: Record<CabView, string> = { active: '/cabinet', done: '/cabinet/closed', profile: '/cabinet/profile' };
 
 export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
@@ -104,9 +105,13 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
   }, [view]);
   const state = view === 'profile' ? 'active' : view;
   const size = state === 'done' ? PAGE_SIZE : 50;
+  // the period (sent since): all / the last day / week / month — the counts follow it
+  const [period, setPeriod] = useState<keyof typeof PERIODS | ''>('');
+  useEffect(() => setPage(1), [period]);
+  const from = period ? new Date(Date.now() - PERIODS[period] * 864e5).toISOString() : undefined;
   const q = useQuery({
-    queryKey: ['apps', state, page],
-    queryFn: () => api<Found>('POST', `/client/application/find/${page}/${size}`, { Filter: { State: state } }),
+    queryKey: ['apps', state, page, period],
+    queryFn: () => api<Found>('POST', `/client/application/find/${page}/${size}`, { Filter: { State: state, ...(from ? { From: from } : {}) } }),
   });
   const go = (v: CabView) => nav(PATHS[v]);
   const onCompare = (a: App) => nav(`/cabinet/compare/${a.ID}/${a.UID}`);
@@ -144,10 +149,12 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
                 <i />
                 {t('დასრულებული')} <span className="rc">{counts ? `(${counts.Done})` : ''}</span>
               </label>
-              <button type="button" className="btn btn-green cab-new-btn" id="cabNew" title={t('ახალი განაცხადი')} aria-label={t('ახალი განაცხადი')} onClick={onNew}>
-                <span aria-hidden="true">+</span>
-                <span className="txt">{t('ახალი განაცხადი')}</span>
-              </button>
+              <select className="cab-period" aria-label={t('აირჩიე პერიოდი')} value={period} onChange={(e) => setPeriod(e.target.value as typeof period)}>
+                <option value="">{t('აირჩიე პერიოდი')}</option>
+                <option value="24h">{t('ბოლო 24 საათი')}</option>
+                <option value="7d">{t('ბოლო კვირა')}</option>
+                <option value="30d">{t('ბოლო თვე')}</option>
+              </select>
             </nav>
           )}
         </aside>
@@ -161,6 +168,11 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
                 <span className="cab-count">
                   <b>{q.data?.TotalCount ?? 0}</b>
                 </span>
+                {/* a new application — above the list, on the right */}
+                <button type="button" className="btn btn-green cab-new-btn" id="cabNew" title={t('ახალი განაცხადი')} aria-label={t('ახალი განაცხადი')} onClick={onNew}>
+                  <span aria-hidden="true">+</span>
+                  <span className="txt">{t('ახალი განაცხადი')}</span>
+                </button>
               </div>
               <div className="cab-cards">
                 {q.data?.Items.map((a) => <AppCard key={a.ID} a={a} expanded={view === 'active'} onCompare={() => onCompare(a)} />)}
@@ -312,11 +324,12 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               {I.timer}
             </button>
           )}
+          {/* expand: the last one on the right */}
+          <button type="button" className="cab-ico cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
+            <Chevron />
+          </button>
         </div>
       </div>
-      <button type="button" className="cab-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
-        <Chevron />
-      </button>
       {open && (
         <div className="cab-det">
           {GROUP_ORDER.map((st) => {
