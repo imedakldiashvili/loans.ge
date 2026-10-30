@@ -82,6 +82,8 @@ await prisma.applicationOrg.updateMany({ where: { id: { in: bankA.map((x) => x.i
 const outside = bankA.find((x) => !cities.some((c) => c.id === x.application.cityId));
 forget('partner');
 await login('partner', 'sales2@7.ge');
+const meScope = (await call('GET', '/partner/auth/me')).json.Data.Profile.ScopeCities;
+ok(meScope.length === 2 && cities.every((c) => meScope.includes(Number(c.id))), 'me: the cities of a limited sales manager (for "my data")', meScope);
 let scoped = (await find('application')).json.Data;
 ok(scoped.TotalCount === 2 && scoped.Items.every((x) => cities.some((c) => Number(c.id) === x.Application.CityID)), 'incoming: only their cities and products (2 of 4)', scoped.TotalCount);
 // their own record stays visible after its city left the scope

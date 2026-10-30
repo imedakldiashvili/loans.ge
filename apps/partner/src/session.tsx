@@ -10,6 +10,8 @@ export interface Profile {
   Role: 'sales' | 'back';
   DisplayName: string | null;
   Organization: { ID: number; UID: string; NameKa: string; NameEn: string; Color: string | null; LogoPath: string | null };
+  /** cities a sales manager is limited to; empty = all */
+  ScopeCities?: number[];
 }
 export interface Me {
   User: { ID: number; UID: string; Email: string | null; Phone: string | null };

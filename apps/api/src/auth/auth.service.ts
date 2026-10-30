@@ -141,7 +141,11 @@ export class AuthService {
   async me(gateway: AuthGateway, userId: bigint, userProfileId: bigint) {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { id: true, uid: true, email: true, phone: true, userName: true, isVerified: true, lastLoginOn: true } });
     const profiles = await this.eligibleProfiles(userId, gateway);
-    const view = (p: (typeof profiles)[number]) => ({ id: p.id, uid: p.uid, profileType: p.profileType.code, role: p.role, displayName: p.displayName, organization: p.organization });
+    // scopeCities: the cities a sales manager is limited to (empty = all; back office and others always all)
+    const view = (p: (typeof profiles)[number]) => ({
+      id: p.id, uid: p.uid, profileType: p.profileType.code, role: p.role, displayName: p.displayName, organization: p.organization,
+      scopeCities: p.role === 'sales' ? p.scopeCities : [],
+    });
     const current = profiles.find((p) => p.id === userProfileId);
     return { user, profile: current ? view(current) : null, profiles: profiles.map(view) };
   }

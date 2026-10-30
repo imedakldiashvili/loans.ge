@@ -1,8 +1,9 @@
-import { ROLES, useSession } from '../session';
+import { ROLES, useRefs, useSession } from '../session';
 
 /** My data: the signed-in user's own details, the organisation (switch, when there are several) and the theme — opened from the user at the bottom of the menu. */
 export function MePage({ dark, setDark }: { dark: boolean; setDark: (d: boolean) => void }) {
   const { me, switchTo } = useSession();
+  const { cities } = useRefs();
   const p = me?.Profile;
   const u = me?.User;
   if (!p || !u) return null;
@@ -18,6 +19,9 @@ export function MePage({ dark, setDark }: { dark: boolean; setDark: (d: boolean)
           <b>{p.DisplayName || '—'}</b>
           <span>როლი</span>
           <b>{ROLES[p.Role]}</b>
+          {/* the cities this account works in — a sales manager may be limited to some */}
+          <span>ლოკაცია</span>
+          <b>{p.ScopeCities?.length ? p.ScopeCities.map((id) => cities.find((c) => c.ID === id)?.NameKa).filter(Boolean).join(', ') : 'ყველა'}</b>
           <span>ელ. ფოსტა</span>
           <b>{u.Email || '—'}</b>
           <span>მობილური</span>
