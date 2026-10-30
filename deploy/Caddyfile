@@ -15,19 +15,25 @@
 
 {$DOMAIN} {
 	@api path /client/* /public/* /fs/* /docs /docs/*
-	reverse_proxy @api api:4000
+	handle @api {
+		reverse_proxy api:4000
+	}
 	import app client
 }
 
 admin.{$DOMAIN} {
 	@api path /admin/* /public/* /fs/*
-	reverse_proxy @api api:4000
+	handle @api {
+		reverse_proxy api:4000
+	}
 	import app admin
 }
 
 partner.{$DOMAIN} {
 	@api path /partner/* /public/* /fs/*
-	reverse_proxy @api api:4000
+	handle @api {
+		reverse_proxy api:4000
+	}
 	import app partner
 }
 
@@ -36,6 +42,8 @@ otp.{$DOMAIN} {
 		{$OTP_USER} {$OTP_PASSWORD_HASH}
 	}
 	@api path /dev/*
-	reverse_proxy @api api:4000
+	handle @api {
+		reverse_proxy api:4000
+	}
 	import app otp
 }
