@@ -9,7 +9,7 @@ import { Chevron, curSym, EditIcon, ErrorLine, fmt, Modal, Switch, useToast } fr
 // Product = product type (admin list) + currencies; offer types ("cards") per currency, values follow the type's field schema.
 
 type Val = number | string | boolean | null;
-interface CardRow {
+export interface CardRow {
   ID: number;
   UID: string;
   IsEnable: boolean;
@@ -31,7 +31,7 @@ export interface Product {
 
 /** Values keys come back PascalCased by the API (minAmt → MinAmt). */
 const pk = (k: string) => k.charAt(0).toUpperCase() + k.slice(1);
-const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((x) => `${x.Field}: ${x.Message}`)].join(' - ') : 'შეცდომა');
+export const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((x) => `${x.Field}: ${x.Message}`)].join(' - ') : 'შეცდომა');
 const cardsLabel = (n: number) => `${n} შეთავაზება`;
 
 export const useProducts = () => useQuery({ queryKey: ['products'], queryFn: () => findAll<Product>('partner', 'product') });
@@ -138,7 +138,7 @@ export function ProductsPage() {
 }
 
 /** Card name + short summary from the schema (prototype cardSummary). */
-function CardInfo({ p, k }: { p: Product; k: CardRow }) {
+export function CardInfo({ p, k }: { p: Product; k: CardRow }) {
   const { fields, offerTypes } = useRefs();
   const fs = fields.filter((f) => f.ProductTypeID === p.ProductTypeID);
   const has = (key: string) => fs.some((f) => f.Key === key);
@@ -381,7 +381,7 @@ const PAIRS: [string, string, string][] = [
 ];
 
 /** Offer type dialog (#dlg2): offer type + fields from the product type schema; min/max and pairs on one line. */
-function CardDialog({ p, cur, k, onClose, onSaved }: { p: Product; cur: string; k: CardRow | null; onClose: () => void; onSaved: () => void }) {
+export function CardDialog({ p, cur, k, onClose, onSaved }: { p: Product; cur: string; k: CardRow | null; onClose: () => void; onSaved: () => void }) {
   const { fields, offerTypes } = useRefs();
   const toast = useToast();
   const fs = fields.filter((f) => f.ProductTypeID === p.ProductTypeID);
