@@ -572,16 +572,20 @@ function ActionModal({ d, act, st, onClose, onDone }: { d: Detail; act: Act; st:
       setBusy(false);
     }
   };
-  // one line: the status it is in → the status it moves to
+  // the status it is in » the status it moves to — a line of its own under the title
   const h4 = (title: string) => (
-    <h4>
-      <span>{title}</span>
-      <span className="st-flow">
+    <>
+      <div className="st-flow">
         <span className={`st ${d.Status}`}>{st(d.Status)?.PartnerLabel}</span>
-        <span className="st-arrow" aria-label="→">→</span>
+        <svg className="st-arrow" viewBox="0 0 24 24" aria-label="→">
+          <path d="M6 17l5-5-5-5M13 17l5-5-5-5" />
+        </svg>
         <span className={`st ${act.Status}`}>{st(act.Status)?.PartnerLabel ?? act.Status}</span>
-      </span>
-    </h4>
+      </div>
+      <h4>
+        <span>{title}</span>
+      </h4>
+    </>
   );
 
   return (
