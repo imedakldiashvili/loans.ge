@@ -50,6 +50,19 @@ interface Delivery extends Ref {
 }
 
 const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' - ') : 'შეცდომა');
+/** Row action icons: a test ping (paper plane) and a new signing key (key with a refresh arrow). */
+const SendIcon = () => (
+  <svg viewBox="0 0 24 24">
+    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4z" />
+  </svg>
+);
+const RotateKeyIcon = () => (
+  <svg viewBox="0 0 24 24">
+    <circle cx="8" cy="15" r="4" />
+    <path d="M10.8 12.2L19 4M16 7l2 2M15 3h5v5" />
+  </svg>
+);
+
 const items = <T,>(path: string, body: object = {}) => api<Page<T>>('POST', path, body).then((p) => p.Items);
 
 // the three parts are tabs, each on its own address
@@ -278,15 +291,17 @@ function Hooks() {
               </span>
               <span className="racts p" style={{ flexWrap: 'wrap' }}>
                 <Switch on={h.IsEnable} onChange={(v) => run(() => api('PUT', `/partner/webhook/${v ? 'enable' : 'disable'}/${h.ID}/${h.UID}`), v ? 'webhook ჩაირთო' : 'webhook გამოირთო')} />
-                <button type="button" className="btn btn-ghost sm" onClick={() => run(() => api('POST', `/partner/webhook/test/${h.ID}/${h.UID}`), 'სატესტო ping გაიგზავნა')}>
-                  ტესტი
+                <button type="button" className="ib" title="ტესტი - სატესტო ping-ის გაგზავნა" aria-label="ტესტი" onClick={() => run(() => api('POST', `/partner/webhook/test/${h.ID}/${h.UID}`), 'სატესტო ping გაიგზავნა')}>
+                  <SendIcon />
                 </button>
                 <button type="button" className="ib edit" title="რედაქტირება" aria-label="რედაქტირება" onClick={() => setForm(h)}>
                   <EditIcon />
                 </button>
                 <button
                   type="button"
-                  className="btn btn-ghost sm"
+                  className="ib"
+                  title="გასაღების განახლება - ახალი ხელმოწერის გასაღები"
+                  aria-label="გასაღების განახლება"
                   onClick={async () => {
                     if (!confirm('ახალი ხელმოწერის გასაღები? ძველი მაშინვე შეწყვეტს მუშაობას.')) return;
                     try {
@@ -296,7 +311,7 @@ function Hooks() {
                     }
                   }}
                 >
-                  გასაღების განახლება
+                  <RotateKeyIcon />
                 </button>
                 <button type="button" className="ib del" title="წაშლა" aria-label="წაშლა" onClick={() => confirm('წავშალოთ webhook?') && run(() => api('DELETE', `/partner/webhook/delete/${h.ID}/${h.UID}`), 'webhook წაიშალა')}>
                   <DelIcon />
