@@ -121,9 +121,10 @@
   .ib.edit { color: var(--fg); } .ib.edit:hover { border-color: var(--green); color: var(--green); }
   .ib.del:hover { border-color: var(--red); color: var(--red); }
   .prow.pr4.crd { grid-template-columns: 40px minmax(0, 1fr) auto auto 40px; }   /* ბარათის რიგი: ჩართვა, ასლი, რედაქტირება, წაშლა */
+  .prow.crd .pinfo b.prod + b { font-weight: 500; font-size: 14px; }   /* ზემოთ პროდუქტი, ქვემოთ შეთავაზების ტიპი */
   .det.cards > .pinfo { display: grid; gap: 4px; } .det.cards > .pinfo small { color: var(--muted); font-size: 13px; } .det.cards > .pinfo small.extra { color: var(--fg); }
   .topbtn { justify-self: end; }
-  .top.pf { grid-template-columns: auto 1fr auto; } .top.pf h2 { justify-self: start; text-align: left; } .top.pf h2 small { font-size: 14px; font-weight: 400; }   /* ქვეგვერდებზე: ‹ უკან, მის შემდეგ სათაური, შენახვა მარჯვნივ */
+  .top.pf { grid-template-columns: auto 1fr auto; } .top.pf h2 { justify-self: start; text-align: left; } .top.pf h2 small { font-size: 14px; font-weight: 400; }   /* ქვეგვერდებზე: « უკან, მის შემდეგ სათაური, შენახვა მარჯვნივ */
   .f .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .f .fld { margin-bottom: 12px; } .f textarea { width: 100%; font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--fg); min-height: 64px; resize: vertical; }
   .f .chk { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
   @media (max-width: 640px) { .prow { grid-template-columns: 40px minmax(0, 1fr) 76px; } .prow .pmeta { grid-column: 2; justify-items: start; text-align: left; } .prow .racts.p { grid-column: 3; grid-row: 1; } .f .grid2 { grid-template-columns: 1fr; gap: 0; } }

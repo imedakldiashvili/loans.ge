@@ -62,9 +62,8 @@ export function CardsPage() {
                   <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5" />
                 </svg>
               </span>
-              <CardInfo p={p} k={k} part="brief" />
+              <CardInfo p={p} k={k} part="brief" withProduct />
               <span className="pmeta">
-                <b>{p.ProductType.NameKa}</b>
                 <small>
                   {k.Currency} {curSym(k.Currency)}
                   {!p.IsEnable && ' · პროდუქტი გამორთულია'}
@@ -138,11 +137,11 @@ export function CardFormPage() {
   };
 
   if (!isNew && !Number(id)) return <Navigate to="/cards" replace />;
-  // ‹ უკან, then the title, save on the right (it submits the card form)
+  // « უკან, then the title, save on the right (it submits the card form)
   const head = (sub: string, save = false) => (
     <div className="top pf">
       <button type="button" className="btn btn-ghost" onClick={back}>
-        ‹ უკან
+        « უკან
       </button>
       <h2>
         პროდუქტის ბარათები <small className="muted">- {sub}</small>

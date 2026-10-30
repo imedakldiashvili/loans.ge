@@ -57,7 +57,7 @@ export function IntegrationPage() {
       </div>
       <div className="card" style={{ padding: 16, marginBottom: 16 }}>
         <p style={{ margin: 0 }}>
-          ბანკის სისტემა იყენებს იმავე API-ს, რასაც ეს კაბინეტი: <code>/partner/…</code>, სათაურით <code>X-Api-Key</code>. ახალ განაცხადებსა და სტატუსის ცვლილებებს webhook-ით მიიღებს.
+          თქვენი სისტემა იყენებს იმავე API-ს, რასაც ეს კაბინეტი: <code>/partner/…</code>, სათაურით <code>X-Api-Key</code>. ახალ განაცხადებსა და სტატუსის ცვლილებებს webhook-ით მიიღებს.
           აღწერა და მაგალითები:{' '}
           <a href={API_DOCS} target="_blank" rel="noreferrer">
             API დოკუმენტაცია (Swagger)
@@ -186,7 +186,7 @@ function KeyForm({ onClose, onCreated }: { onClose: () => void; onCreated: (key:
       <div className="form f main-form">
         <div className="fld">
           <label htmlFor="kName">სახელი</label>
-          <input id="kName" maxLength={80} placeholder="მაგ. საბანკო სისტემა" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+          <input id="kName" maxLength={80} placeholder="მაგ. ძირითადი სისტემა" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
         </div>
         <div className="fld">
           <label>უფლებები</label>

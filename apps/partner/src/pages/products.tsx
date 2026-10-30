@@ -164,8 +164,9 @@ export function ProductsPage() {
 }
 
 /** Card name + short summary from the schema (prototype cardSummary).
- *  part: 'brief' — the type, then the amount · term · rate on one line (a row); 'rest' — the other terms (its expanded part). */
-export function CardInfo({ p, k, part }: { p: Product; k: CardRow; part?: 'brief' | 'rest' }) {
+ *  part: 'brief' — the type, then the amount · term · rate on one line (a row); 'rest' — the other terms (its expanded part).
+ *  withProduct — the product's name above the type (the cards list). */
+export function CardInfo({ p, k, part, withProduct }: { p: Product; k: CardRow; part?: 'brief' | 'rest'; withProduct?: boolean }) {
   const { fields, offerTypes } = useRefs();
   const fs = fields.filter((f) => f.ProductTypeID === p.ProductTypeID);
   const has = (key: string) => fs.some((f) => f.Key === key);
@@ -202,6 +203,7 @@ export function CardInfo({ p, k, part }: { p: Product; k: CardRow; part?: 'brief
   if (part === 'brief')
     return (
       <span className="pinfo">
+        {withProduct && <b className="prod">{p.ProductType.NameKa}</b>}
         {name}
         <small>{[l1, has('rate') && `${v('rate')}%`].filter(Boolean).join(' · ')}</small>
       </span>
@@ -292,7 +294,7 @@ function ProductForm({ id, onBack }: { id: number; onBack: () => void }) {
     <div className="main">
       <div className="top pf">
         <button type="button" className="btn btn-ghost" onClick={onBack}>
-          ‹ უკან
+          « უკან
         </button>
         <h2>
           პროდუქტები <small className="muted">- {p.ProductType.NameKa}</small>
