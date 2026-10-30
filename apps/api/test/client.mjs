@@ -104,6 +104,10 @@ const since = (await call('POST', '/client/application/find/1/10', { Filter: { S
 ok(later.TotalCount === 0 && later.Counts.Active === 0 && later.Counts.Done === 0 && since.TotalCount === counts.Counts.Active, 'period: only the applications sent since then (counts too)');
 const both = (await call('POST', '/client/application/find/1/10', { Filter: { State: 'all' } })).json.Data;
 ok(both.TotalCount === both.Counts.Active + both.Counts.Done, 'both ticked: active and done together');
+const split = (await call('POST', '/client/application/find/1/10', { Filter: { States: ['cancelled'] } })).json.Data;
+ok(split.Counts.Complete + split.Counts.Cancelled === split.Counts.Done && split.TotalCount === split.Counts.Cancelled, 'closed ones split: complete (a loan issued) / cancelled', split.Counts);
+const three = (await call('POST', '/client/application/find/1/10', { Filter: { States: ['active', 'complete', 'cancelled'] } })).json.Data;
+ok(three.TotalCount === three.Counts.Active + three.Counts.Done && (await call('POST', '/client/application/find/1/10', { Filter: { States: [] } })).json.Data.TotalCount === 0, 'checkboxes: all three = everything, none = nothing');
 
 // ── the customer's answer: offers marked "choose" / "cancel" change together on "send"; unmarked ones stay
 // an organisation shows / takes only the amounts it lends for the product

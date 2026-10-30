@@ -118,9 +118,9 @@
  "გასვლა": "Log out",
  "ჩემი განაცხადები": "My applications",
  "მიმდინარე": "Active",
- "დასრულებული": "Closed",
+ "დასრულებული": "Completed",
  "მიმდინარე განაცხადები": "Active applications",
- "დასრულებული განაცხადები": "Closed applications",
+ "დასრულებული განაცხადები": "Completed applications",
  "ჯერ არ არის": "Nothing here yet",
  "დემო": "demo",
  "პროფილი": "Profile",
@@ -316,5 +316,6 @@
  "ბოლო 24 საათი": "Last 24 hours",
  "ბოლო კვირა": "Last week",
  "ბოლო თვე": "Last month",
- "მონიშნე მიმდინარე ან დასრულებული": "Tick active or closed"
+ "მონიშნე მიმდინარე, დასრულებული ან გაუქმებული": "Tick active, completed or cancelled",
+ "გაუქმებული განაცხადები": "Cancelled applications"
 }

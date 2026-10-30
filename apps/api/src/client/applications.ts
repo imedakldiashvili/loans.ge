@@ -48,8 +48,13 @@ const addSchema = z.object({
   otp: otpRef.nullable().default(null),
 });
 
-// state: active / done / all (both ticked); from: the period (applications sent since then — the counts follow it too)
-const findBody = z.preprocess((v) => v ?? {}, z.object({ filter: z.preprocess((v) => v ?? {}, z.object({ state: z.enum(['active', 'done', 'all']).default('active'), from: z.coerce.date().optional() })) }));
+// states: any of active / complete (a loan issued somewhere) / cancelled (closed without one) — the cabinet's checkboxes;
+// state (older): active / done (complete + cancelled) / all. from: the period (applications sent since then — the counts follow it too)
+const findBody = z.preprocess((v) => v ?? {}, z.object({ filter: z.preprocess((v) => v ?? {}, z.object({
+  states: z.array(z.enum(['active', 'complete', 'cancelled'])).optional(),
+  state: z.enum(['active', 'done', 'all']).default('active'),
+  from: z.coerce.date().optional(),
+})) }));
 const changeBody = z.object({ status: z.string().min(1) });
 // OfferIDs — the chosen offers (an organisation may have sent several); AcceptIDs — organisations (their only offer is chosen);
 // DeclineIDs — organisations to cancel
@@ -180,17 +185,26 @@ export class ClientApplicationService {
     // active while at least one organisation is still in progress
     const active: Prisma.ApplicationWhereInput = { ...base, orgs: { some: { isDeleted: false, status: { in: progress } } } };
     const done: Prisma.ApplicationWhereInput = { ...base, NOT: { orgs: { some: { isDeleted: false, status: { in: progress } } } } };
-    const where = filter.state === 'active' ? active : filter.state === 'done' ? done : base;
-    const [items, totalCount, nActive, nDone] = await Promise.all([
+    // closed ones: complete — a loan was issued with at least one organisation; cancelled — none was
+    const completeKeys = (await this.prisma.status.findMany({ where: { isDeleted: false, category: 'complete' }, select: { key: true } })).map((x) => x.key);
+    const issued = { orgs: { some: { isDeleted: false, status: { in: completeKeys } } } };
+    const complete: Prisma.ApplicationWhereInput = { AND: [done, issued] };
+    const cancelled: Prisma.ApplicationWhereInput = { AND: [done, { NOT: issued }] };
+    const byState = { active, complete, cancelled };
+    const where = filter.states
+      ? filter.states.length ? { OR: filter.states.map((k) => byState[k]) } : { id: BigInt(-1) }
+      : filter.state === 'active' ? active : filter.state === 'done' ? done : base;
+    const [items, totalCount, nActive, nDone, nComplete] = await Promise.all([
       this.prisma.application.findMany({ where, include, orderBy: { createdOn: 'desc' }, skip: (pageNumber - 1) * pageSize, take: pageSize }),
       this.prisma.application.count({ where }),
       this.prisma.application.count({ where: active }),
       this.prisma.application.count({ where: done }),
+      this.prisma.application.count({ where: complete }),
     ]);
     const m = await this.statuses.machine();
     // per organisation: what the customer can do next (buttons in the cabinet)
     const withNext = items.map((a) => ({ ...a, orgs: a.orgs.map((o) => ({ ...o, next: m.nextStatuses(o.status, 'customer') })) }));
-    return { items: withNext, pageNumber, pageSize, totalCount, totalPages: Math.ceil(totalCount / pageSize), counts: { active: nActive, done: nDone } };
+    return { items: withNext, pageNumber, pageSize, totalCount, totalPages: Math.ceil(totalCount / pageSize), counts: { active: nActive, done: nDone, complete: nComplete, cancelled: nDone - nComplete } };
   }
 
   private async load(id: number, uid: string) {

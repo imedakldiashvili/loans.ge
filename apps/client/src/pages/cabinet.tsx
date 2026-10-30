@@ -55,7 +55,7 @@ export interface App {
   Banks: string[] | null;
   Orgs: AppOrg[];
 }
-type Found = Page<App> & { Counts: { Active: number; Done: number } };
+type Found = Page<App> & { Counts: { Active: number; Done: number; Complete: number; Cancelled: number } };
 
 /** Order of the status groups in a card: what needs an answer first, closed ones last. */
 const GROUP_ORDER = ['offer', 'interested', 'sent', 'accepted', 'done', 'cancelled', 'declined', 'rejected', 'withdrawn', 'expired'];
@@ -103,22 +103,25 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
     setPage(1);
     if (view !== 'profile') setLastList(view);
   }, [view]);
-  // which applications: active and / or done — two checkboxes (the address only sets the start)
-  const [show, setShow] = useState({ active: view !== 'done', done: view === 'done' });
+  // which applications: active / complete (a loan issued) / cancelled — three checkboxes (the address only sets the start:
+  // /cabinet/closed — the complete and the cancelled ones)
+  const startShow = (v: CabView) => ({ active: v !== 'done', complete: v === 'done', cancelled: v === 'done' });
+  const [show, setShow] = useState(() => startShow(view));
   useEffect(() => {
-    if (view !== 'profile') setShow({ active: view === 'active', done: view === 'done' });
+    if (view !== 'profile') setShow(startShow(view));
   }, [view]);
-  const state = show.active && show.done ? 'all' : show.done ? 'done' : 'active';
+  const states = (['active', 'complete', 'cancelled'] as const).filter((k) => show[k]);
+  const state = states.join(',');
   const size = state === 'active' ? 50 : PAGE_SIZE;
   // the period (sent since): the last day by default / week / month / all — the counts follow it
   const [period, setPeriod] = useState<keyof typeof PERIODS | ''>('24h');
   useEffect(() => setPage(1), [period, state]);
   const from = period ? new Date(Date.now() - PERIODS[period] * 864e5).toISOString() : undefined;
-  const none = !show.active && !show.done;
+  const none = !states.length;
   const q = useQuery({
     enabled: !none,
     queryKey: ['apps', state, page, period],
-    queryFn: () => api<Found>('POST', `/client/application/find/${page}/${size}`, { Filter: { State: state, ...(from ? { From: from } : {}) } }),
+    queryFn: () => api<Found>('POST', `/client/application/find/${page}/${size}`, { Filter: { States: states, ...(from ? { From: from } : {}) } }),
   });
   const go = (v: CabView) => nav(PATHS[v]);
   const onCompare = (a: App) => nav(`/cabinet/compare/${a.ID}/${a.UID}`);
@@ -146,16 +149,19 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
           </nav>
           {view !== 'profile' && (
             <nav className="cab-nav cab-nav-sub">
-              <label className="cab-radio cab-check">
-                <input type="checkbox" checked={show.active} onChange={(e) => setShow({ ...show, active: e.target.checked })} />
-                <i />
-                {t('მიმდინარე')} <span className="rc">{counts ? `(${counts.Active})` : ''}</span>
-              </label>
-              <label className="cab-radio cab-check">
-                <input type="checkbox" checked={show.done} onChange={(e) => setShow({ ...show, done: e.target.checked })} />
-                <i />
-                {t('დასრულებული')} <span className="rc">{counts ? `(${counts.Done})` : ''}</span>
-              </label>
+              {(
+                [
+                  ['active', 'მიმდინარე', counts?.Active],
+                  ['complete', 'დასრულებული', counts?.Complete],
+                  ['cancelled', 'გაუქმებული', counts?.Cancelled],
+                ] as const
+              ).map(([k, label, n]) => (
+                <label key={k} className="cab-radio cab-check">
+                  <input type="checkbox" checked={show[k]} onChange={(e) => setShow({ ...show, [k]: e.target.checked })} />
+                  <i />
+                  {t(label)} <span className="rc">{n !== undefined ? `(${n})` : ''}</span>
+                </label>
+              ))}
               <select className="cab-period" aria-label={t('აირჩიე პერიოდი')} value={period} onChange={(e) => setPeriod(e.target.value as typeof period)}>
                 <option value="">{t('აირჩიე პერიოდი')}</option>
                 <option value="24h">{t('ბოლო 24 საათი')}</option>
@@ -171,7 +177,9 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
           ) : (
             <div className="cab-panel cab-list">
               <div className="cab-top">
-                <h2 className="cab-title">{t(state === 'all' || none ? 'განაცხადები' : state === 'done' ? 'დასრულებული განაცხადები' : 'მიმდინარე განაცხადები')}</h2>
+                <h2 className="cab-title">
+                  {t(state === 'active' ? 'მიმდინარე განაცხადები' : state === 'complete' ? 'დასრულებული განაცხადები' : state === 'cancelled' ? 'გაუქმებული განაცხადები' : 'განაცხადები')}
+                </h2>
                 <span className="cab-count">
                   <b>{none ? 0 : q.data?.TotalCount ?? 0}</b>
                 </span>
@@ -182,7 +190,7 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
                 </button>
               </div>
               <div className="cab-cards">
-                {none && <div className="cab-group-empty">{t('მონიშნე მიმდინარე ან დასრულებული')}</div>}
+                {none && <div className="cab-group-empty">{t('მონიშნე მიმდინარე, დასრულებული ან გაუქმებული')}</div>}
                 {!none && q.data?.Items.map((a) => <AppCard key={a.ID} a={a} expanded={state === 'active'} onCompare={() => onCompare(a)} />)}
                 {!none && q.data && !q.data.Items.length && <div className="cab-group-empty">{t(counts && counts.Active + counts.Done === 0 ? 'განაცხადები ჯერ არ გაგიგზავნია' : 'ჯერ არ არის')}</div>}
                 {!none && q.isLoading && <div className="cab-group-empty">{t('იტვირთება…')}</div>}
