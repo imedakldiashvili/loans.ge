@@ -102,6 +102,8 @@ ok(counts.Counts.Active === 1 && counts.Counts.Done === 1 && counts.Items[0].ID 
 const later = (await call('POST', '/client/application/find/1/10', { Filter: { State: 'active', From: new Date(Date.now() + 864e5).toISOString() } })).json.Data;
 const since = (await call('POST', '/client/application/find/1/10', { Filter: { State: 'active', From: new Date(Date.now() - 864e5).toISOString() } })).json.Data;
 ok(later.TotalCount === 0 && later.Counts.Active === 0 && later.Counts.Done === 0 && since.TotalCount === counts.Counts.Active, 'period: only the applications sent since then (counts too)');
+const both = (await call('POST', '/client/application/find/1/10', { Filter: { State: 'all' } })).json.Data;
+ok(both.TotalCount === both.Counts.Active + both.Counts.Done, 'both ticked: active and done together');
 
 // ── the customer's answer: offers marked "choose" / "cancel" change together on "send"; unmarked ones stay
 // an organisation shows / takes only the amounts it lends for the product

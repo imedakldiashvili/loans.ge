@@ -103,13 +103,20 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
     setPage(1);
     if (view !== 'profile') setLastList(view);
   }, [view]);
-  const state = view === 'profile' ? 'active' : view;
-  const size = state === 'done' ? PAGE_SIZE : 50;
-  // the period (sent since): all / the last day / week / month — the counts follow it
-  const [period, setPeriod] = useState<keyof typeof PERIODS | ''>('');
-  useEffect(() => setPage(1), [period]);
+  // which applications: active and / or done — two checkboxes (the address only sets the start)
+  const [show, setShow] = useState({ active: view !== 'done', done: view === 'done' });
+  useEffect(() => {
+    if (view !== 'profile') setShow({ active: view === 'active', done: view === 'done' });
+  }, [view]);
+  const state = show.active && show.done ? 'all' : show.done ? 'done' : 'active';
+  const size = state === 'active' ? 50 : PAGE_SIZE;
+  // the period (sent since): the last day by default / week / month / all — the counts follow it
+  const [period, setPeriod] = useState<keyof typeof PERIODS | ''>('24h');
+  useEffect(() => setPage(1), [period, state]);
   const from = period ? new Date(Date.now() - PERIODS[period] * 864e5).toISOString() : undefined;
+  const none = !show.active && !show.done;
   const q = useQuery({
+    enabled: !none,
     queryKey: ['apps', state, page, period],
     queryFn: () => api<Found>('POST', `/client/application/find/${page}/${size}`, { Filter: { State: state, ...(from ? { From: from } : {}) } }),
   });
@@ -139,13 +146,13 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
           </nav>
           {view !== 'profile' && (
             <nav className="cab-nav cab-nav-sub">
-              <label className="cab-radio">
-                <input type="radio" name="cabv" checked={view === 'active'} onChange={() => go('active')} />
+              <label className="cab-radio cab-check">
+                <input type="checkbox" checked={show.active} onChange={(e) => setShow({ ...show, active: e.target.checked })} />
                 <i />
                 {t('მიმდინარე')} <span className="rc">{counts ? `(${counts.Active})` : ''}</span>
               </label>
-              <label className="cab-radio">
-                <input type="radio" name="cabv" checked={view === 'done'} onChange={() => go('done')} />
+              <label className="cab-radio cab-check">
+                <input type="checkbox" checked={show.done} onChange={(e) => setShow({ ...show, done: e.target.checked })} />
                 <i />
                 {t('დასრულებული')} <span className="rc">{counts ? `(${counts.Done})` : ''}</span>
               </label>
@@ -164,9 +171,9 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
           ) : (
             <div className="cab-panel cab-list">
               <div className="cab-top">
-                <h2 className="cab-title">{t(view === 'done' ? 'დასრულებული განაცხადები' : 'მიმდინარე განაცხადები')}</h2>
+                <h2 className="cab-title">{t(state === 'all' || none ? 'განაცხადები' : state === 'done' ? 'დასრულებული განაცხადები' : 'მიმდინარე განაცხადები')}</h2>
                 <span className="cab-count">
-                  <b>{q.data?.TotalCount ?? 0}</b>
+                  <b>{none ? 0 : q.data?.TotalCount ?? 0}</b>
                 </span>
                 {/* a new application — above the list, on the right */}
                 <button type="button" className="btn btn-green cab-new-btn" id="cabNew" title={t('ახალი განაცხადი')} aria-label={t('ახალი განაცხადი')} onClick={onNew}>
@@ -175,11 +182,12 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
                 </button>
               </div>
               <div className="cab-cards">
-                {q.data?.Items.map((a) => <AppCard key={a.ID} a={a} expanded={view === 'active'} onCompare={() => onCompare(a)} />)}
-                {q.data && !q.data.Items.length && <div className="cab-group-empty">{t(counts && counts.Active + counts.Done === 0 ? 'განაცხადები ჯერ არ გაგიგზავნია' : 'ჯერ არ არის')}</div>}
-                {q.isLoading && <div className="cab-group-empty">{t('იტვირთება…')}</div>}
+                {none && <div className="cab-group-empty">{t('მონიშნე მიმდინარე ან დასრულებული')}</div>}
+                {!none && q.data?.Items.map((a) => <AppCard key={a.ID} a={a} expanded={state === 'active'} onCompare={() => onCompare(a)} />)}
+                {!none && q.data && !q.data.Items.length && <div className="cab-group-empty">{t(counts && counts.Active + counts.Done === 0 ? 'განაცხადები ჯერ არ გაგიგზავნია' : 'ჯერ არ არის')}</div>}
+                {!none && q.isLoading && <div className="cab-group-empty">{t('იტვირთება…')}</div>}
               </div>
-              {(q.data?.TotalPages ?? 1) > 1 && <Pager page={page} pages={q.data!.TotalPages} onPage={setPage} />}
+              {!none && (q.data?.TotalPages ?? 1) > 1 && <Pager page={page} pages={q.data!.TotalPages} onPage={setPage} />}
             </div>
           )}
         </div>
@@ -305,25 +313,27 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               {[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '-'} · {fmtDate(a.CreatedOn)}
             </small>
           </span>
-          <span className="right">
-            <i className="amt">{money(a.Amount, a.Currency)}</i>
-            {isCancelled && <em className="app-cancelled">{t('გაუქმებული')}</em>}
-          </span>
         </button>
+        {/* the amount, and under it the application's status with its icon: in progress — the timer (it ends the
+            application); closed — OK (cancelled — grey) */}
+        <div className="cab-right">
+          <i className="amt">{money(a.Amount, a.Currency)}</i>
+          {isClosed ? (
+            <span className={`app-st ${isCancelled ? 'closed-off' : 'closed'}`}>
+              {I.ok}
+              {t(isCancelled ? 'გაუქმებული' : 'დასრულებული')}
+            </span>
+          ) : (
+            <button type="button" className="app-st cab-timer" title={t('განაცხადის დასრულება')} onClick={() => setCancel(true)}>
+              {I.timer}
+              {t('მიმდინარე')}
+            </button>
+          )}
+        </div>
         <div className="cab-acts">
           <button type="button" className="cab-ico cab-view" aria-label={t('ნახვა')} title={t('ნახვა')} onClick={() => setView(true)}>
             {I.eye}
           </button>
-          {/* in progress: the timer — clicking it ends the application; closed: OK, just an icon (cancelled — grey) */}
-          {isClosed ? (
-            <span className={`cab-ico cab-state ${isCancelled ? 'closed-off' : 'closed'}`} role="img" aria-label={t(isCancelled ? 'გაუქმებული' : 'დასრულებული')} title={t(isCancelled ? 'გაუქმებული' : 'დასრულებული')}>
-              {I.ok}
-            </span>
-          ) : (
-            <button type="button" className="cab-ico cab-timer" aria-label={t('განაცხადის დასრულება')} title={t('განაცხადის დასრულება')} onClick={() => setCancel(true)}>
-              {I.timer}
-            </button>
-          )}
           {/* expand: the last one on the right */}
           <button type="button" className="cab-ico cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
             <Chevron />

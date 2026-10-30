@@ -48,8 +48,8 @@ const addSchema = z.object({
   otp: otpRef.nullable().default(null),
 });
 
-// state: active / done; from: the period (applications sent since then — the counts follow it too)
-const findBody = z.preprocess((v) => v ?? {}, z.object({ filter: z.preprocess((v) => v ?? {}, z.object({ state: z.enum(['active', 'done']).default('active'), from: z.coerce.date().optional() })) }));
+// state: active / done / all (both ticked); from: the period (applications sent since then — the counts follow it too)
+const findBody = z.preprocess((v) => v ?? {}, z.object({ filter: z.preprocess((v) => v ?? {}, z.object({ state: z.enum(['active', 'done', 'all']).default('active'), from: z.coerce.date().optional() })) }));
 const changeBody = z.object({ status: z.string().min(1) });
 // OfferIDs — the chosen offers (an organisation may have sent several); AcceptIDs — organisations (their only offer is chosen);
 // DeclineIDs — organisations to cancel
@@ -180,7 +180,7 @@ export class ClientApplicationService {
     // active while at least one organisation is still in progress
     const active: Prisma.ApplicationWhereInput = { ...base, orgs: { some: { isDeleted: false, status: { in: progress } } } };
     const done: Prisma.ApplicationWhereInput = { ...base, NOT: { orgs: { some: { isDeleted: false, status: { in: progress } } } } };
-    const where = filter.state === 'active' ? active : done;
+    const where = filter.state === 'active' ? active : filter.state === 'done' ? done : base;
     const [items, totalCount, nActive, nDone] = await Promise.all([
       this.prisma.application.findMany({ where, include, orderBy: { createdOn: 'desc' }, skip: (pageNumber - 1) * pageSize, take: pageSize }),
       this.prisma.application.count({ where }),
