@@ -467,7 +467,7 @@
   .recv-offers:hover:not(.none) { filter: brightness(.96); }
   @media (max-width: 560px) { .recv-offers span { display: none; } }   /* phone: the icon and the number */
   /* the offers button is as tall as the application icon (44px) */
-  .cab-right .cab-details-ico { width: 44px; height: 44px; border-radius: 10px; } .cab-right .cab-details-ico svg { width: 20px; height: 20px; }   /* the detailed view: an icon as tall as the offers */
+  .cab-right .cab-details-ico { width: 44px; height: 44px; border-radius: 10px; border: 0; background: var(--bg); } .cab-right .cab-details-ico svg { width: 20px; height: 20px; }   /* the detailed view: an icon as tall as the offers */
   .cab-card.open .cab-toggle svg { transform: rotate(180deg); } .cab-card.open .cab-toggle { color: var(--green); }
   .cab-det { background: var(--bg); color: var(--fg); padding: 2px 18px 14px; display: grid; gap: 10px; }
   .cab-stat { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
