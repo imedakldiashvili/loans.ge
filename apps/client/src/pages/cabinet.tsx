@@ -351,6 +351,13 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           <button type="button" className="cab-ico cab-view" aria-label={t('ნახვა')} title={t('ნახვა')} onClick={() => setView(true)}>
             {I.eye}
           </button>
+          {/* the offers that came in — side by side; on the row, before the expand */}
+          {a.Orgs.some((o) => o.Status === 'offer') && (
+            <button type="button" className="grp-compare" title={t('შეთავაზების შედარება')} onClick={onCompare}>
+              {I.compare}
+              <span>{t('შეთავაზების შედარება')}</span>
+            </button>
+          )}
           {/* expand: the last one on the right */}
           <button type="button" className="cab-ico cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
             <Chevron />
@@ -376,13 +383,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                     {s.label(st)}
                   </em>
                   <span className="grp-right">
-                    {/* the offers that came in — side by side */}
-                    {st === 'offer' && (
-                      <button type="button" className="grp-compare" onClick={(e) => (e.stopPropagation(), onCompare())} onKeyDown={(e) => e.stopPropagation()}>
-                        {I.compare}
-                        <span>{t('შეთავაზების შედარება')}</span>
-                      </button>
-                    )}
                     <span className="cnt" style={{ ['--c' as string]: s.color(st) }}>
                       {list.length}
                     </span>

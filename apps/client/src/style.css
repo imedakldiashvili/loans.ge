@@ -744,6 +744,8 @@
   .grp-compare { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 1px solid var(--green); border-radius: 6px; background: var(--green); color: #fff; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
   .grp-compare:hover { background: var(--green-dark); border-color: var(--green-dark); }
   .grp-compare svg { width: 16px; height: 16px; }
+  .cab-acts .grp-compare { height: 34px; }   /* on the card's row: as tall as its icons */
+  @media (max-width: 560px) { .cab-acts .grp-compare { width: 34px; padding: 0; justify-content: center; } .cab-acts .grp-compare span { display: none; } }   /* phone: the icon only */
   .grp-compare:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 
   /* answer summary: folding groups (will be accepted / cancelled) */
