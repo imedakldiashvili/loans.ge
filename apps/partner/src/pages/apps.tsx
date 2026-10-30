@@ -370,6 +370,8 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
           </b>
           {/* the city - district, under the product */}
           <small>{[cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((x) => x.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(' - ') || '—'}</small>
+          {/* the date — under the city - district */}
+          <small>{fmtDate(a.CreatedOn)}</small>
           {taker && (
             <small className="taker" title="აიღო">
               👤 {taker}
@@ -390,8 +392,6 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
               {s?.ChipLabel ?? r.Status}
             </span>
           </span>
-          {/* the date — on the right, under the status */}
-          <small className="r-date">{fmtDate(a.CreatedOn)}</small>
         </span>
         <button type="button" className="ib tg" aria-label="ჩამოშლა" aria-expanded={open} onClick={onToggle}>
           <Chevron />
