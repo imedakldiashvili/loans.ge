@@ -452,7 +452,8 @@
   .cab-card { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
   .cab-sum { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; width: 100%; text-align: start; font: inherit; background: none; border: 0; padding: 16px 18px; cursor: pointer; color: inherit; }
   .cab-sum:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
-  .cab-toggle svg { width: 16px; height: 16px; transition: transform .2s; }   /* expand: an icon above the amount (.cab-ico) */
+  .cab-toggle svg { width: 16px; height: 16px; transition: transform .2s; }   /* expand: an icon beside the amount (.cab-ico) */
+  .amt-row { display: inline-flex; align-items: center; gap: 10px; }
   /* the offers received: under the amount; filled green while an answer is awaited, outlined after */
   .recv-offers { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px 0 10px; border: 1px solid var(--green); border-radius: 6px; background: var(--bg); color: var(--green); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .recv-offers svg { width: 15px; height: 15px; } .recv-offers b { min-width: 20px; height: 20px; padding: 0 5px; display: inline-grid; place-items: center; border-radius: 4px; background: var(--green-soft); color: var(--green); font-size: 12px; }

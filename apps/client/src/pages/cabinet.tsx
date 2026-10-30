@@ -334,24 +334,12 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           </span>
         </button>
         <div className="cab-right">
-          {/* expand: above the amount */}
-          <button type="button" className="cab-ico cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
-            <Chevron />
-          </button>
-          <i className="amt">{money(a.Amount, a.Currency)}</i>
-          {/* under the amount: how many organisations are in each status (in its colour), then how many it was sent to */}
-          <span className="st-counts">
-            {GROUP_ORDER.map((k) => {
-              const c = a.Orgs.filter((o) => o.Status === k).length;
-              return c ? (
-                <b key={k} style={{ ['--c' as string]: s.color(k) }} title={`${s.label(k)}: ${c}`}>
-                  {c}
-                </b>
-              ) : null;
-            })}
-            <span className="tot" title={t('სულ გაეგზავნა')}>
-              {a.Orgs.length}
-            </span>
+          {/* the amount, and beside it the expand */}
+          <span className="amt-row">
+            <i className="amt">{money(a.Amount, a.Currency)}</i>
+            <button type="button" className="cab-ico cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
+              <Chevron />
+            </button>
           </span>
           {/* the offers that came in — stays once there is one; filled while an answer is awaited */}
           {received > 0 && (
