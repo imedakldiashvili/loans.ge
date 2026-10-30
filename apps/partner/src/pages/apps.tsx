@@ -104,6 +104,10 @@ export const cardTerms = (card: Card, amountAsked: number) => {
 
 export function AppsPage() {
   const refs = useRefs();
+  const { me } = useSession();
+  // the location filter offers only the cities this account may work in (a limited sales manager); no limit — all
+  const scope = me?.Profile?.ScopeCities ?? [];
+  const myCities = scope.length ? refs.cities.filter((c) => scope.includes(c.ID)) : refs.cities;
   const qc = useQueryClient();
   // the open record is in the address: /applications/{id} (a link or a notification opens it)
   const { id } = useParams();
@@ -187,7 +191,7 @@ export function AppsPage() {
         <input className="search" type="search" placeholder="ძებნა: პირადი ნომერი, სახელი გვარი, მობილური" value={search} onChange={(e) => setSearch(e.target.value)} />
         <select className="fsel" aria-label="ლოკაცია" value={city} onChange={(e) => setCity(e.target.value)}>
           <option value="all">ლოკაცია: ყველა</option>
-          {refs.cities.map((c) => {
+          {myCities.map((c) => {
             const ds = refs.districts.filter((d) => d.CityID === c.ID);
             return ds.length ? (
               <optgroup key={c.ID} label={c.NameKa}>
