@@ -319,7 +319,6 @@
   .dlg-b { padding: 0 28px 10px; display: grid; gap: 14px; max-height: 70vh; overflow: auto; }
   /* organisation add / edit — a page, laid out like a dialog body */
   .orgf { padding: 20px 24px 22px; display: grid; gap: 14px; max-width: 760px; } .orgf .lerr { margin: 0; }
-  .orgf-acts { display: flex; gap: 8px; border-top: 1px solid var(--line); margin-top: 4px; padding-top: 16px; }
   .orgf-state { padding: 24px; color: var(--muted); }
   /* the organisation's name in the list — a little bigger than the category next to it */
   td.org-n .bi-v b { font-size: 15px; font-weight: 600; }

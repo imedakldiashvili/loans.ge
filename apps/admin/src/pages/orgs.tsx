@@ -157,8 +157,22 @@ export function OrgFormPage() {
   const links = useAll<OrgPt>('organizationProductType');
   const back = () => nav('/orgs');
   const loading = !!ref && (org.isLoading || links.isLoading);
+  const { canWrite } = useAuth();
+  const ready = !loading && (!ref || !!org.data);
   return (
-    <ListPage title={ref ? 'ორგანიზაციის რედაქტირება' : 'ახალი ორგანიზაცია'} back={{ label: 'ორგანიზაციები', onClick: back }}>
+    <ListPage
+      title={ref ? 'ორგანიზაციის რედაქტირება' : 'ახალი ორგანიზაცია'}
+      back={{ label: 'ორგანიზაციები', onClick: back }}
+      // save in the top-right corner (it submits the form below); leaving without saving = the back link
+      add={
+        ready &&
+        canWrite('organization') && (
+          <button type="submit" form="orgf" className="btn btn-green">
+            {ref ? 'შენახვა' : 'დამატება'}
+          </button>
+        )
+      }
+    >
       {loading ? (
         <div className="orgf-state">იტვირთება…</div>
       ) : ref && !org.data ? (
@@ -170,18 +184,15 @@ export function OrgFormPage() {
           links={(links.data ?? []).filter((l) => l.OrganizationID === org.data?.ID)}
           // a new organisation opens its own page, so the logo can be uploaded; an edit goes back to the list
           onSaved={(r, isNew) => (isNew ? nav(`/orgs/${r.ID}/${r.UID}`, { replace: true }) : back())}
-          onCancel={back}
         />
       )}
     </ListPage>
   );
 }
 
-function OrgForm({ row, links, onSaved, onCancel }: { row: Org | null; links: OrgPt[]; onSaved: (r: { ID: number; UID: string }, isNew: boolean) => void; onCancel: () => void }) {
+function OrgForm({ row, links, onSaved }: { row: Org | null; links: OrgPt[]; onSaved: (r: { ID: number; UID: string }, isNew: boolean) => void }) {
   const toast = useToast();
   const invalidate = useInvalidate();
-  const { canWrite } = useAuth();
-  const writable = canWrite('organization');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const productTypes = useAll<ProductType>('productType', { Sort: [{ Field: 'Sort', Dir: 'asc' }] });
@@ -255,7 +266,7 @@ function OrgForm({ row, links, onSaved, onCancel }: { row: Org | null; links: Or
   };
 
   return (
-    <form className="orgf" onSubmit={submit}>
+    <form id="orgf" className="orgf" onSubmit={submit}>
       {error && <div className="lerr">{error}</div>}
       <div className="f">
         <label>დასახელება</label>
@@ -344,16 +355,6 @@ function OrgForm({ row, links, onSaved, onCancel }: { row: Org | null; links: Or
           <small>ვიზარდში ორგანიზაცია მხოლოდ ამ თანხებზე გამოჩნდება; ცარიელი - შეზღუდვის გარეშე</small>
         </div>
       )}
-      <div className="orgf-acts">
-        {writable && (
-          <button type="submit" className="btn btn-green" disabled={busy}>
-            {row ? 'შენახვა' : 'დამატება'}
-          </button>
-        )}
-        <button type="button" className="btn btn-ghost" onClick={onCancel}>
-          გაუქმება
-        </button>
-      </div>
     </form>
   );
 }
