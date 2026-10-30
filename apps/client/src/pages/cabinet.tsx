@@ -198,7 +198,7 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
               </div>
               <div className="cab-cards">
                 {none && <div className="cab-group-empty">{t('მონიშნე მიმდინარე, დასრულებული ან შეწყვეტილი')}</div>}
-                {!none && q.data?.Items.map((a) => <AppCard key={a.ID} a={a} onCompare={() => onCompare(a)} />)}
+                {!none && q.data?.Items.map((a) => <AppCard key={a.ID} a={a} expanded={state === 'active'} onCompare={() => onCompare(a)} />)}
                 {!none && q.data && !q.data.Items.length && <div className="cab-group-empty">{t(counts && counts.Active + counts.Done === 0 ? 'განაცხადები ჯერ არ გაგიგზავნია' : 'ჯერ არ არის')}</div>}
                 {!none && q.isLoading && <div className="cab-group-empty">{t('იტვირთება…')}</div>}
               </div>
@@ -279,23 +279,38 @@ function Countdown({ o }: { o: AppOrg }) {
   );
 }
 
-function AppCard({ a, onCompare }: { a: App; onCompare: () => void }) {
+function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onCompare: () => void }) {
+  const qc = useQueryClient();
   const nav = useNavigate();
   const s = useStatus();
   const { cities, districts } = useRefs();
+  const [open, setOpen] = useState(expanded);
+  const [closed, setClosed] = useState<Set<string>>(new Set(GROUP_ORDER.filter((k) => !OPEN_GROUPS.includes(k))));
+  const [offer, setOffer] = useState<AppOrg | null>(null);
+  const [cancel, setCancel] = useState(false);
+  const refresh = () => qc.invalidateQueries({ queryKey: ['apps'] });
   const isClosed = a.Orgs.every((o) => !o.Next.length);
   // the offers received (every one counts — an organisation may send several); an answer awaited while one is in "offer"
   const received = a.Orgs.reduce((n, o) => n + o.Offers.length, 0);
   const waiting = a.Orgs.some((o) => o.Status === 'offer' && o.Offers.length > 0);
   // closed without any offer accepted (nothing completed) — the application is cancelled
   const isCancelled = isClosed && !a.Orgs.some((o) => s.categoryOf(o.Status) === 'complete');
-  // the card opens the application's page (its organisations, data and stopping it)
-  const open = () => nav(`/cabinet/view/${a.ID}/${a.UID}`);
+  // offers waiting for the customer's answer are answered in the comparison (choose / cancel, then send)
+  const answerable = a.Orgs.filter((o) => s.acceptOf(o) && o.Offers.length);
+  const declineOrg = async (o: AppOrg) => {
+    const to = s.cancelOf(o);
+    if (!to) return;
+    try {
+      await changeOrg(o, to);
+    } finally {
+      refresh();
+    }
+  };
 
   return (
-    <article className="cab-card">
+    <article className={`cab-card${open ? ' open' : ''}`}>
       <div className="cab-top-row">
-        <button type="button" className="cab-sum" onClick={open}>
+        <button type="button" className="cab-sum" aria-expanded={open} onClick={() => setOpen(!open)}>
           {/* the application's state in the icon's colour: in progress / done / cancelled */}
           <span className={`ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t(isClosed ? (isCancelled ? 'შეწყვეტილი' : 'დასრულებული') : 'მიმდინარე')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -318,10 +333,9 @@ function AppCard({ a, onCompare }: { a: App; onCompare: () => void }) {
             </small>
           </span>
         </button>
-        {/* the amount and, under it, the offers received */}
+        {/* the offers received, the amount beside them, the expand to the right */}
         <div className="cab-right">
           <span className="cab-right-col">
-            <i className="amt">{money(a.Amount, a.Currency)}</i>
             {/* the offers that came in — stays once there is one; filled while an answer is awaited */}
             {received > 0 && (
               <button type="button" className={`recv-offers${waiting ? ' wait' : ''}`} title={t(waiting ? 'პასუხს ელოდება' : 'მიღებული შეთავაზებები')} onClick={onCompare}>
@@ -330,101 +344,100 @@ function AppCard({ a, onCompare }: { a: App; onCompare: () => void }) {
                 <b>{received}</b>
               </button>
             )}
+            <i className="amt">{money(a.Amount, a.Currency)}</i>
           </span>
+          <button type="button" className="cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
+            <Chevron />
+          </button>
         </div>
       </div>
-    </article>
-  );
-}
-
-/** The application's organisations in status groups (in their colours): each one's offer(s), view, cancel — on the application's page. */
-function OrgGroups({ a, onChanged }: { a: App; onChanged: () => void }) {
-  const s = useStatus();
-  const [closed, setClosed] = useState<Set<string>>(new Set(GROUP_ORDER.filter((k) => !OPEN_GROUPS.includes(k))));
-  const [offer, setOffer] = useState<AppOrg | null>(null);
-  // offers waiting for the customer's answer are answered in the comparison (choose / cancel, then send)
-  const answerable = a.Orgs.filter((o) => s.acceptOf(o) && o.Offers.length);
-  const declineOrg = async (o: AppOrg) => {
-    const to = s.cancelOf(o);
-    if (!to) return;
-    try {
-      await changeOrg(o, to);
-    } finally {
-      onChanged();
-    }
-  };
-  return (
-    <div className="cab-list view-orgs">
-      <div className="cab-card open">
+      {open && (
         <div className="cab-det">
-            {GROUP_ORDER.map((st) => {
-              const list = a.Orgs.filter((o) => o.Status === st);
-              if (!list.length) return null;
-              const isOpen = !closed.has(st);
-              const toggle = () => {
-                const n = new Set(closed);
-                if (isOpen) n.add(st);
-                else n.delete(st);
-                setClosed(n);
-              };
-              return (
-                <div key={st} className={`cab-stat${isOpen ? '' : ' closed'}`}>
-                  <div className="cab-det-group" role="button" tabIndex={0} aria-expanded={isOpen} onClick={toggle} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), toggle())}>
-                    <em className={`status ${stCls(st)}`} style={{ color: s.color(st) }}>
-                      {s.label(st)}
-                    </em>
-                    <span className="grp-right">
-                      <span className="cnt" style={{ ['--c' as string]: s.color(st) }}>
-                        {list.length}
-                      </span>
-                      <span className="chev">
-                        <Chevron />
-                      </span>
+          {GROUP_ORDER.map((st) => {
+            const list = a.Orgs.filter((o) => o.Status === st);
+            if (!list.length) return null;
+            const isOpen = !closed.has(st);
+            const toggle = () => {
+              const n = new Set(closed);
+              if (isOpen) n.add(st);
+              else n.delete(st);
+              setClosed(n);
+            };
+            return (
+              <div key={st} className={`cab-stat${isOpen ? '' : ' closed'}`}>
+                <div className="cab-det-group" role="button" tabIndex={0} aria-expanded={isOpen} onClick={toggle} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), toggle())}>
+                  <em className={`status ${stCls(st)}`} style={{ color: s.color(st) }}>
+                    {s.label(st)}
+                  </em>
+                  <span className="grp-right">
+                    <span className="cnt" style={{ ['--c' as string]: s.color(st) }}>
+                      {list.length}
                     </span>
-                  </div>
-                  {isOpen && (
-                    <div className="cab-stat-list">
-                      {list.map((o) => {
-                        const can = answerable.includes(o);
-                        return (
-                        <div key={o.ID} className="cab-det-row">
-                          <OrgLogo org={o.Organization} />
-                          <span className="nm-wrap">
-                            <span className="nm">{n(o.Organization)}</span>
-                            {/* its offer(s) — on the right of the row */}
-                            {o.Offers.length > 0 && (
-                              <span className="of-terms">
-                                {o.Offers.map((of) => (
-                                  <span key={of.ID} className={of.ChosenOn ? 'chosen' : undefined} title={of.ChosenOn ? t('არჩეული') : undefined}>
-                                    {money(of.Amount, of.Currency)} · {t(`${of.Months} თვე`)} · {of.Rate}%
-                                  </span>
-                                ))}
-                              </span>
-                            )}
-                          </span>
-                          <div className="cab-acts">
-                            <Countdown o={o} />
-                            <button type="button" className="cab-ico o-ico" title={t('ნახვა')} aria-label={t('ნახვა')} onClick={() => setOffer(o)}>
-                              {I.eye}
-                            </button>
-                            {!can && s.cancelOf(o) && (
-                              <button type="button" className="cab-ico o-ico danger" title={t('გაუქმება')} aria-label={t('გაუქმება')} onClick={() => declineOrg(o)}>
-                                {I.x}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                    <span className="chev">
+                      <Chevron />
+                    </span>
+                  </span>
                 </div>
-              );
-            })}
+                {isOpen && (
+                  <div className="cab-stat-list">
+                    {list.map((o) => {
+                      const can = answerable.includes(o);
+                      return (
+                      <div key={o.ID} className="cab-det-row">
+                        <OrgLogo org={o.Organization} />
+                        <span className="nm-wrap">
+                          <span className="nm">{n(o.Organization)}</span>
+                          {/* its offer(s) — on the right of the row */}
+                          {o.Offers.length > 0 && (
+                            <span className="of-terms">
+                              {o.Offers.map((of) => (
+                                <span key={of.ID} className={of.ChosenOn ? 'chosen' : undefined} title={of.ChosenOn ? t('არჩეული') : undefined}>
+                                  {money(of.Amount, of.Currency)} · {t(`${of.Months} თვე`)} · {of.Rate}%
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                        </span>
+                        <div className="cab-acts">
+                          <Countdown o={o} />
+                          <button type="button" className="cab-ico o-ico" title={t('ნახვა')} aria-label={t('ნახვა')} onClick={() => setOffer(o)}>
+                            {I.eye}
+                          </button>
+                          {!can && s.cancelOf(o) && (
+                            <button type="button" className="cab-ico o-ico danger" title={t('გაუქმება')} aria-label={t('გაუქმება')} onClick={() => declineOrg(o)}>
+                              {I.x}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {/* the detailed view — its own page (stopping the application is at its bottom) */}
+          <div className="cab-det-foot">
+            <button type="button" className="btn btn-green cab-end cab-details" onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
+              {I.eye}
+              {t('დეტალური ნახვა')}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
       {offer && <OfferModal o={offer} onClose={() => setOffer(null)} />}
-    </div>
+      {cancel && (
+        <CancelModal
+          a={a}
+          onClose={() => setCancel(false)}
+          onDone={() => {
+            setCancel(false);
+            refresh();
+          }}
+        />
+      )}
+    </article>
   );
 }
 
@@ -482,20 +495,6 @@ export function AppView({ id, uid, onBack }: { id: number; uid: string; onBack: 
           </button>
         </div>
         <div className="view-page">
-          <h3 className="view-title">
-            {n(a.ProductType)} · {money(a.Amount, a.Currency)}
-          </h3>
-          <p className="view-sub">
-            #{a.ID} · {t('გაგზავნილია')} {fmtDate(a.CreatedOn)}
-          </p>
-          {/* the organisations first (their offers, view, cancel), then the application's data, stopping it at the bottom */}
-          <OrgGroups
-            a={a}
-            onChanged={() => {
-              void q.refetch();
-              void qc.invalidateQueries({ queryKey: ['apps'] });
-            }}
-          />
           <AppDetails a={a} />
           {!isClosed && (
             <div className="cab-det-foot">
@@ -525,6 +524,7 @@ export function AppView({ id, uid, onBack }: { id: number; uid: string; onBack: 
 /** The application's data (prototype viewModal). */
 function AppDetails({ a }: { a: App }) {
   const { cities, districts, creditHistory, sectors, incomeSources, organizations } = useRefs();
+  const s = useStatus();
   const total = (a.Incomes ?? []).reduce((t, i) => t + (+i.Amount || 0), 0);
   const sec = (title: string, rows: [string, string, string?][]) => (
     <div className="view-sec">
@@ -539,6 +539,12 @@ function AppDetails({ a }: { a: App }) {
   );
   return (
     <>
+      <h3 className="view-title">
+        {n(a.ProductType)} · {money(a.Amount, a.Currency)}
+      </h3>
+      <p className="view-sub">
+        #{a.ID} · {t('გაგზავნილია')} {fmtDate(a.CreatedOn)}
+      </p>
       <div className="view-body">
         {sec('საკრედიტო ისტორია', [['სტატუსი', refName(creditHistory, a.CreditHistory)]])}
         {sec('ფინანსური მდგომარეობა', [
@@ -547,6 +553,7 @@ function AppDetails({ a }: { a: App }) {
           ['ჯამური თვიური შემოსავალი', `${fmt(total)} ₾`],
           ['ბანკის სერვისები', (a.Banks ?? []).map((b) => refName(organizations, b)).join(', ')],
         ])}
+        {sec('ორგანიზაციები', a.Orgs.map((o): [string, string, string] => [n(o.Organization), s.label(o.Status), stCls(o.Status)]))}
         {sec('პირადი მონაცემები', [
           ['პირადი ნომერი', a.Pid],
           ['სახელი, გვარი', `${a.FirstName} ${a.LastName}`],
