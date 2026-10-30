@@ -15,6 +15,8 @@ ok((await call('GET', '/public/system/health')).status === 200, 'public gateway 
 ok((await call('POST', '/public/auth/sendOtp', { Gateway: 'admin', Login: 'nobody@loans.ge' })).status === 404, 'unknown admin → 404');
 const badLogin = await call('POST', '/public/auth/sendOtp', { Gateway: 'admin', Login: '12345' });
 ok(badLogin.status === 400 && badLogin.json.Error.Details[0].Field === 'Login', 'invalid phone → 400 on Login');
+const staffPhone = await call('POST', '/public/auth/sendOtp', { Gateway: 'admin', Login: '555000001' });
+ok(staffPhone.status === 400 && staffPhone.json.Error.Details[0].Field === 'Login', 'admin / partner log in by email only → a mobile number is 400 on Login');
 ok((await call('POST', '/public/auth/sendOtp', { Gateway: 'partner', Login: 'sales3@1.ge' })).status === 403, 'disabled staff account → 403');
 
 // ── operator: wrong code, resend limit, login

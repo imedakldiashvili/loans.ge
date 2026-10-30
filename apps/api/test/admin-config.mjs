@@ -2,7 +2,7 @@
 // Usage: node test/admin-config.mjs [baseUrl] [apiLogFile]
 import { call, done, login, ok, getCookie, B } from './lib.mjs';
 
-await login('admin', '555000001'); // super admin by phone (email login is used by smoke.mjs — resend interval is per target)
+await login('admin', 'admin@loans.ge'); // super admin (staff log in by email only)
 
 const find = (m, body = {}, size = 100) => call('POST', `/admin/${m}/find/1/${size}`, body);
 

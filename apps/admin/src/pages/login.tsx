@@ -43,8 +43,6 @@ export function LoginPage() {
     });
   };
 
-  const masked = login.includes('@') ? login : login.replace(/\D/g, '').replace(/^(\d{3})\d+(\d{2})$/, '$1 ** ** $2');
-
   return (
     <main className="login-page">
       {/* the theme switch — the page's top-right corner */}
@@ -58,12 +56,12 @@ export function LoginPage() {
           <span className="tag">ადმინი</span>
         </div>
         <h2>ადმინისტრაციული კონსოლი</h2>
-        <p>{challenge ? `კოდი გაიგზავნა: ${masked}` : 'შეიყვანე ელ.ფოსტა ან მობილური — ერთჯერად კოდს გამოგიგზავნით'}</p>
+        <p>{challenge ? `კოდი გაიგზავნა: ${login}` : 'შეიყვანე ელ.ფოსტა — ერთჯერად კოდს გამოგიგზავნით'}</p>
         {!challenge ? (
           <form onSubmit={send}>
             <div className="f">
-              <label htmlFor="lUser">მომხმარებელი</label>
-              <input id="lUser" autoComplete="username" placeholder="მაგ. admin@loans.ge" value={login} onChange={(e) => setLogin(e.target.value)} autoFocus />
+              <label htmlFor="lUser">ელ.ფოსტა</label>
+              <input id="lUser" type="email" inputMode="email" autoComplete="username" placeholder="მაგ. admin@loans.ge" value={login} onChange={(e) => setLogin(e.target.value)} autoFocus />
             </div>
             <button type="submit" className="btn btn-green full" disabled={busy || !login.trim()}>
               კოდის გაგზავნა

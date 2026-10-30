@@ -21,7 +21,7 @@ ok(newAdmin.status === 200, 'admin: add (creates user + admin profile)', newAdmi
 const dupAdmin = await call('POST', '/admin/admin/add', { Email: `ops.${stamp}@loans.ge`, DisplayName: 'x', Role: 'analyst' });
 ok(dupAdmin.status === 409, 'admin: same user twice → 409');
 const noContact = await call('POST', '/admin/admin/add', { DisplayName: 'x', Role: 'analyst' });
-ok(noContact.status === 400 && noContact.json.Error.Details[0].Field === 'Email', 'admin: email or phone required');
+ok(noContact.status === 400 && noContact.json.Error.Details[0].Field === 'Email', 'admin: email required (staff log in by email only)');
 const newUser = await prisma.user.findFirst({ where: { email: `ops.${stamp}@loans.ge` } });
 ok(newUser?.phone === '577112233' && newUser.createdBy === BigInt(me.User.ID), 'admin: phone normalised, CreatedBy = current admin');
 const lastDel = await call('DELETE', `/admin/admin/delete/${newAdmin.json.Data.ID}/${newAdmin.json.Data.UID}`);
@@ -31,10 +31,10 @@ const det = (await call('GET', `/admin/admin/detail/${newAdmin.json.Data.ID}/${n
 ok(edAdmin.status === 200 && det.Role === 'analyst' && det.DisplayName === 'ანალიტიკოსი', 'admin: edit role');
 
 // the new admin can log in, as analyst
-const l = await login('admin', '577112233');
-ok(l.verify?.status === 200, 'new admin logs in by phone');
+const l = await login('admin', `ops.${stamp}@loans.ge`);
+ok(l.verify?.status === 200, 'new admin logs in by email');
 ok((await call('POST', '/admin/admin/add', { Email: `x.${stamp}@loans.ge`, DisplayName: 'x', Role: 'super' })).status === 403, 'analyst cannot add admins');
-await login('admin', '555000001'); // back to super (phone, separate resend interval)
+await login('admin', 'admin@loans.ge'); // back to super
 
 // ── staff
 const bankA = (await find('organization', { Filter: { Search: 'ბანკი A' } })).json.Data.Items[0];

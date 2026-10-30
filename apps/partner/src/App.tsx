@@ -226,12 +226,12 @@ function Login({ top }: { top: ReactNode }) {
     <section className="login">
       {top}
       <h2>პარტნიორის კაბინეტი</h2>
-      <p>{challenge ? `კოდი გაიგზავნა: ${login}` : 'შეიყვანე ელ.ფოსტა ან მობილური — ერთჯერად კოდს გამოგიგზავნით'}</p>
+      <p>{challenge ? `კოდი გაიგზავნა: ${login}` : 'შეიყვანე ელ.ფოსტა — ერთჯერად კოდს გამოგიგზავნით'}</p>
       {!challenge ? (
         <form className="f" onSubmit={send}>
           <div className="fld">
-            <label htmlFor="lUser">მომხმარებელი</label>
-            <input id="lUser" autoComplete="username" placeholder="მაგ. office@2.ge" value={login} onChange={(e) => setLogin(e.target.value)} autoFocus />
+            <label htmlFor="lUser">ელ.ფოსტა</label>
+            <input id="lUser" type="email" inputMode="email" autoComplete="username" placeholder="მაგ. office@2.ge" value={login} onChange={(e) => setLogin(e.target.value)} autoFocus />
           </div>
           <button type="submit" className="btn btn-green full" disabled={busy || !login.trim()}>
             კოდის გაგზავნა

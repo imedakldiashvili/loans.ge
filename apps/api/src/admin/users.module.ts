@@ -20,9 +20,9 @@ export const contacts = {
 };
 export const userInclude = { user: { select: { id: true, uid: true, email: true, phone: true, userName: true, isEnable: true, isVerified: true, lastLoginOn: true } } };
 
-/** Normalises email/phone through the same rules as login; at least one is required. */
+/** Normalises email/phone through the same rules as login; email is required — admins and staff log in by email only. */
 const normContacts = (d: { email: string | null; phone: string | null }) => {
-  if (!d.email && !d.phone) throw validation([{ field: 'Email', message: 'ელ.ფოსტა ან მობილური სავალდებულოა' }]);
+  if (!d.email) throw validation([{ field: 'Email', message: 'ელ.ფოსტა სავალდებულოა — შესვლა ელ.ფოსტით' }]);
   const phone = d.phone ? parseLogin(d.phone).target : null;
   return { email: d.email, phone };
 };

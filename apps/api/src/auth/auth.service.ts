@@ -63,11 +63,12 @@ export class AuthService {
     });
   }
 
-  /** Step 1: send a code. Admin / partner accounts must exist; a client account is created on first login. */
+  /** Step 1: send a code. Admin / partner accounts must exist and log in by email only; a client account is created on first login. */
   async sendOtp(body: unknown) {
     const { gateway, login } = parse(loginSchema, body);
     const { channel, target } = parseLogin(login);
     if (gateway !== 'client') {
+      if (channel !== 'email') throw new AppError('VALIDATION_ERROR', 'შესვლა მხოლოდ ელ.ფოსტით', [{ field: 'Login', message: 'შეიყვანე ელ.ფოსტა' }]);
       const user = await this.findUser(channel, target);
       if (!user) throw notFound('ანგარიში');
       if (!user.isEnable) throw new AppError('FORBIDDEN', 'ანგარიში გამორთულია');
