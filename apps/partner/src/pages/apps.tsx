@@ -363,10 +363,9 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
           </svg>
         </span>
         <span className="info">
-          {/* the number: the customer's application / this organisation's record */}
-          <b>
-            {a.ProductType.NameKa} <span className="app-no">#{a.ID}/{r.ID}</span>
-          </b>
+          {/* under the product, the number: the customer's application / this organisation's record */}
+          <b>{a.ProductType.NameKa}</b>
+          <small className="app-no">#{a.ID}/{r.ID}</small>
           <small>
             {applicantName(r)}
             {taker && <span className="taker" title="აიღო"> · 👤 {taker}</span>}

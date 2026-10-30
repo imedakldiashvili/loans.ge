@@ -112,9 +112,8 @@ function AppCard({ a, open, onToggle, onView }: { a: Application; open: boolean;
       <div className="arow">
         <AstIcon active={a.State === 'active'} />
         <span className="info">
-          <b>
-            {a.ProductType.NameKa} <span className="app-no">#{a.ID}</span>
-          </b>
+          <b>{a.ProductType.NameKa}</b>
+          <small className="app-no">#{a.ID}</small>
           <small>{[a.Pid, fullName(a)].filter(Boolean).join(' · ') || '—'}</small>
           {(a.Phone || a.Email) && <small>{[phone(a.Phone), a.Email].filter(Boolean).join(' · ')}</small>}
           {a.Source && <small>{a.Source}</small>}
