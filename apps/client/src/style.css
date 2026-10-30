@@ -785,6 +785,7 @@
   .cab-check input:checked + i { background: var(--green); } .cab-check input:checked + i::after { transform: rotate(-45deg) translate(1px, -1px) scale(1); }
   /* each in its state's colour (as the application icon): active orange, completed green, cancelled grey */
   .cab-check.ck-active { --ck: var(--orange); } .cab-check.ck-complete { --ck: var(--green); } .cab-check.ck-cancelled { --ck: var(--muted); }
+  .cab-check, .cab-check .rc { color: var(--ck, var(--green)); } .cab-check i { border-color: var(--ck, var(--green)); }   /* in the state's colour from the start; ticked — filled with it */
   .cab-check input:checked + i { background: var(--ck, var(--green)); border-color: var(--ck, var(--green)); } .cab-check:has(input:checked), .cab-check:has(input:checked) .rc { color: var(--ck, var(--green)); }
   /* card: an organisation's offer terms under its name */
   .cab-det-row .nm-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; min-width: 0; }
