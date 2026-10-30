@@ -332,6 +332,18 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
         </button>
         <div className="cab-right">
           <i className="amt">{money(a.Amount, a.Currency)}</i>
+          {/* under the amount: how many organisations are in each status (in its colour) / how many it was sent to */}
+          <span className="st-counts">
+            {GROUP_ORDER.map((k) => {
+              const c = a.Orgs.filter((o) => o.Status === k).length;
+              return c ? (
+                <b key={k} style={{ color: s.color(k) }} title={`${s.label(k)}: ${c}`}>
+                  {c}
+                </b>
+              ) : null;
+            })}
+            <span title={t('სულ გაეგზავნა')}>/ {a.Orgs.length}</span>
+          </span>
         </div>
         <div className="cab-acts">
           <button type="button" className="cab-ico cab-view" aria-label={t('ნახვა')} title={t('ნახვა')} onClick={() => setView(true)}>
@@ -414,12 +426,12 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               </div>
             );
           })}
-          {/* in progress: ending the application — at the bottom of the expanded part */}
+          {/* in progress: stopping the application — at the bottom of the expanded part, in the middle */}
           {!isClosed && (
             <div className="cab-det-foot">
               <button type="button" className="btn btn-ghost cab-end" onClick={() => setCancel(true)}>
                 {I.timer}
-                {t('განაცხადის დასრულება')}
+                {t('განაცხადის შეწყვეტა')}
               </button>
             </div>
           )}
@@ -446,7 +458,7 @@ function CancelModal({ a, onClose, onDone }: { a: App; onClose: () => void; onDo
   const [busy, setBusy] = useState(false);
   return (
     <Modal onClose={onClose} noClose labelledBy="cancelTitle">
-      <h3 id="cancelTitle">{t('დავასრულოთ განაცხადი?')}</h3>
+      <h3 id="cancelTitle">{t('შევწყვიტოთ განაცხადი?')}</h3>
       <p>
         {n(a.ProductType)} · {money(a.Amount, a.Currency)}
       </p>
@@ -470,7 +482,7 @@ function CancelModal({ a, onClose, onDone }: { a: App; onClose: () => void; onDo
             }
           }}
         >
-          {t('დიახ, დავასრულო')}
+          {t('დიახ, შევწყვიტო')}
         </button>
       </div>
       <ErrorText error={error} />

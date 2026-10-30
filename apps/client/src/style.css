@@ -772,11 +772,12 @@
   .lg.img { background: #fff !important; border: 1px solid var(--line); overflow: hidden; padding: 0; box-sizing: border-box; display: grid; place-items: center; }
   .lg.img img { width: 72%; height: 72%; object-fit: contain; display: block; }
   /* a closed application where nothing was accepted */
-  /* ending the application: at the bottom of the expanded part, on the right */
-  .cab-det-foot { display: flex; justify-content: flex-end; padding: 12px 14px; border-top: 1px solid var(--line); }
+  /* stopping the application: at the bottom of the expanded part, in the middle */
+  .cab-det-foot { display: flex; justify-content: center; padding: 12px 14px; border-top: 1px solid var(--line); }
   .cab-end { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; color: var(--orange); border-color: var(--line); }
   .cab-end svg { width: 18px; height: 18px; } .cab-end:hover { color: #d9534f; border-color: #d9534f; }
   /* the amount on the right */
+  .st-counts { display: inline-flex; align-items: baseline; gap: 6px; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); } .st-counts b { font-weight: 700; }
   .cab-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; padding-inline-end: 14px; }
   /* the application icon's colour = its state: in progress (orange), done (green), cancelled (grey) */
   .cab-card .ico.st-on { background: var(--orange-soft); color: var(--orange); } .cab-card .ico.st-done { background: var(--green-soft); color: var(--green); } .cab-card .ico.st-off { background: var(--bg-soft); color: var(--muted); }

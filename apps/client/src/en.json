@@ -149,11 +149,11 @@
  "სულ გადასახდელი დაზღვევა": "Total insurance payable",
  "სულ ძირის გარდა გადასახდელი": "Total payable besides principal",
  "სულ გადასახდელი": "Total payable",
- "განაცხადის დასრულება": "Close application",
- "დავასრულოთ განაცხადი?": "Close this application?",
+ "განაცხადის შეწყვეტა": "Stop application",
+ "შევწყვიტოთ განაცხადი?": "Stop this application?",
  "ორგანიზაციები შეთავაზებებს აღარ გამოგიგზავნიან. ამ მოქმედების გაუქმება ვერ მოხერხდება.": "The organizations will stop sending offers. This cannot be undone.",
  "არა": "No",
- "დიახ, დავასრულო": "Yes, close it",
+ "დიახ, შევწყვიტო": "Yes, stop it",
  "სტატუსი": "Status",
  "ორგანიზაციები": "Organizations",
  "სახელი, გვარი": "Full name",
@@ -318,5 +318,6 @@
  "ბოლო თვე": "Last month",
  "მონიშნე მიმდინარე, დასრულებული ან შეწყვეტილი": "Tick active, completed or stopped",
  "შეწყვეტილი განაცხადები": "Stopped applications",
- "შეწყვეტილი": "Stopped"
+ "შეწყვეტილი": "Stopped",
+ "სულ გაეგზავნა": "Sent to in all"
 }
