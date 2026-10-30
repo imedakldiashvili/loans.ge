@@ -68,7 +68,6 @@ export function CardsPage() {
               <span className="pmeta">
                 <small>
                   {k.Currency} {curSym(k.Currency)}
-                  {!p.IsEnable && ' · პროდუქტი გამორთულია'}
                 </small>
               </span>
               <span className="racts p">

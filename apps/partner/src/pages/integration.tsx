@@ -50,7 +50,7 @@ interface Delivery extends Ref {
 }
 
 const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' - ') : 'შეცდომა');
-/** Row action icons: a test ping (paper plane) and a new signing key (key with a refresh arrow). */
+/** Row action icons: a test ping (paper plane), a new signing key (key with a refresh arrow), send again (circular arrow). */
 const SendIcon = () => (
   <svg viewBox="0 0 24 24">
     <path d="M22 2L11 13M22 2l-7 20-4-9-9-4z" />
@@ -60,6 +60,12 @@ const RotateKeyIcon = () => (
   <svg viewBox="0 0 24 24">
     <circle cx="8" cy="15" r="4" />
     <path d="M10.8 12.2L19 4M16 7l2 2M15 3h5v5" />
+  </svg>
+);
+
+const RedoIcon = () => (
+  <svg viewBox="0 0 24 24">
+    <path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6" />
   </svg>
 );
 
@@ -439,7 +445,9 @@ function Deliveries() {
                 <span className="racts p">
                   <button
                     type="button"
-                    className="btn btn-ghost sm"
+                    className="ib"
+                    title="ხელახლა გაგზავნა"
+                    aria-label="ხელახლა გაგზავნა"
                     onClick={async () => {
                       try {
                         await api('PUT', `/partner/webhookDelivery/redeliver/${d.ID}/${d.UID}`);
@@ -450,7 +458,7 @@ function Deliveries() {
                       }
                     }}
                   >
-                    ხელახლა
+                    <RedoIcon />
                   </button>
                 </span>
               )}

@@ -205,7 +205,12 @@ export function CardInfo({ p, k, part, withProduct }: { p: Product; k: CardRow; 
   if (part === 'brief')
     return (
       <span className="pinfo">
-        {withProduct && <b className="prod">{p.ProductType.NameKa}</b>}
+        {withProduct && (
+          <b className="prod">
+            {p.ProductType.NameKa}
+            {!p.IsEnable && <small className="muted"> (გამორთულია)</small>}
+          </b>
+        )}
         {name}
         <small>{[l1, has('rate') && `${v('rate')}%`].filter(Boolean).join(' · ')}</small>
       </span>
