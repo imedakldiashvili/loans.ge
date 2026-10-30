@@ -332,8 +332,11 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
         </button>
         <div className="cab-right">
           <i className="amt">{money(a.Amount, a.Currency)}</i>
-          {/* under the amount: how many organisations are in each status (in its colour) / how many it was sent to */}
+          {/* under the amount: how many organisations it was sent to, then how many are in each status (in its colour) */}
           <span className="st-counts">
+            <span className="tot" title={t('სულ გაეგზავნა')}>
+              {a.Orgs.length}
+            </span>
             {GROUP_ORDER.map((k) => {
               const c = a.Orgs.filter((o) => o.Status === k).length;
               return c ? (
@@ -342,7 +345,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                 </b>
               ) : null;
             })}
-            <span className="tot" title={t('სულ გაეგზავნა')}>/ {a.Orgs.length}</span>
           </span>
         </div>
         <div className="cab-acts">
@@ -381,7 +383,9 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                         <span>{t('შეთავაზების შედარება')}</span>
                       </button>
                     )}
-                    <span className="cnt">{list.length}</span>
+                    <span className="cnt" style={{ ['--c' as string]: s.color(st) }}>
+                      {list.length}
+                    </span>
                     <span className="chev">
                       <Chevron />
                     </span>

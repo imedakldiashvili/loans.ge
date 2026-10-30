@@ -781,7 +781,9 @@
   /* each count in a small badge: its status colour as the frame, a light shade of it as the background */
   .st-counts b, .st-counts .tot { min-width: 24px; height: 22px; padding: 0 7px; display: inline-grid; place-items: center; border-radius: 6px; font-weight: 700; }
   .st-counts b { color: var(--c); border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); }
-  .st-counts .tot { color: var(--muted); border: 1px solid var(--line); background: var(--bg-soft); font-weight: 600; }
+  .st-counts .tot { color: var(--fg); border: 1px solid var(--line); background: var(--bg-soft); }
+  /* the counts of the expanded part's status groups: the same coloured badges */
+  .cab-det-group .cnt[style] { color: var(--c); border-color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); }
   .cab-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; padding-inline-end: 14px; }
   /* the application icon's colour = its state: in progress (orange), done (green), cancelled (grey) */
   .cab-card .ico.st-on { background: var(--orange-soft); color: var(--orange); } .cab-card .ico.st-done { background: var(--green-soft); color: var(--green); } .cab-card .ico.st-off { background: var(--bg-soft); color: var(--muted); }
