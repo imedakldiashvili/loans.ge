@@ -132,15 +132,21 @@ export function App() {
             <span>EN</span>
           </button>
           {!loading && !me && (
+            // signing in: the user icon (as in the header once signed in), the words in the tooltip
             <a
-              className="btn btn-green login"
+              className="theme userbtn"
               href="/cabinet"
+              aria-label={t('შესვლა')}
+              title={t('შესვლა')}
               onClick={(e) => {
                 e.preventDefault();
                 void openCabinet();
               }}
             >
-              {t('შესვლა')}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0 1 16 0" />
+              </svg>
             </a>
           )}
           {me && (
