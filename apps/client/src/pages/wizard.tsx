@@ -211,6 +211,7 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
                     <label key={b.ID} className="opt-row opt-check">
                       <input type="checkbox" checked={banks.includes(b.NameKa)} onChange={(e) => setBanks(e.target.checked ? [...banks, b.NameKa] : banks.filter((x) => x !== b.NameKa))} />
                       <i />
+                      <OrgLogo org={b} />
                       {n(b)}
                     </label>
                   ))}
