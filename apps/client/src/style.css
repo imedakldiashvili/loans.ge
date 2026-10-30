@@ -709,7 +709,7 @@
   .pick input:focus-visible + i { outline: 2px solid var(--orange); outline-offset: 2px; }
   .pick-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 0 12px; border-top: 1px solid var(--line); }
   .pick-bar .pick-n { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .pick-bar .pick-n.on { background: var(--green); border-color: var(--green); color: #fff; }
+  .pick-bar .pick-n.on { border-color: var(--green); color: var(--green); }
   .pick-bar .pick-acts { margin-inline-start: auto; display: flex; align-items: center; gap: 12px; }
   .pick-bar .btn.sm { height: 34px; padding: 0 14px; font-size: 13px; }
   .pick-bar .btn:disabled { opacity: .5; cursor: default; }
