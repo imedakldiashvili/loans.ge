@@ -714,7 +714,7 @@ function DoneForm({ h4, busy, onSend, onClose }: { h4: React.ReactNode; busy: bo
         <label className={ok ? 'on' : ''}>
           <input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} />
           <i />
-          <b>სესხი დამტკიცდა და გაცემულია</b>
+          <b>სესხი გაიცა</b>
         </label>
       </div>
       <div className="fbtns">
