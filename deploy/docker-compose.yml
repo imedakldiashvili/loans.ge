@@ -1,0 +1,48 @@
+# The server: docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: loans
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: loans
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "loans"]
+      interval: 5s
+      retries: 20
+
+  api:
+    build: { context: .., dockerfile: deploy/Dockerfile, target: api, args: { VITE_API_PUBLIC_URL: "https://${DOMAIN}" } }
+    restart: unless-stopped
+    depends_on: { postgres: { condition: service_healthy } }
+    environment:
+      NODE_ENV: ${APP_ENV}
+      PORT: 4000
+      DATABASE_URL: postgresql://loans:${DB_PASSWORD}@postgres:5432/loans
+      API_PUBLIC_URL: https://${DOMAIN}
+      SMS_PROVIDER: console
+      EMAIL_PROVIDER: console
+      DEV_OUTBOX: ${DEV_OUTBOX}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+    volumes: ["files:/data/fs"]
+
+  web:
+    build: { context: .., dockerfile: deploy/Dockerfile, target: web, args: { VITE_API_PUBLIC_URL: "https://${DOMAIN}" } }
+    restart: unless-stopped
+    depends_on: [api]
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+      OTP_USER: ${OTP_USER}
+      OTP_PASSWORD_HASH: ${OTP_PASSWORD_HASH}
+    volumes: ["caddy_data:/data", "caddy_config:/config"]
+
+volumes:
+  pgdata:
+  files:
+  caddy_data:
+  caddy_config:
