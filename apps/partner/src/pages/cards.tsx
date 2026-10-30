@@ -1,12 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { crud } from '../api';
-import { curSym, EditIcon, Modal, Switch, useToast } from '../ui/ui';
-import { CardDialog, CardInfo, CardRow, errText, Product, useProducts } from './products';
+import { curSym, EditIcon, Switch, useToast } from '../ui/ui';
+import { CardForm, CardInfo, errText, useProducts } from './products';
 
 // Product cards (back office): every card of the organisation's products in one list. A card = an offer — its terms by
 // offer type and currency, several on different amount ranges; a sales manager picks one when sending an offer.
-// Add / edit / switch on-off / delete; the same cards the product page shows.
+// Switch on-off here; add / edit / delete on the card's own page: /cards/new (?product=…&cur=…) and /cards/{id}.
 
 export function CardsPage() {
   const q = useProducts();
@@ -14,8 +15,7 @@ export function CardsPage() {
   const toast = useToast();
   const [prod, setProd] = useState('');
   const [cur, setCur] = useState('');
-  const [card, setCard] = useState<{ p: Product; cur: string; k: CardRow | null } | null>(null);
-  const [pick, setPick] = useState(false);
+  const nav = useNavigate();
   const refresh = () => qc.invalidateQueries({ queryKey: ['products'] });
   const products = q.data ?? [];
   const curs = [...new Set(products.flatMap((p) => p.Currencies))];
@@ -28,7 +28,7 @@ export function CardsPage() {
       <div className="top">
         <h2>პროდუქტის ბარათები</h2>
         <span className="count">{rows.length}</span>
-        <button type="button" className="btn btn-green topbtn" disabled={!products.length} onClick={() => setPick(true)}>
+        <button type="button" className="btn btn-green topbtn" disabled={!products.length} onClick={() => nav('/cards/new')}>
           + ბარათი
         </button>
       </div>
@@ -81,7 +81,7 @@ export function CardsPage() {
                     }
                   }}
                 />
-                <button type="button" className="ib edit" title="რედაქტირება" aria-label="რედაქტირება" onClick={() => setCard({ p, cur: k.Currency, k })}>
+                <button type="button" className="ib edit" title="რედაქტირება" aria-label="რედაქტირება" onClick={() => nav(`/cards/${k.ID}`)}>
                   <EditIcon />
                 </button>
               </span>
@@ -89,59 +89,100 @@ export function CardsPage() {
           </div>
         ))}
       </div>
-      {pick && <PickProduct products={products} onClose={() => setPick(false)} onPick={(p, c) => (setPick(false), setCard({ p, cur: c, k: null }))} />}
-      {card && <CardDialog p={card.p} cur={card.cur} k={card.k} onClose={() => setCard(null)} onSaved={() => (setCard(null), refresh())} />}
     </div>
   );
 }
 
-/** A new card: first its product and currency (the product's currencies), then the card form. */
-function PickProduct({ products, onClose, onPick }: { products: Product[]; onClose: () => void; onPick: (p: Product, cur: string) => void }) {
-  const [pid, setPid] = useState(products[0]?.ID ?? 0);
-  const p = products.find((x) => x.ID === pid);
-  const [cur, setCur] = useState(p?.Currencies[0] ?? '');
-  return (
-    <Modal title="ახალი ბარათი" onClose={onClose}>
-      <div className="form f main-form">
-        <div className="fld">
-          <label htmlFor="tProd">პროდუქტი</label>
-          <select
-            id="tProd"
-            value={pid}
-            onChange={(e) => {
-              const n = products.find((x) => x.ID === Number(e.target.value));
-              setPid(Number(e.target.value));
-              setCur(n?.Currencies[0] ?? '');
-            }}
-          >
-            {products.map((x) => (
-              <option key={x.ID} value={x.ID}>
-                {x.ProductType.NameKa}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="fld">
-          <label htmlFor="tCur">
-            ვალუტა <small className="muted">(პროდუქტის ვალუტებიდან)</small>
-          </label>
-          <select id="tCur" value={cur} onChange={(e) => setCur(e.target.value)}>
-            {(p?.Currencies ?? []).map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="fbtns">
-          <button type="button" className="btn btn-green" disabled={!p || !cur} onClick={() => p && onPick(p, cur)}>
-            გაგრძელება
-          </button>
-          <button type="button" className="btn btn-ghost" onClick={onClose}>
-            დახურვა
-          </button>
-        </div>
+/** /cards/new and /cards/{id}: the card form on its own page. A new card picks its product and currency first
+ *  (?product=…&cur=… preset them — the product page's "+ შეთავაზება"); back goes where it came from. */
+export function CardFormPage() {
+  const { id = '' } = useParams();
+  const [params] = useSearchParams();
+  const from = (useLocation().state as { from?: string } | null)?.from ?? '/cards';
+  const nav = useNavigate();
+  const qc = useQueryClient();
+  const q = useProducts();
+  const products = q.data ?? [];
+  const isNew = id === 'new';
+  const own = isNew ? null : products.flatMap((p) => p.Cards.map((k) => ({ p, k }))).find((x) => x.k.ID === Number(id));
+  const [pid, setPid] = useState(Number(params.get('product')) || 0);
+  const [cur, setCur] = useState(params.get('cur') ?? '');
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, []);
+  // a new card: the first product / its first currency until chosen
+  const p = own?.p ?? products.find((x) => x.ID === pid) ?? products[0];
+  const c = own?.k.Currency ?? (p?.Currencies.includes(cur) ? cur : p?.Currencies[0] ?? '');
+  const back = () => {
+    void qc.invalidateQueries({ queryKey: ['products'] });
+    nav(from);
+  };
+
+  if (!isNew && !Number(id)) return <Navigate to="/cards" replace />;
+  const head = (title: string) => (
+    <div className="top pf">
+      <button type="button" className="btn btn-ghost" onClick={back}>
+        ‹ უკან
+      </button>
+      <h2>{title}</h2>
+    </div>
+  );
+  if (!p || (!isNew && !own))
+    return (
+      <div className="main">
+        {head('ბარათი')}
+        <div className="empty">{q.isLoading ? 'იტვირთება…' : isNew ? 'პროდუქტი არ არის - პროდუქტებს ადმინისტრატორი ამატებს' : 'ბარათი ვერ მოიძებნა'}</div>
       </div>
-    </Modal>
+    );
+  return (
+    <div className="main">
+      {head(isNew ? 'ახალი ბარათი' : 'ბარათის რედაქტირება')}
+      <CardForm
+        key={`${p.ID}|${c}|${id}`}
+        p={p}
+        cur={c}
+        k={own?.k ?? null}
+        onClose={back}
+        onSaved={back}
+        head={
+          <>
+            <div className="frow">
+              <label htmlFor="kProd">პროდუქტი:</label>
+              <div className="one">
+                {isNew ? (
+                  <select id="kProd" value={p.ID} onChange={(e) => setPid(Number(e.target.value))}>
+                    {products.map((x) => (
+                      <option key={x.ID} value={x.ID}>
+                        {x.ProductType.NameKa}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="ro">{p.ProductType.NameKa}</div>
+                )}
+              </div>
+            </div>
+            <div className="frow">
+              <label htmlFor="kCur">ვალუტა:</label>
+              <div className="one">
+                {isNew ? (
+                  <select id="kCur" value={c} onChange={(e) => setCur(e.target.value)}>
+                    {p.Currencies.map((x) => (
+                      <option key={x} value={x}>
+                        {x} {curSym(x)}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="ro">
+                    {c} {curSym(c)}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        }
+      />
+    </div>
   );
 }

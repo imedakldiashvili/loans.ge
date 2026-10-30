@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { ApiError, crud, findAll, Ref } from '../api';
 import { Field, useRefs } from '../session';
-import { Chevron, curSym, EditIcon, ErrorLine, fmt, Modal, Switch, useToast } from '../ui/ui';
+import { Chevron, curSym, EditIcon, ErrorLine, fmt, Switch, useToast } from '../ui/ui';
 
 // Products of the organisation (prototype partner.html renderProducts / productEditPage / cardFields).
 // Product = product type (admin list) + currencies; offer types ("cards") per currency, values follow the type's field schema.
@@ -200,12 +200,12 @@ function ProductForm({ id, onBack }: { id: number; onBack: () => void }) {
   const products = useProducts();
   const qc = useQueryClient();
   const toast = useToast();
+  const nav = useNavigate();
   // types the organisation accepts (admin: organizationProductType) — the API validates; offer the ones not taken yet first
   const p = products.data?.find((x) => x.ID === id);
   const [desc, setDesc] = useState<string | null>(null);
   const [curs, setCurs] = useState<string[] | null>(null);
   const [openCur, setOpenCur] = useState<Set<string>>(new Set());
-  const [card, setCard] = useState<{ cur: string; k: CardRow | null } | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   useEffect(() => {
@@ -291,7 +291,7 @@ function ProductForm({ id, onBack }: { id: number; onBack: () => void }) {
                           disabled={!on || busy}
                           onClick={() => {
                             setOpenCur(new Set(openCur).add(c.Code));
-                            setCard({ cur: c.Code, k: null });
+                            nav(`/cards/new?product=${p?.ID}&cur=${c.Code}`, { state: { from: `/products/${id}` } });
                           }}
                         >
                           + შეთავაზება
@@ -333,7 +333,7 @@ function ProductForm({ id, onBack }: { id: number; onBack: () => void }) {
                                     }
                                   }}
                                 />
-                                <button type="button" className="ib edit" title="რედაქტირება" aria-label="რედაქტირება" onClick={() => setCard({ cur: c.Code, k })}>
+                                <button type="button" className="ib edit" title="რედაქტირება" aria-label="რედაქტირება" onClick={() => nav(`/cards/${k.ID}`, { state: { from: `/products/${id}` } })}>
                                   <EditIcon />
                                 </button>
                               </span>
@@ -368,7 +368,6 @@ function ProductForm({ id, onBack }: { id: number; onBack: () => void }) {
           </div>
         </div>
       </div>
-      {card && p && <CardDialog p={p} cur={card.cur} k={card.k} onClose={() => setCard(null)} onSaved={() => (setCard(null), refresh())} />}
     </div>
   );
 }
@@ -380,8 +379,9 @@ const PAIRS: [string, string, string][] = [
   ['insPct', 'insMin', 'დაზღვევა (თვეში)'],
 ];
 
-/** Offer type dialog (#dlg2): offer type + fields from the product type schema; min/max and pairs on one line. */
-export function CardDialog({ p, cur, k, onClose, onSaved }: { p: Product; cur: string; k: CardRow | null; onClose: () => void; onSaved: () => void }) {
+/** Card form (#dlg2, on its own page): offer type + fields from the product type schema; min/max and pairs on one line.
+ *  `head` — the rows above it (product and currency). */
+export function CardForm({ p, cur, k, head, onClose, onSaved }: { p: Product; cur: string; k: CardRow | null; head?: React.ReactNode; onClose: () => void; onSaved: () => void }) {
   const { fields, offerTypes } = useRefs();
   const toast = useToast();
   const fs = fields.filter((f) => f.ProductTypeID === p.ProductTypeID);
@@ -487,8 +487,9 @@ export function CardDialog({ p, cur, k, onClose, onSaved }: { p: Product; cur: s
   };
 
   return (
-    <Modal title={`${p.ProductType.NameKa} · ${cur}`} onClose={onClose}>
+    <div className="card">
       <div className="form f main-form">
+        {head}
         <div className="frow">
           <label htmlFor="kType">შეთავაზების ტიპი:</label>
           <div className="one">
@@ -515,7 +516,7 @@ export function CardDialog({ p, cur, k, onClose, onSaved }: { p: Product; cur: s
             {k ? 'შენახვა' : 'დამატება'}
           </button>
           <button type="button" className="btn btn-ghost" onClick={onClose}>
-            დახურვა
+            გაუქმება
           </button>
           {k && (
             <button type="button" className="btn btn-red" style={{ marginInlineStart: 'auto' }} onClick={() => remove(k)}>
@@ -524,6 +525,6 @@ export function CardDialog({ p, cur, k, onClose, onSaved }: { p: Product; cur: s
           )}
         </div>
       </div>
-    </Modal>
+    </div>
   );
 }

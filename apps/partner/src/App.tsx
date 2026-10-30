@@ -5,9 +5,8 @@ import logo from './logo.png';
 import { AppsPage } from './pages/apps';
 import { IntegrationPage } from './pages/integration';
 import { MePage } from './pages/me';
-import { OffersPage } from './pages/offers';
 import { ProductFormPage, ProductsPage } from './pages/products';
-import { CardsPage } from './pages/cards';
+import { CardFormPage, CardsPage } from './pages/cards';
 import { UsersPage } from './pages/users';
 import { chime, useTitleCounter } from './attention';
 import { Bell } from './bell';
@@ -16,7 +15,7 @@ import { ROLES, useSession } from './session';
 import { Modal, useToast } from './ui/ui';
 
 // Partner cabinet (prototype partner.html): login → workspace. Every tab has its own address:
-//   /applications (/applications/{id} — that record open) · /offers · /cards · /products (/products/{id}) · /users · /integration.
+//   /applications (/applications/{id} — that record open) · /cards (/cards/new, /cards/{id}) · /products (/products/{id}) · /users · /integration.
 // Sales see applications only; the back-office addresses send them back there.
 
 function useTheme(): [boolean, () => void, (d: boolean) => void] {
@@ -90,8 +89,8 @@ export function App() {
     <Routes>
       <Route path="/applications" element={<AppsPage key={p.ID} />} />
       <Route path="/applications/:id" element={<AppsPage key={p.ID} />} />
-      <Route path="/offers" element={back ? <OffersPage key={p.ID} /> : <Navigate to="/applications" replace />} />
       <Route path="/cards" element={back ? <CardsPage key={p.ID} /> : <Navigate to="/applications" replace />} />
+      <Route path="/cards/:id" element={back ? <CardFormPage key={p.ID} /> : <Navigate to="/applications" replace />} />
       <Route path="/products" element={back ? <ProductsPage key={p.ID} /> : <Navigate to="/applications" replace />} />
       <Route path="/products/:id" element={back ? <ProductFormPage /> : <Navigate to="/applications" replace />} />
       <Route path="/users" element={back ? <UsersPage key={p.ID} /> : <Navigate to="/applications" replace />} />
@@ -214,7 +213,6 @@ export function App() {
 /** The partner menu; sales see applications only. */
 const MENU: { to: string; label: string; icon: string; back?: boolean }[] = [
   { to: '/applications', label: 'განაცხადები', icon: 'M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5' },
-  { to: '/offers', label: 'შეთავაზებები', icon: 'M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z', back: true },
   { to: '/cards', label: 'ბარათები', icon: 'M8 3h11a2 2 0 0 1 2 2v11M4 7h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM8 12h5M8 16h5', back: true },
   { to: '/products', label: 'პროდუქტები', icon: 'M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8', back: true },
   { to: '/users', label: 'მომხმარებლები', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8', back: true },
