@@ -692,6 +692,11 @@
   /* inside the white frame: cards on the soft background, their status groups white */
   .cab-list .cab-card, .cab-list .cab-det { background: var(--card); }
   .cab-list .cab-stat, .cab-list .cab-det-group { background: var(--bg); }
+  /* the expanded part on white, no frames: the groups and the detailed view separated by straight lines only */
+  .cab-list .cab-det { background: var(--bg); padding: 0; gap: 0; }
+  .cab-list .cab-det .cab-stat { border: 0; border-radius: 0; border-bottom: 1px solid var(--line); } .cab-list .cab-det .cab-stat:has(+ .cab-det-foot) { border-bottom: 0; }   /* lines between the groups only — none above the first, none above the detailed view */
+  .cab-list .cab-det .cab-det-group { padding-inline: 18px; } .cab-list .cab-det .cab-stat-list { padding: 0 18px; }
+  .cab-list .cab-det .cab-det-foot { border-top: 0; background: var(--bg); }
   .cab-list .cab-group-empty { background: var(--card); }
   /* the bell — notifications */
   .bell { position: relative; }
