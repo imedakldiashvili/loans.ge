@@ -165,8 +165,12 @@ function Keys() {
               <span className="pinfo">
                 <b>{k.Name}</b>
                 <small>
-                  <code>lgk_{k.Prefix}_…</code> · {k.Scopes.map((s) => SCOPES.find((x) => x[0] === s)?.[1] ?? s).join(', ')}
+                  <code>lgk_{k.Prefix}_…</code>
                 </small>
+                {/* the scopes, one per line */}
+                {k.Scopes.map((sc) => (
+                  <small key={sc}>{SCOPES.find((x) => x[0] === sc)?.[1] ?? sc}</small>
+                ))}
                 <small>
                   ბოლო გამოყენება: {k.LastUsedOn ? fmtDate(k.LastUsedOn) : '-'}
                   {k.ExpiresOn ? ` · მოქმედებს ${fmtDate(k.ExpiresOn)}-მდე` : ''}

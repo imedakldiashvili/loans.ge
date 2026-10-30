@@ -38,9 +38,10 @@ export function UsersPage() {
   const [fCity, setFCity] = useState('');
   const covers = (u: Staff, ids: number[], id: string) => !id || u.Role !== 'sales' || !ids.length || ids.includes(Number(id));
   const needle = search.trim().toLowerCase();
-  const list = (q.data ?? []).filter(
-    (u) => (!needle || u.DisplayName.toLowerCase().includes(needle)) && (!fRole || u.Role === fRole) && covers(u, u.ScopeProducts, fProd) && covers(u, u.ScopeCities, fCity),
-  );
+  // back office first, then the sales managers (each group keeps its order)
+  const list = (q.data ?? [])
+    .filter((u) => (!needle || u.DisplayName.toLowerCase().includes(needle)) && (!fRole || u.Role === fRole) && covers(u, u.ScopeProducts, fProd) && covers(u, u.ScopeCities, fCity))
+    .sort((a, b) => Number(a.Role !== 'back') - Number(b.Role !== 'back'));
   const { shown, pager } = usePaged(list, [needle, fRole, fProd, fCity]);
   const self = (u: Staff) => u.ID === me?.Profile?.ID;
   const org = me?.Profile?.Organization;
