@@ -1,5 +1,4 @@
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Icon } from './icons';
 
 // One list template for every page (prototype `lp`): title + description left, add button right,
 // filters, optional extra block, then a panel with the table (header fixed, body scrolls) and the pager.
@@ -126,9 +125,8 @@ export function ListPage({ title, desc, add, filters, extra, back, caption, chil
     <>
       <div className="lp-top">
         {back && (
-          <button type="button" className="back" onClick={back.onClick}>
-            <Icon.back />
-            {back.label}
+          <button type="button" className="back" title={back.label} onClick={back.onClick}>
+            ‹ უკან
           </button>
         )}
         <div className="lp-title">
