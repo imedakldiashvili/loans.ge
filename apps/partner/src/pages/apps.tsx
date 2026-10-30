@@ -575,7 +575,7 @@ function ActionModal({ d, act, st, onClose, onDone }: { d: Detail; act: Act; st:
   // the status it is in » the status it moves to — a line of its own under the title
   const h4 = (title: string) => (
     <>
-      {/* the statuses framed in their colour, no fill */}
+      {/* the statuses as text in their colour — no fill, no frame */}
       <div className="st-flow">
         <span className="st" style={{ color: statusColor(st(d.Status), d.Status) }}>
           {st(d.Status)?.PartnerLabel}
