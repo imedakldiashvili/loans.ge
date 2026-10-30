@@ -290,6 +290,9 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
   const [cancel, setCancel] = useState(false);
   const refresh = () => qc.invalidateQueries({ queryKey: ['apps'] });
   const isClosed = a.Orgs.every((o) => !o.Next.length);
+  // the offers received (every one counts — an organisation may send several); an answer awaited while one is in "offer"
+  const received = a.Orgs.reduce((n, o) => n + o.Offers.length, 0);
+  const waiting = a.Orgs.some((o) => o.Status === 'offer' && o.Offers.length > 0);
   // closed without any offer accepted (nothing completed) — the application is cancelled
   const isCancelled = isClosed && !a.Orgs.some((o) => s.categoryOf(o.Status) === 'complete');
   // offers waiting for the customer's answer are answered in the comparison (choose / cancel, then send)
@@ -331,6 +334,10 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           </span>
         </button>
         <div className="cab-right">
+          {/* expand: above the amount */}
+          <button type="button" className="cab-ico cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
+            <Chevron />
+          </button>
           <i className="amt">{money(a.Amount, a.Currency)}</i>
           {/* under the amount: how many organisations are in each status (in its colour), then how many it was sent to */}
           <span className="st-counts">
@@ -346,21 +353,16 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               {a.Orgs.length}
             </span>
           </span>
-        </div>
-        <div className="cab-acts">
-          {/* choosing among the offers that came in (side by side); on the row */}
-          {a.Orgs.some((o) => o.Status === 'offer') && (
-            <button type="button" className="grp-compare" title={t('შეთავაზების არჩევა')} onClick={onCompare}>
+          {/* the offers that came in — stays once there is one; filled while an answer is awaited */}
+          {received > 0 && (
+            <button type="button" className={`recv-offers${waiting ? ' wait' : ''}`} title={t(waiting ? 'პასუხს ელოდება' : 'მიღებული შეთავაზებები')} onClick={onCompare}>
               {I.compare}
-              <span>{t('შეთავაზების არჩევა')}</span>
+              <span>{t('მიღებული შეთავაზებები')}</span>
+              <b>{received}</b>
             </button>
           )}
         </div>
       </div>
-      {/* expand: a bar under the card, the chevron in the middle */}
-      <button type="button" className="cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
-        <Chevron />
-      </button>
       {open && (
         <div className="cab-det">
           {GROUP_ORDER.map((st) => {
@@ -429,7 +431,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           })}
           {/* the detailed view — its own page (stopping the application is at its bottom) */}
           <div className="cab-det-foot">
-            <button type="button" className="btn btn-ghost cab-end" onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
+            <button type="button" className="btn btn-green cab-end cab-details" onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
               {I.eye}
               {t('დეტალური ნახვა')}
             </button>
@@ -501,10 +503,7 @@ export function AppView({ id, uid, onBack }: { id: number; uid: string; onBack: 
       <div className="wrap">
         <div className="cmp-head">
           <button type="button" className="btn btn-ghost" onClick={onBack}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
-              <path d="M15 6l-6 6 6 6" />
-            </svg>
-            {t('უკან')}
+            « {t('უკან')}
           </button>
         </div>
         <div className="view-page">

@@ -452,10 +452,12 @@
   .cab-card { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
   .cab-sum { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; width: 100%; text-align: start; font: inherit; background: none; border: 0; padding: 16px 18px; cursor: pointer; color: inherit; }
   .cab-sum:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
-  .cab-toggle { display: grid; place-items: center; width: 100%; height: 26px; border: 0; background: var(--bg); color: var(--muted); cursor: pointer; }   /* the expand bar under the card */
-  .cab-toggle:hover { color: var(--green); }
-  .cab-toggle:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
-  .cab-toggle svg { width: 16px; height: 16px; transition: transform .2s; }
+  .cab-toggle svg { width: 16px; height: 16px; transition: transform .2s; }   /* expand: an icon above the amount (.cab-ico) */
+  /* the offers received: under the amount; filled green while an answer is awaited, outlined after */
+  .recv-offers { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px 0 10px; border: 1px solid var(--green); border-radius: 6px; background: var(--bg); color: var(--green); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .recv-offers svg { width: 15px; height: 15px; } .recv-offers b { min-width: 20px; height: 20px; padding: 0 5px; display: inline-grid; place-items: center; border-radius: 4px; background: var(--green-soft); color: var(--green); font-size: 12px; }
+  .recv-offers.wait { background: var(--green); color: #fff; } .recv-offers.wait b { background: #fff; color: var(--green); } .recv-offers:hover { border-color: var(--green-dark); } .recv-offers.wait:hover { background: var(--green-dark); }
+  @media (max-width: 560px) { .recv-offers span { display: none; } }   /* phone: the icon and the number */
   .cab-card.open .cab-toggle svg { transform: rotate(180deg); } .cab-card.open .cab-toggle { color: var(--green); }
   .cab-det { background: var(--bg); color: var(--fg); padding: 2px 18px 14px; display: grid; gap: 10px; }
   .cab-stat { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
@@ -679,7 +681,7 @@
   .cab-panel.cab-list { padding: 16px; margin-top: 12px; }
   .cab-list .cab-top { margin-bottom: 12px; }
   /* inside the white frame: cards on the soft background, their status groups white */
-  .cab-list .cab-card, .cab-list .cab-det, .cab-list .cab-toggle { background: var(--card); }
+  .cab-list .cab-card, .cab-list .cab-det { background: var(--card); }
   .cab-list .cab-stat, .cab-list .cab-det-group { background: var(--bg); }
   .cab-list .cab-group-empty { background: var(--card); }
   /* the bell — notifications */
@@ -784,6 +786,7 @@
   .cab-det-foot { display: flex; justify-content: center; padding: 12px 14px; border-top: 1px solid var(--line); }
   .cab-end { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; color: var(--orange); border-color: var(--line); }
   .cab-end svg { width: 18px; height: 18px; } .cab-end:hover { color: #d9534f; border-color: #d9534f; }
+  .cab-end.cab-details, .cab-end.cab-details:hover { color: #fff; border-color: var(--green); }   /* "detailed view": filled green, white text */ .cab-end.cab-details:hover { background: var(--green-dark); border-color: var(--green-dark); }
   /* the amount on the right */
   .st-counts { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-variant-numeric: tabular-nums; }
   /* each count in a small badge: its status colour as the frame, a light shade of it as the background */
