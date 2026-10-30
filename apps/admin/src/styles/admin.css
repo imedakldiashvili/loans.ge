@@ -92,12 +92,13 @@
   @media (min-width: 901px) {
     .app.in.sbc { grid-template-columns: 64px minmax(0, 1fr); }
     .sbc .sb { padding-inline: 8px; } .sbc .sb-logo { margin: 0 -8px; padding: 0 0 0 12px; }   /* the logo stays where it is when the menu folds */ .sbc .sb-logo b { display: none; } .sbc #sbTg svg { transform: rotate(180deg); }
-    .sbc .side button { justify-content: center; padding-inline: 0; gap: 0; } .sbc .side .lbl, .sbc .side .chev, .sbc .side .n, .sbc .side .sub { display: none !important; }
+    /* icons keep their place and the items their height when the menu folds: 8px + 16px = the open menu's 24px; the label keeps its line (zero width) */
+    .sbc .side button { padding-inline: 16px 0; gap: 0; } .sbc .side .lbl { width: 0; opacity: 0; overflow: hidden; } .sbc .side .chev, .sbc .side .n, .sbc .side .sub { display: none !important; }
     .sbc .sb { overflow: visible; } .sbc .side { overflow: visible; margin-inline: 0; padding-inline: 0; } .sbc .side .grpw { position: relative; }
     /* შეკუმშულზე hover → ქვემენიუ გვერდით ამოდის */
     .sbc .side .grpw:hover .sub { display: grid !important; position: absolute; left: calc(100% + 6px); top: 0; min-width: 230px; padding: 6px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 10px 30px rgba(52,60,92,.18); z-index: 30; gap: 1px; }
     .sbc .side .grpw:hover .sub::before { content: ""; position: absolute; left: -8px; top: 0; bottom: 0; width: 8px; }
-    .sbc .side .sub button { justify-content: flex-start; padding: 8px 10px; gap: 10px; } .sbc .side .sub .lbl { display: inline !important; } .sbc .side .sub .n { display: grid !important; }
+    .sbc .side .sub button { justify-content: flex-start; padding: 8px 10px; gap: 10px; } .sbc .side .sub .lbl { display: inline !important; width: auto; opacity: 1; } .sbc .side .sub .n { display: grid !important; }
     .sbc .side button.act { background: var(--green-soft); } .sbc .side button.act::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--green); }
   }
   /* the logo above and the user below stay in place; only the menu between them scrolls */
