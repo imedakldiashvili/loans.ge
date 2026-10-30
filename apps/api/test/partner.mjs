@@ -29,7 +29,6 @@ ok(det.Next.map((n) => n.Status).sort().join() === 'interested,rejected' && det.
 ok((await find('product')).status === 200, 'sales: read products');
 ok((await call('POST', '/partner/product/add', { ProductTypeID: 1, Currencies: ['GEL'] })).status === 403, 'sales: cannot add products → 403');
 ok((await find('staff')).status === 403, 'sales: no staff list → 403');
-ok((await find('offer')).status === 403, 'sales: no sent-offers list → 403');
 
 // ── status flow: sent → interested → offer → (customer only) accepted ✗ → cancelled
 const ch = (r, body) => call('PUT', `/partner/application/changeStatus/${r.ID}/${r.UID}`, body);
@@ -115,15 +114,6 @@ if (free) {
 // ── back office: catalogue and staff
 forget('partner');
 await login('partner', 'office@7.ge');
-// the sent offers: this organisation's only, newest first, with the customer, the record and who sent it
-const offs = (await find('offer')).json.Data;
-const dbOffs = await prisma.offer.count({ where: { isDeleted: false, applicationOrg: { organization: { nameKa: 'მისო A' }, isDeleted: false } } });
-ok(offs.TotalCount === dbOffs && offs.Items.every((o, i, a) => !i || a[i - 1].CreatedOn >= o.CreatedOn), "offers: the organisation's sent offers, newest first", offs.TotalCount);
-const mineOff = offs.Items.find((o) => o.ApplicationOrg.ID === sent.ID);
-ok(mineOff && mineOff.SentBy && mineOff.ApplicationOrg.Application.Pid && mineOff.Card?.OfferTypeID, 'offers: customer, record, card and who sent it', mineOff);
-ok((await find('offer', { Filter: { Search: mineOff.ApplicationOrg.Application.Pid } })).json.Data.Items.every((o) => o.ApplicationOrg.Application.Pid === mineOff.ApplicationOrg.Application.Pid), 'offers: search by personal number');
-const chosenN = (await find('offer', { Filter: { Chosen: true } })).json.Data;
-ok(chosenN.Items.every((o) => o.ChosenOn) && chosenN.TotalCount + (await find('offer', { Filter: { Chosen: false } })).json.Data.TotalCount === offs.TotalCount, 'offers: chosen / not chosen filter');
 const pts = await prisma.productType.findMany();
 const mortgage = pts.find((p) => p.code === 'mortgage_loan'); // მისო A does not have it yet
 const consumer = pts.find((p) => p.code === 'consumer_loan');

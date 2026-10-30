@@ -77,7 +77,7 @@ export class AuthGuard implements CanActivate {
     if (!scopes.includes(need)) throw new AppError('FORBIDDEN', `API გასაღებს არ აქვს უფლება „${need}"`);
   }
 
-  /** Back office manages products, offer cards and staff and sees the sent offers; sales may only read products / cards (to make offers). */
+  /** Back office manages products, offer cards and staff; sales may only read products / cards (to make offers). */
   private checkPartnerRole(role: string | null, module: string | null, action: string | null) {
     if (role === 'back' || ['auth', 'application', 'events', 'notification', 'push'].includes(module ?? '')) return;
     if ((module === 'product' || module === 'card') && action && READ_ACTIONS.has(action)) return;

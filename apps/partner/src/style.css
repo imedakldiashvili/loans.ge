@@ -344,9 +344,6 @@
 
   /* application row: product · applicant · place and date on the left; timer + amount, status (text) on the right */
   .row.r4 { grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1.2fr) auto 40px; }
-  /* a row that opens something (sent offers → its application) */
-  .row.link { cursor: pointer; }
-  .row.link:hover .info b { color: var(--green); }
   .row .who-col { display: grid; gap: 3px; align-content: center; } .row .who-col b { overflow-wrap: anywhere; } .row .who-col small { overflow-wrap: anywhere; }
   .row .right > .amt { display: block; }
   .row .app-no { font: inherit; color: inherit; font-variant-numeric: tabular-nums; }
