@@ -333,9 +333,10 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             </small>
           </span>
         </button>
-        {/* the offers received, the amount beside them, the expand to the right */}
+        {/* the amount, the offers received beside it, the expand to the right */}
         <div className="cab-right">
           <span className="cab-right-col">
+            <i className="amt">{money(a.Amount, a.Currency)}</i>
             {/* the offers that came in — stays once there is one; filled while an answer is awaited */}
             {received > 0 && (
               <button type="button" className={`recv-offers${waiting ? ' wait' : ''}`} title={t(waiting ? 'პასუხს ელოდება' : 'მიღებული შეთავაზებები')} onClick={onCompare}>
@@ -344,7 +345,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                 <b>{received}</b>
               </button>
             )}
-            <i className="amt">{money(a.Amount, a.Currency)}</i>
           </span>
           <button type="button" className="cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
             <Chevron />
