@@ -31,13 +31,17 @@ export function UsersPage() {
   const q = useQuery({ queryKey: ['staff'], queryFn: () => findAll<Staff>('partner', 'staff') });
   const [form, setForm] = useState<Staff | 'new' | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ['staff'] });
-  // filters: role, product, location — no limit (and back office) covers every product / city
+  // filters: name, role, product, location — no limit (and back office) covers every product / city
+  const [search, setSearch] = useState('');
   const [fRole, setFRole] = useState('');
   const [fProd, setFProd] = useState('');
   const [fCity, setFCity] = useState('');
   const covers = (u: Staff, ids: number[], id: string) => !id || u.Role !== 'sales' || !ids.length || ids.includes(Number(id));
-  const list = (q.data ?? []).filter((u) => (!fRole || u.Role === fRole) && covers(u, u.ScopeProducts, fProd) && covers(u, u.ScopeCities, fCity));
-  const { shown, pager } = usePaged(list, [fRole, fProd, fCity]);
+  const needle = search.trim().toLowerCase();
+  const list = (q.data ?? []).filter(
+    (u) => (!needle || u.DisplayName.toLowerCase().includes(needle)) && (!fRole || u.Role === fRole) && covers(u, u.ScopeProducts, fProd) && covers(u, u.ScopeCities, fCity),
+  );
+  const { shown, pager } = usePaged(list, [needle, fRole, fProd, fCity]);
   const self = (u: Staff) => u.ID === me?.Profile?.ID;
   const org = me?.Profile?.Organization;
   const logo = org?.LogoPath ? `/fs/${org.LogoPath}` : '/fs/default/org-logo.png';
@@ -55,6 +59,7 @@ export function UsersPage() {
         </button>
       </div>
       <div className="srow">
+        <input className="search" type="search" placeholder="ძებნა: სახელი გვარი" value={search} onChange={(e) => setSearch(e.target.value)} />
         <select className="fsel" aria-label="როლი" value={fRole} onChange={(e) => setFRole(e.target.value)}>
           <option value="">აირჩიე როლი</option>
           <option value="sales">{ROLES.sales}</option>

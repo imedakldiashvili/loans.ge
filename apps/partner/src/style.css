@@ -120,6 +120,7 @@
   @media (max-width: 640px) { .prow.pr4 { grid-template-columns: 40px minmax(0, 1fr) 40px; } .prow.pr4 .pmeta { grid-column: 2; justify-items: start; text-align: left; } .prow.pr4 .racts.p { grid-column: 2; grid-row: 3; justify-self: start; } .prow.pr4 .tg { grid-column: 3; grid-row: 1; } .det.cards { padding-left: 16px; } .crow { grid-template-columns: minmax(0, 1fr) auto; } .crow .racts.p { grid-column: 1 / -1; justify-self: start; } }
   .ib.edit { color: var(--fg); } .ib.edit:hover { border-color: var(--green); color: var(--green); }
   .ib.del:hover { border-color: var(--red); color: var(--red); }
+  .prow.wide { grid-template-columns: minmax(0, 1fr) auto; }   /* no icon: the text across the row, the actions on the right (integration) */
   .prow.urow { grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 76px 40px; } .urow .pmeta { justify-items: start; text-align: left; } .urow .pmeta small { white-space: normal; } .urow .ucont small { font-size: 13px; color: var(--fg); }   /* მომხმარებელი: სახელი + როლი, კონტაქტები, უფლებები, ქმედებები */
   @media (max-width: 640px) { .prow.urow { grid-template-columns: 40px minmax(0, 1fr) 76px 34px; } .urow .ucont, .urow .pmeta { grid-column: 2 / 4; } .urow .racts.p { grid-column: 3; grid-row: 1; } .urow .tg { grid-column: 4; grid-row: 1; } }
   .prow.pr4.crd { grid-template-columns: 40px minmax(0, 1fr) auto auto 40px; }   /* ბარათის რიგი: ჩართვა, ასლი, რედაქტირება, წაშლა */
@@ -130,6 +131,7 @@
   .f .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .f .fld { margin-bottom: 12px; } .f textarea { width: 100%; font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--fg); min-height: 64px; resize: vertical; }
   .f .chk { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
   @media (max-width: 640px) { .prow { grid-template-columns: 40px minmax(0, 1fr) 76px; } .prow .pmeta { grid-column: 2; justify-items: start; text-align: left; } .prow .racts.p { grid-column: 3; grid-row: 1; } .f .grid2 { grid-template-columns: 1fr; gap: 0; } }
+  @media (max-width: 640px) { .prow.wide { grid-template-columns: minmax(0, 1fr); } .prow.wide .racts.p { grid-column: 1; grid-row: auto; justify-self: start; flex-wrap: wrap; } }   /* phone: the actions under the text */
 
   /* Signed in: the menu on the left (as in admin). The logo and the fold above, the organisation / user / bell / theme / logout below stay; only the sections between them scroll. */
   .app { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }

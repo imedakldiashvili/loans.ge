@@ -2,7 +2,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Navigate, NavLink, useParams } from 'react-router-dom';
 import { api, ApiError, Page, Ref } from '../api';
-import { ErrorLine, fmtDate, Modal, Switch, usePaged, useToast } from '../ui/ui';
+import { EditIcon, ErrorLine, fmtDate, Modal, Switch, usePaged, useToast } from '../ui/ui';
+import { DelIcon } from './products';
 
 // Integration (back office): the organisation's own system works with the same partner API as this cabinet.
 // Tabs: API keys (X-Api-Key) with scopes · webhooks (signed POSTs about new applications / status changes) · their delivery log —
@@ -147,7 +148,7 @@ function Keys() {
         {!q.data?.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'გასაღები ჯერ არ არის'}</div>}
         {pageRows.map((k) => (
           <div key={k.ID} className="card">
-            <div className="prow">
+            <div className="prow wide">
               <span className="pinfo">
                 <b>{k.Name}</b>
                 <small>
@@ -162,10 +163,12 @@ function Keys() {
                 <Switch on={k.IsEnable} onChange={(v) => run(() => api('PUT', `/partner/apiKey/${v ? 'enable' : 'disable'}/${k.ID}/${k.UID}`), v ? 'გასაღები ჩაირთო' : 'გასაღები გამოირთო')} />
                 <button
                   type="button"
-                  className="btn btn-ghost sm"
+                  className="ib del"
+                  title="წაშლა"
+                  aria-label="წაშლა"
                   onClick={() => confirm(`წავშალოთ გასაღები „${k.Name}"? სისტემა, რომელიც მას იყენებს, ვეღარ შევა.`) && run(() => api('DELETE', `/partner/apiKey/delete/${k.ID}/${k.UID}`), 'გასაღები წაიშალა')}
                 >
-                  წაშლა
+                  <DelIcon />
                 </button>
               </span>
             </div>
@@ -268,7 +271,7 @@ function Hooks() {
         {!q.data?.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'webhook ჯერ არ არის'}</div>}
         {pageRows.map((h) => (
           <div key={h.ID} className="card">
-            <div className="prow">
+            <div className="prow wide">
               <span className="pinfo">
                 <b style={{ wordBreak: 'break-all' }}>{h.Url}</b>
                 <small>{h.Events.map((e) => EVENTS.find((x) => x[0] === e)?.[1] ?? e).join(', ')}</small>
@@ -278,8 +281,8 @@ function Hooks() {
                 <button type="button" className="btn btn-ghost sm" onClick={() => run(() => api('POST', `/partner/webhook/test/${h.ID}/${h.UID}`), 'სატესტო ping გაიგზავნა')}>
                   ტესტი
                 </button>
-                <button type="button" className="btn btn-ghost sm" onClick={() => setForm(h)}>
-                  რედაქტირება
+                <button type="button" className="ib edit" title="რედაქტირება" aria-label="რედაქტირება" onClick={() => setForm(h)}>
+                  <EditIcon />
                 </button>
                 <button
                   type="button"
@@ -295,8 +298,8 @@ function Hooks() {
                 >
                   გასაღების განახლება
                 </button>
-                <button type="button" className="btn btn-ghost sm" onClick={() => confirm('წავშალოთ webhook?') && run(() => api('DELETE', `/partner/webhook/delete/${h.ID}/${h.UID}`), 'webhook წაიშალა')}>
-                  წაშლა
+                <button type="button" className="ib del" title="წაშლა" aria-label="წაშლა" onClick={() => confirm('წავშალოთ webhook?') && run(() => api('DELETE', `/partner/webhook/delete/${h.ID}/${h.UID}`), 'webhook წაიშალა')}>
+                  <DelIcon />
                 </button>
               </span>
             </div>
@@ -398,7 +401,7 @@ function Deliveries() {
         {!q.data?.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'მიწოდება ჯერ არ ყოფილა'}</div>}
         {pageRows.map((d) => (
           <div key={d.ID} className="card">
-            <div className="prow">
+            <div className="prow wide">
               <span className="pinfo">
                 <b>
                   {d.Event} · <span style={{ color: ST[d.Status][1] }}>{ST[d.Status][0]}</span>
