@@ -293,7 +293,8 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
     <article className={`cab-card${open ? ' open' : ''}`}>
       <div className="cab-top-row">
         <button type="button" className="cab-sum" aria-expanded={open} onClick={() => setOpen(!open)}>
-          <span className="ico">
+          {/* the application's state in the icon's colour: in progress / done / cancelled */}
+          <span className={`ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t(isClosed ? (isCancelled ? 'გაუქმებული' : 'დასრულებული') : 'მიმდინარე')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
               <path d="M14 3v6h6M9 13h6M9 17h4" />
@@ -314,26 +315,19 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             </small>
           </span>
         </button>
-        {/* the amount, and under it the application's status with its icon: in progress — the timer (it ends the
-            application); closed — OK (cancelled — grey) */}
         <div className="cab-right">
           <i className="amt">{money(a.Amount, a.Currency)}</i>
-          {isClosed ? (
-            <span className={`app-st ${isCancelled ? 'closed-off' : 'closed'}`}>
-              {I.ok}
-              {t(isCancelled ? 'გაუქმებული' : 'დასრულებული')}
-            </span>
-          ) : (
-            <button type="button" className="app-st cab-timer" title={t('განაცხადის დასრულება')} onClick={() => setCancel(true)}>
-              {I.timer}
-              {t('მიმდინარე')}
-            </button>
-          )}
         </div>
         <div className="cab-acts">
           <button type="button" className="cab-ico cab-view" aria-label={t('ნახვა')} title={t('ნახვა')} onClick={() => setView(true)}>
             {I.eye}
           </button>
+          {/* in progress: the timer ends the application */}
+          {!isClosed && (
+            <button type="button" className="cab-ico cab-timer" aria-label={t('განაცხადის დასრულება')} title={t('განაცხადის დასრულება')} onClick={() => setCancel(true)}>
+              {I.timer}
+            </button>
+          )}
           {/* expand: the last one on the right */}
           <button type="button" className="cab-ico cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
             <Chevron />
