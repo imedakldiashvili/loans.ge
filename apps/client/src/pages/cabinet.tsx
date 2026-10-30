@@ -280,7 +280,10 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             </svg>
           </span>
           <span className="info">
-            <b>{n(a.ProductType)}</b>
+            {/* the product with the application's number beside it — the same number the partners and the support see */}
+            <b>
+              {n(a.ProductType)} <small className="app-no">#{a.ID}</small>
+            </b>
             <span className="who">
               {/* personal number before the name (as in the partner cabinet) */}
               {a.Pid ? `${a.Pid} · ` : ''}
@@ -335,7 +338,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                     {st === 'offer' && (
                       <button type="button" className="grp-compare" onClick={(e) => (e.stopPropagation(), onCompare())} onKeyDown={(e) => e.stopPropagation()}>
                         {I.compare}
-                        <span>{t('შედარება')}</span>
+                        <span>{t('შეთავაზების შედარება')}</span>
                       </button>
                     )}
                     <span className="cnt">{list.length}</span>
@@ -459,7 +462,9 @@ function ViewModal({ a, onClose }: { a: App; onClose: () => void }) {
       <h3 id="viewTitle">
         {n(a.ProductType)} · {money(a.Amount, a.Currency)}
       </h3>
-      <p>{t('გაგზავნილია')} {fmtDate(a.CreatedOn)}</p>
+      <p>
+        #{a.ID} · {t('გაგზავნილია')} {fmtDate(a.CreatedOn)}
+      </p>
       <div className="view-body">
         {sec('საკრედიტო ისტორია', [['სტატუსი', refName(creditHistory, a.CreditHistory)]])}
         {sec('ფინანსური მდგომარეობა', [
