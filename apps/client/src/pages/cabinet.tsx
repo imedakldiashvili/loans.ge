@@ -358,12 +358,12 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               <span>{t('შეთავაზების შედარება')}</span>
             </button>
           )}
-          {/* expand: the last one on the right */}
-          <button type="button" className="cab-ico cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
-            <Chevron />
-          </button>
         </div>
       </div>
+      {/* expand: a bar under the card, the chevron in the middle */}
+      <button type="button" className="cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
+        <Chevron />
+      </button>
       {open && (
         <div className="cab-det">
           {GROUP_ORDER.map((st) => {
