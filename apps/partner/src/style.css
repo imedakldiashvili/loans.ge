@@ -47,7 +47,9 @@
   .login { max-width: 420px; margin: 60px auto; background: var(--bg); border: 1px solid var(--line); border-top: 4px solid var(--green); border-radius: 10px; padding: 28px; text-align: center; }
   .login-page { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
   .login-page .login { margin: 0; width: 100%; }
-  .login-top { display: flex; align-items: center; gap: 8px; margin: -8px 0 22px; padding-bottom: 16px; border-bottom: 1px solid var(--line); text-align: start; }
+  .login-top { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: -8px 0 22px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .login-top .logo { margin: 0; }
+  .login-theme { position: fixed; top: 16px; inset-inline-end: 16px; }
   .login h2 { font-size: 20px; margin-bottom: 6px; } .login p { margin: 0 0 18px; color: var(--muted); }
   .login select, .f select, .f input { width: 100%; font: inherit; font-size: 15px; padding: 11px 14px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--fg); }
   .login select { margin-bottom: 14px; } .login .fld { margin-bottom: 12px; } .lerr { margin-top: 10px; font-size: 13px; color: var(--red); } .login code { font-family: ui-monospace, monospace; font-size: 12px; background: var(--bg-soft); padding: 1px 5px; border-radius: 4px; }

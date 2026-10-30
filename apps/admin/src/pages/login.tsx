@@ -47,15 +47,15 @@ export function LoginPage() {
 
   return (
     <main className="login-page">
+      {/* the theme switch — the page's top-right corner */}
+      <button type="button" className="ctl login-theme" title="თემა" aria-label="თემა" onClick={toggleTheme}>
+        {theme === 'dark' ? <Icon.sun /> : <Icon.moon />}
+      </button>
       <section className="login">
-        {/* the logo and the theme switch sit in the dialog itself — no header on the login page */}
+        {/* no header on the login page: the logo in the middle of the dialog, the app's name under it */}
         <div className="login-top">
           <Logo className="logo" />
           <span className="tag">ადმინი</span>
-          <span style={{ flex: 1 }} />
-          <button type="button" className="ctl" title="თემა" aria-label="თემა" onClick={toggleTheme}>
-            {theme === 'dark' ? <Icon.sun /> : <Icon.moon />}
-          </button>
         </div>
         <h2>ადმინისტრაციული კონსოლი</h2>
         <p>{challenge ? `კოდი გაიგზავნა: ${masked}` : 'შეიყვანე ელ.ფოსტა ან მობილური — ერთჯერად კოდს გამოგიგზავნით'}</p>

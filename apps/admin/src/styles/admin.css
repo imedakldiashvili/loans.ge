@@ -57,7 +57,9 @@
   .login h2 { font-size: 20px; margin-bottom: 6px; } .login p { margin: 0 0 18px; color: var(--muted); }
   .login-page { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
   .login-page .login { margin: 0; width: 100%; }
-  .login-top { display: flex; align-items: center; gap: 8px; margin: -8px 0 22px; padding-bottom: 16px; border-bottom: 1px solid var(--line); text-align: start; }
+  .login-top { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: -8px 0 22px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .login-top .logo { margin: 0; }
+  .login-theme { position: fixed; top: 16px; inset-inline-end: 16px; }
   .login .f { text-align: start; margin-bottom: 12px; } .lerr { margin-top: 10px; font-size: 13px; color: var(--red); }
   select, input[type=datetime-local], input[type=text], input[type=number], input[type=email], input[type=tel], input[type=search], input:not([type]), textarea { width: 100%; font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--fg); }
   /* ჩამოშლის ისარი კიდიდან მოშორებით, როგორც partner.html-ის .fsel */

@@ -91,8 +91,8 @@ export function App() {
       <Route path="*" element={<Navigate to="/applications" replace />} />
     </Routes>
   );
-  const themeBtn = (
-    <button type="button" className="ctl" title="თემა" aria-label="თემა" onClick={toggleTheme}>
+  const themeBtn = (cls: string) => (
+    <button type="button" className={cls} title="თემა" aria-label="თემა" onClick={toggleTheme}>
       {/* sun in dark, moon in light — the theme it switches to (as in admin) */}
       <svg viewBox="0 0 24 24">
         {dark ? (
@@ -115,17 +115,16 @@ export function App() {
     </Link>
   );
 
-  // not signed in: the login dialog alone — the logo and the theme switch sit in it
+  // not signed in: the login dialog alone — the logo in the middle of it, the theme switch in the page's top-right corner
   if (!p)
     return (
       <main className="login-page">
+        {themeBtn('ctl login-theme')}
         <Login
           top={
             <div className="login-top">
               {logoLink('logo')}
               <span className="tag">პარტნიორი</span>
-              <span style={{ flex: 1 }} />
-              {themeBtn}
             </div>
           }
         />
