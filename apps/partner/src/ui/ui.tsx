@@ -87,3 +87,76 @@ export function useNow() {
 }
 
 export const ErrorLine = ({ error }: { error: string }) => (error ? <div className="lerr" style={{ marginTop: 10 }}>{error}</div> : null);
+
+/** Records per page — remembered in this browser. */
+export const PAGE_SIZES = [5, 10, 20, 50];
+const SIZE_KEY = 'partnerPageSize';
+export function usePageSize(): [number, (n: number) => void] {
+  const [size, setSize] = useState(() => {
+    try {
+      const v = Number(localStorage.getItem(SIZE_KEY));
+      return PAGE_SIZES.includes(v) ? v : 10;
+    } catch {
+      return 10;
+    }
+  });
+  return [
+    size,
+    (n) => {
+      setSize(n);
+      try {
+        localStorage.setItem(SIZE_KEY, String(n));
+      } catch {
+        /* storage blocked */
+      }
+    },
+  ];
+}
+
+/** List footer (as in the admin): records per page left; ‹ pages › and the totals right; a long run of pages folds into "…". */
+export function Pager({ page, totalPages, total, size, onPage, onSize }: { page: number; totalPages: number; total: number; size: number; onPage: (p: number) => void; onSize: (n: number) => void }) {
+  const n = Math.max(1, totalPages);
+  const nums: ReactNode[] = [];
+  let dots = false;
+  for (let i = 1; i <= n; i++) {
+    if (n > 7 && Math.abs(i - page) > 2 && i !== 1 && i !== n) {
+      if (!dots) nums.push(<span key={'d' + i} className="pg-dots">…</span>);
+      dots = true;
+      continue;
+    }
+    dots = false;
+    nums.push(
+      <button key={i} type="button" className={`pg${i === page ? ' on' : ''}`} aria-label={`გვერდი ${i}`} aria-current={i === page ? 'page' : undefined} onClick={() => onPage(i)}>
+        {i}
+      </button>,
+    );
+  }
+  return (
+    <div className="pfoot">
+      <label className="pp">
+        გვერდზე{' '}
+        <select aria-label="ჩანაწერი გვერდზე" value={size} onChange={(e) => onSize(Number(e.target.value))}>
+          {PAGE_SIZES.map((x) => (
+            <option key={x} value={x}>
+              {x}
+            </option>
+          ))}
+        </select>
+      </label>
+      <span className="pright">
+        <nav className="pager">
+          <button type="button" className="pg" disabled={page <= 1} onClick={() => onPage(page - 1)} aria-label="წინა">
+            ‹
+          </button>
+          {nums}
+          <button type="button" className="pg" disabled={page >= n} onClick={() => onPage(page + 1)} aria-label="შემდეგი">
+            ›
+          </button>
+        </nav>
+        <span className="pcount">
+          {total} ჩანაწერი · {n} გვერდი
+        </span>
+      </span>
+    </div>
+  );
+}

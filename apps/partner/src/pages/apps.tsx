@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError, crud, findAll, Page, Ref } from '../api';
 import { Named, StatusRow, statusColor, useRefs, useSession } from '../session';
-import { Chevron, curSym, ErrorLine, fmt, fmtCd, fmtDate, Modal, useNow, useToast } from '../ui/ui';
+import { Chevron, curSym, ErrorLine, fmt, fmtCd, fmtDate, Modal, Pager, useNow, usePageSize, useToast } from '../ui/ui';
 
 // Incoming applications (prototype partner.html render / renderDetail / actions / forms).
 // Data: POST /partner/application/find, GET …/detail (with the allowed next statuses), PUT …/changeStatus.
@@ -79,7 +79,6 @@ interface Card {
   Product: { ID: number; ProductTypeID: number };
 }
 
-const PAGE = 5;
 const TIMES = { '24h': 1, '7d': 7, '30d': 30 } as const;
 const TIMER_TITLE: Record<string, string> = {
   sent: 'პასუხისთვის დარჩენილი დრო', interested: 'შეთავაზების გაგზავნისთვის დარჩენილი დრო',
@@ -119,6 +118,7 @@ export function AppsPage() {
   const [time, setTime] = useState<keyof typeof TIMES | 'all'>('24h');
   const [view, setView] = useState<Set<string> | null>(null);
   const [page, setPage] = useState(1);
+  const [size, setSize] = usePageSize();
   const first = useRef(true);
   const [ddOpen, setDdOpen] = useState(false);
   const ddBtn = useRef<HTMLButtonElement>(null);
@@ -151,8 +151,8 @@ export function AppsPage() {
   }, [JSON.stringify(filter)]);
 
   const q = useQuery({
-    queryKey: ['apps', filter, page],
-    queryFn: () => api<FindResult>('POST', `/partner/application/find/${page}/${PAGE}`, { Filter: filter }),
+    queryKey: ['apps', filter, page, size],
+    queryFn: () => api<FindResult>('POST', `/partner/application/find/${page}/${size}`, { Filter: filter }),
     enabled: refs.statuses.length > 0,
   });
   const counts = (k: string) => q.data?.StatusCounts.find((c) => c.Status === k)?.Count ?? 0;
@@ -257,21 +257,7 @@ export function AppsPage() {
           rows.map((r) => <AppCard key={r.ID} r={r} open={sel === r.ID} onToggle={() => setSel(sel === r.ID ? null : r.ID)} st={st} onChanged={changed} />)
         )}
       </div>
-      {pages > 1 && (
-        <nav className="pager">
-          <button type="button" className="pg" disabled={page === 1} onClick={() => setPage(page - 1)}>
-            ‹
-          </button>
-          {Array.from({ length: pages }, (_, i) => i + 1).map((i) => (
-            <button key={i} type="button" className={`pg${i === page ? ' on' : ''}`} disabled={i === page} onClick={() => setPage(i)}>
-              {i}
-            </button>
-          ))}
-          <button type="button" className="pg" disabled={page === pages} onClick={() => setPage(page + 1)}>
-            ›
-          </button>
-        </nav>
-      )}
+      <Pager page={page} totalPages={pages} total={q.data?.TotalCount ?? 0} size={size} onPage={setPage} onSize={(n) => (setSize(n), setPage(1))} />
     </div>
   );
 }
