@@ -164,7 +164,9 @@
   @media (min-width: 901px) {
     .app.sbc { grid-template-columns: 64px minmax(0, 1fr); }
     .sbc .sb { padding-inline: 8px; } .sbc .sb-logo { margin: 0 -8px; padding: 0 0 0 12px; }   /* the logo stays where it is when the menu folds */ .sbc .sb-logo b { display: none; } .sbc #sbTg svg { transform: rotate(180deg); }
-    .sbc .side { margin-inline: 0; padding-inline: 0; overflow: visible; } .sbc .side a { padding-inline: 16px 0; } .sbc .side .lbl { width: 0; opacity: 0; }   /* icons keep their place and the items their height when the menu folds (8px + 16px = the open menu's 24px; the label keeps its line) */
+    /* folding changes nothing but the width: the list keeps the open menu's edges (12px left, 2px + the scrollbar gutter right),
+       the items their left padding (icon at 24px) and their height (the label keeps its line at zero width) */
+    .sbc .side { margin-inline: -8px; padding-inline: 12px 2px; } .sbc .side a { padding-inline: 12px 0; } .sbc .side .lbl { width: 0; opacity: 0; }
     .sbc .sb-foot { flex-direction: column; margin-inline: -8px; padding-inline: 8px; } .sbc .sb-foot .who { justify-content: center; flex: none; } .sbc .sb-foot .who .lbl { display: none; } .sbc .sb-ctl { flex-direction: column; }
   }
   /* narrow screens: the menu above the page */
