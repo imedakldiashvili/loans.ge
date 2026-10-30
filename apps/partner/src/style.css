@@ -40,6 +40,7 @@
   .who .lg { width: 30px; height: 30px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
   .who b { font-weight: 600; } .who small { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
   .ctl { height: 36px; min-width: 36px; padding: 0 8px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--fg); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+  .ctl.danger:hover { color: var(--red); }
   .ctl svg, .ib svg, .side a svg, #sbTg svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tag { display: inline-block; background: var(--orange-soft); color: var(--orange); font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; letter-spacing: .3px; }
 

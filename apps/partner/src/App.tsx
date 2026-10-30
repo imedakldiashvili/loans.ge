@@ -38,7 +38,7 @@ function useTheme(): [boolean, () => void, (d: boolean) => void] {
 }
 
 export function App() {
-  const { me, loading } = useSession();
+  const { me, loading, logout } = useSession();
   const [dark, toggleTheme, setDark] = useTheme();
   // the folded menu, remembered
   const [small, setSmall] = useState(() => {
@@ -166,6 +166,11 @@ export function App() {
           </NavLink>
           <div className="sb-ctl">
             <Bell gateway="partner" onOpen={(n) => nav(n.ApplicationOrgID ? `/applications/${n.ApplicationOrgID}` : '/applications')} />
+            <button type="button" className="ctl danger" title="გასვლა" aria-label="გასვლა" onClick={() => void logout()}>
+              <svg viewBox="0 0 24 24">
+                <path d="M10 17l5-5-5-5M15 12H3M21 3v18" />
+              </svg>
+            </button>
           </div>
         </div>
       </aside>

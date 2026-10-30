@@ -58,7 +58,7 @@ function useMenuCounts() {
 }
 
 export function Shell({ children }: { children: ReactNode }) {
-  const { me } = useAuth();
+  const { me, logout } = useAuth();
   const [theme, , setTheme] = useTheme();
   const loc = useLocation();
   const nav = useNavigate();
@@ -117,7 +117,7 @@ export function Shell({ children }: { children: ReactNode }) {
             );
           })}
         </nav>
-        {/* the user (→ my data, where logout is too) — at the very bottom of the menu */}
+        {/* the user (→ my data) and logout to its right — at the very bottom of the menu */}
         <div className="sb-foot">
           <button type="button" className={`who${loc.pathname === '/me' ? ' on' : ''}`} title={`${name} — ჩემი მონაცემები`} onClick={() => nav('/me')}>
             {/* the loans.ge logo — as the organisation's logo in partner */}
@@ -129,6 +129,11 @@ export function Shell({ children }: { children: ReactNode }) {
               <small>{me?.Profile ? ADMIN_ROLES[me.Profile.Role] : ''}</small>
             </span>
           </button>
+          <div className="sb-ctl">
+            <button type="button" className="ctl danger" title="გასვლა" aria-label="გასვლა" onClick={() => void logout()}>
+              <Icon.logout />
+            </button>
+          </div>
         </div>
       </aside>
       <div className="col">
