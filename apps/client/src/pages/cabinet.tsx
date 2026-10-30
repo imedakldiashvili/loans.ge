@@ -337,14 +337,18 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
         <div className="cab-right">
           <span className="cab-right-col">
             <i className="amt">{money(a.Amount, a.Currency)}</i>
-            {/* the offers that came in — stays once there is one; filled while an answer is awaited */}
-            {received > 0 && (
-              <button type="button" className={`recv-offers${waiting ? ' wait' : ''}`} title={t(waiting ? 'პასუხს ელოდება' : 'მიღებული შეთავაზებები')} onClick={onCompare}>
-                {I.compare}
-                <span>{t('მიღებული შეთავაზებები')}</span>
-                <b>{received}</b>
-              </button>
-            )}
+            {/* the offers that came in — always shown (none yet: 0, grey, not clickable); filled while an answer is awaited */}
+            <button
+              type="button"
+              className={`recv-offers${waiting ? ' wait' : ''}${received ? '' : ' none'}`}
+              title={t(waiting ? 'პასუხს ელოდება' : 'მიღებული შეთავაზებები')}
+              disabled={!received}
+              onClick={onCompare}
+            >
+              {I.compare}
+              <span>{t('მიღებული შეთავაზებები')}</span>
+              <b>{received}</b>
+            </button>
           </span>
           <button type="button" className="cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
             <Chevron />

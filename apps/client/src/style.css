@@ -460,6 +460,7 @@
   .recv-offers { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px 0 10px; border: 1px solid var(--green); border-radius: 6px; background: var(--bg); color: var(--green); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .recv-offers svg { width: 15px; height: 15px; } .recv-offers b { min-width: 20px; height: 20px; padding: 0 5px; display: inline-grid; place-items: center; border-radius: 4px; background: var(--green-soft); color: var(--green); font-size: 12px; }
   .recv-offers.wait { background: var(--green); color: #fff; } .recv-offers.wait b { background: #fff; color: var(--green); } .recv-offers:hover { border-color: var(--green-dark); } .recv-offers.wait:hover { background: var(--green-dark); }
+  .recv-offers.none { border-color: var(--line); color: var(--muted); cursor: default; } .recv-offers.none b { background: var(--bg-soft); color: var(--muted); }   /* none yet: 0, grey */
   @media (max-width: 560px) { .recv-offers span { display: none; } }   /* phone: the icon and the number */
   .cab-card.open .cab-toggle svg { transform: rotate(180deg); } .cab-card.open .cab-toggle { color: var(--green); }
   .cab-det { background: var(--bg); color: var(--fg); padding: 2px 18px 14px; display: grid; gap: 10px; }
