@@ -563,6 +563,8 @@
   .app-view .view-page { max-width: 720px; margin: 0 auto 40px; background: var(--card, var(--bg)); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px 0; }
   .app-view .view-title { font-size: 20px; margin: 0 0 4px; } .app-view .view-sub { margin: 0 0 16px; font-size: 13px; color: var(--muted); }
   .app-view .view-page > .cab-det-foot { margin: 18px -22px 0; }
+  .app-view .view-orgs { margin-bottom: 14px; } .app-view .view-orgs .cab-card { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }   /* the organisations' groups as a framed block */
+  .cab-card .cab-sum { cursor: pointer; }
   .view-box { max-width: 560px; text-align: start; max-height: calc(100vh - 32px); overflow-y: auto; }
   .view-box h3 { font-size: 18px; margin-bottom: 4px; }
   .offer-name { font-size: 18px; line-height: 32px; margin: -12px 0 10px; padding-right: 36px; }
