@@ -48,6 +48,8 @@ export interface CrudConfig<S extends ZodTypeAny = ZodTypeAny> {
   beforeDelete?: (row: Record<string, unknown>, prisma: PrismaService) => Promise<void>;
   /** Extra checks before enable/disable. */
   beforeEnable?: (row: Record<string, unknown>, isEnable: boolean, prisma: PrismaService) => Promise<void>;
+  /** after a new row is stored (e.g. records that belong with it) */
+  afterAdd?: (id: bigint, data: Record<string, unknown>, prisma: PrismaService) => Promise<void>;
   /** Allowed actions; default — all standard actions. Others answer NOT_FOUND. */
   actions?: CrudAction[];
 }
@@ -114,6 +116,7 @@ export class CrudService<S extends ZodTypeAny = ZodTypeAny> {
     await this.cfg.validate?.(data, this.prisma, null);
     if (this.cfg.moveGroup && data.sort === 0) data.sort = await this.nextSort(data);
     const row = await this.db.create({ data: { ...data, ...(this.cfg.scope ?? {}), ...(this.cfg.createFn?.() ?? {}), createdBy: currentUserId() }, select: { id: true, uid: true } });
+    await this.cfg.afterAdd?.(row.id, data, this.prisma);
     return { id: row.id, uid: row.uid };
   }
 

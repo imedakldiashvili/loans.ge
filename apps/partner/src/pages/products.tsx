@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { ApiError, crud, findAll, Ref } from '../api';
 import { Field, useRefs } from '../session';
 import { Chevron, curSym, EditIcon, ErrorLine, fmt, Modal, Switch, useToast } from '../ui/ui';
@@ -48,12 +48,10 @@ export function ProductsPage() {
     <div className="main">
       <div className="top">
         <h2>პროდუქტები</h2>
-        <button type="button" className="btn btn-green topbtn" onClick={() => nav('/products/new')}>
-          + პროდუქტი
-        </button>
       </div>
+      {/* products are given by the admin (organisation → product types); here they are switched on / off and get their offer cards */}
       <div className="list">
-        {!list.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'პროდუქტი არ არის'}</div>}
+        {!list.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'პროდუქტი არ არის - პროდუქტებს ადმინისტრატორი ამატებს'}</div>}
         {list.map((p) => {
           const curs = p.Currencies.map((c) => [c, p.Cards.filter((k) => k.Currency === c).length] as const).filter((x) => x[1]);
           return (
@@ -179,31 +177,31 @@ function CardInfo({ p, k }: { p: Product; k: CardRow }) {
 
 /** /products/new and /products/{id}: the product form on its own address. */
 export function ProductFormPage() {
-  const { id = 'new' } = useParams();
+  const { id = '' } = useParams();
   const nav = useNavigate();
   const qc = useQueryClient();
+  // there is no "new product" — the admin adds products
+  if (!Number(id)) return <Navigate to="/products" replace />;
   return (
     <ProductForm
       key={id}
-      id={id === 'new' ? 'new' : Number(id)}
+      id={Number(id)}
       onBack={() => {
         void qc.invalidateQueries({ queryKey: ['products'] });
         nav('/products');
       }}
-      onCreated={(newId) => nav(`/products/${newId}`, { replace: true })}
     />
   );
 }
 
-/** Product add / edit page: type + currencies; on edit — the offer types per currency. */
-function ProductForm({ id, onBack, onCreated }: { id: number | 'new'; onBack: () => void; onCreated: (id: number) => void }) {
+/** Product page: the type (the admin's, read only), description, currencies and the offer types per currency. */
+function ProductForm({ id, onBack }: { id: number; onBack: () => void }) {
   const { productTypes, currencies } = useRefs();
   const products = useProducts();
   const qc = useQueryClient();
   const toast = useToast();
   // types the organisation accepts (admin: organizationProductType) — the API validates; offer the ones not taken yet first
-  const p = id === 'new' ? null : products.data?.find((x) => x.ID === id);
-  const [typeId, setTypeId] = useState<number | null>(null);
+  const p = products.data?.find((x) => x.ID === id);
   const [desc, setDesc] = useState<string | null>(null);
   const [curs, setCurs] = useState<string[] | null>(null);
   const [openCur, setOpenCur] = useState<Set<string>>(new Set());
@@ -214,7 +212,7 @@ function ProductForm({ id, onBack, onCreated }: { id: number | 'new'; onBack: ()
     window.scrollTo({ top: 0 });
   }, []);
 
-  const t = typeId ?? p?.ProductTypeID ?? productTypes[0]?.ID ?? null;
+  const t = p?.ProductTypeID ?? null; // the admin's choice, sent back unchanged
   const d = desc ?? p?.Description ?? '';
   const cs = curs ?? p?.Currencies ?? [];
   const refresh = () => qc.invalidateQueries({ queryKey: ['products'] });
@@ -225,9 +223,10 @@ function ProductForm({ id, onBack, onCreated }: { id: number | 'new'; onBack: ()
     setError('');
     try {
       const body = { ProductTypeID: t, Description: d.trim() || null, Currencies: nextCurs };
-      const r = p ? await crud('partner', 'product').edit(p, body) : await crud('partner', 'product').add(body);
+      if (!p) return null;
+      const r = await crud('partner', 'product').edit(p, body);
       await refresh();
-      if (!quiet) toast(p ? 'პროდუქტი შეინახა' : 'პროდუქტი დაემატა');
+      if (!quiet) toast('პროდუქტი შეინახა');
       return r;
     } catch (e) {
       setError(errText(e));
@@ -237,28 +236,22 @@ function ProductForm({ id, onBack, onCreated }: { id: number | 'new'; onBack: ()
     }
   };
 
-  if (id !== 'new' && !p) return <div className="main"><div className="empty">{products.isLoading ? 'იტვირთება…' : 'პროდუქტი ვერ მოიძებნა'}</div></div>;
+  if (!p) return <div className="main"><div className="empty">{products.isLoading ? 'იტვირთება…' : 'პროდუქტი ვერ მოიძებნა'}</div></div>;
   return (
     <div className="main">
       <div className="top pf">
         <button type="button" className="btn btn-ghost" onClick={onBack}>
           ‹ უკან
         </button>
-        <h2>{p ? 'პროდუქტის რედაქტირება' : 'ახალი პროდუქტი'}</h2>
+        <h2>პროდუქტის რედაქტირება</h2>
       </div>
       <div className="card">
         <div className="form f">
           <div className="fld">
-            <label htmlFor="fType">
-              პროდუქტი <small className="muted">(ადმინის სიიდან)</small>
+            <label>
+              პროდუქტი <small className="muted">(ადმინისტრატორი ამატებს)</small>
             </label>
-            <select id="fType" value={t ?? ''} onChange={(e) => setTypeId(Number(e.target.value))}>
-              {productTypes.map((x) => (
-                <option key={x.ID} value={x.ID}>
-                  {x.NameKa}
-                </option>
-              ))}
-            </select>
+            <div className="ro">{productTypes.find((x) => x.ID === t)?.NameKa ?? p.ProductType.NameKa}</div>
           </div>
           <div className="fld">
             <label htmlFor="fDesc">აღწერა</label>
@@ -296,13 +289,7 @@ function ProductForm({ id, onBack, onCreated }: { id: number | 'new'; onBack: ()
                           type="button"
                           className="btn btn-ghost sm"
                           disabled={!on || busy}
-                          onClick={async () => {
-                            // a new product is saved first, then the offer form opens on its edit page
-                            if (!p) {
-                              const r = await save(cs, true);
-                              if (r) onCreated(r.ID);
-                              return;
-                            }
+                          onClick={() => {
                             setOpenCur(new Set(openCur).add(c.Code));
                             setCard({ cur: c.Code, k: null });
                           }}
@@ -370,33 +357,14 @@ function ProductForm({ id, onBack, onCreated }: { id: number | 'new'; onBack: ()
               disabled={busy}
               onClick={async () => {
                 const r = await save();
-                if (r) (p ? onBack() : onCreated(r.ID));
+                if (r) onBack();
               }}
             >
-              {p ? 'შენახვა' : 'დამატება'}
+              შენახვა
             </button>
             <button type="button" className="btn btn-ghost" onClick={onBack}>
               გაუქმება
             </button>
-            {p && (
-              <button
-                type="button"
-                className="btn btn-red"
-                style={{ marginInlineStart: 'auto' }}
-                onClick={async () => {
-                  if (!confirm(`წავშალოთ პროდუქტი „${p.ProductType.NameKa}" ${cardsLabel(p.Cards.length)}თ?`)) return;
-                  try {
-                    await crud('partner', 'product').remove(p);
-                    toast('პროდუქტი წაიშალა');
-                    onBack();
-                  } catch (e) {
-                    setError(errText(e));
-                  }
-                }}
-              >
-                წაშლა
-              </button>
-            )}
           </div>
         </div>
       </div>

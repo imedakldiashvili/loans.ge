@@ -4,6 +4,7 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import { DEFAULT_STATUS_CONFIG } from '@loans/shared';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ensureAllPartnerProducts } from '../src/partner/ensure-products';
 
 const prisma = new PrismaClient();
 const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data/prototype.json'), 'utf8'));
@@ -145,6 +146,8 @@ async function main() {
       partnerProductId.set(`${o.id}|${t.id}`, p.id);
     }
   }
+  // every other product type an organisation has gets its (switched-off) partner product — products come from the admin only
+  await ensureAllPartnerProducts(prisma);
 
   // ── statuses and transitions (packages/shared defaults)
   const statusId = new Map<string, bigint>();

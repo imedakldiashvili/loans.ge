@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { CrudConfig, crudModuleParts } from '../core/crud';
 import { conflict, validation } from '../core/errors';
 import { FileStore } from '../core/files';
+import { currentUserId } from '../core/request-context';
+import { ensurePartnerProduct } from '../partner/ensure-products';
 import { OrgLogoController, OrgLogoService } from './org-logo';
 
 // Admin reference data and configuration — standard CRUD for each table (STANDARDS.md §2), plus `move` (↑↓) where rows are ordered.
@@ -117,6 +119,17 @@ const configs: CrudConfig[] = [
       .object({ organizationId: id, productTypeId: id, minAmount: z.number().nonnegative().nullable().default(null), maxAmount: z.number().positive().nullable().default(null) })
       .refine((p) => p.minAmount === null || p.maxAmount === null || p.maxAmount >= p.minAmount, { path: ['maxAmount'], message: 'მაქსიმუმი ნაკლებია მინიმუმზე' }),
     filterFields: ['organizationId', 'productTypeId'], unique: [['organizationId', 'productTypeId']], include: { productType: { select: { id: true, code: true, nameKa: true, nameEn: true } } },
+    // this is how products reach a partner: the type given here becomes the partner's product (switched off until the partner turns it on);
+    // taking the type away removes the product (and its offer cards) from the partner's catalogue
+    afterAdd: async (_id, d, prisma) => {
+      await ensurePartnerProduct(prisma, d.organizationId as bigint, d.productTypeId as bigint, currentUserId());
+    },
+    beforeDelete: async (row, prisma) => {
+      await prisma.partnerProduct.updateMany({
+        where: { organizationId: row.organizationId as bigint, productTypeId: row.productTypeId as bigint, isDeleted: false },
+        data: { isDeleted: true, deletedOn: new Date(), deletedBy: currentUserId() },
+      });
+    },
   },
   {
     gateway: 'admin', module: 'status', model: 'status',

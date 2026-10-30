@@ -18,6 +18,9 @@ const productScope = () => {
 
 export const products: CrudConfig = {
   gateway: 'partner', module: 'product', model: 'partnerProduct',
+  // products are given by the admin (organisation → product types, see ensure-products.ts):
+  // the partner can't add or delete them — only switch them on / off and edit currencies / description
+  actions: ['find', 'detail', 'edit', 'enable', 'disable'],
   scopeFn: () => ({ organizationId: org(), ...productScope() }),
   createFn: () => ({ organizationId: org() }),
   schema: z.object({
@@ -30,7 +33,10 @@ export const products: CrudConfig = {
     productType: { select: { id: true, uid: true, code: true, nameKa: true, nameEn: true, noTerm: true } },
     cards: { where: { isDeleted: false }, orderBy: { id: 'asc' } },
   },
-  validate: async (d, prisma) => {
+  validate: async (d, prisma, id) => {
+    // the product type is the admin's choice — an edit can't move a product to another type
+    const current = id ? await prisma.partnerProduct.findUnique({ where: { id }, select: { productTypeId: true } }) : null;
+    if (current && current.productTypeId !== d.productTypeId) throw validation([{ field: 'ProductTypeID', message: 'პროდუქტის ტიპს ადმინისტრატორი ცვლის' }]);
     const accepted = await prisma.organizationProductType.count({ where: { organizationId: org(), productTypeId: d.productTypeId as bigint, isDeleted: false } });
     if (!accepted) throw validation([{ field: 'ProductTypeID', message: 'ორგანიზაცია ამ პროდუქტის ტიპს არ იღებს' }]);
     const codes = d.currencies as string[];
