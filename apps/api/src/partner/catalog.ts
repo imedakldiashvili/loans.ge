@@ -79,13 +79,28 @@ export const cards: CrudConfig = {
   }),
   filterFields: ['productId', 'currency', 'offerTypeId'],
   include: { product: { select: { id: true, uid: true, productTypeId: true, currencies: true } } },
-  validate: async (d, prisma) => {
+  validate: async (d, prisma, id) => {
     const p = await prisma.partnerProduct.findFirst({ where: { id: d.productId as bigint, organizationId: org(), isDeleted: false }, include: { productType: true } });
     if (!p) throw validation([{ field: 'ProductID', message: 'პროდუქტი ვერ მოიძებნა' }]);
     if (!p.currencies.includes(d.currency as string)) throw validation([{ field: 'Currency', message: 'ვალუტა პროდუქტზე ჩართული არ არის' }]);
     const ot = await prisma.referenceItem.count({ where: { id: d.offerTypeId as bigint, kind: 'offer_type', isDeleted: false } });
     if (!ot) throw validation([{ field: 'OfferTypeID', message: 'შეთავაზების ტიპი ვერ მოიძებნა' }]);
     await validateCardValues(prisma, p.productTypeId, d.values as Record<string, unknown>, p.productType.noTerm);
+    // a card = an offer: per offer type and currency a product may have several, on different amount ranges (100–500, 500–1000)
+    const range = (v: unknown) => {
+      const x = (v ?? {}) as Record<string, unknown>;
+      return [typeof x.minAmt === 'number' ? x.minAmt : 0, typeof x.maxAmt === 'number' ? x.maxAmt : Infinity];
+    };
+    const [lo, hi] = range(d.values);
+    const others = await prisma.partnerOfferCard.findMany({ where: { productId: p.id, offerTypeId: d.offerTypeId as bigint, currency: d.currency as string, isDeleted: false, ...(id ? { id: { not: id } } : {}) } });
+    const clash = others.find((o) => {
+      const [a, b] = range(o.values);
+      return lo < b && a < hi;
+    });
+    if (clash) {
+      const [a, b] = range(clash.values);
+      throw validation([{ field: 'Values.minAmt', message: `თანხის დიაპაზონი ემთხვევა ამავე ტიპის სხვა ${d.currency} ბარათს (${a}–${b === Infinity ? '∞' : b})` }]);
+    }
   },
 };
 

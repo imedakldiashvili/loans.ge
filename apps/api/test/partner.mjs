@@ -148,6 +148,16 @@ ok(bad.status === 400 && ['Values.rate', 'Values.unknownKey', 'Values.maxAmt', '
 ok((await call('POST', '/partner/card/add', { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'USD', Values: { rate: 12, minAmt: 100, maxAmt: 5000, minM: 3, maxM: 24 } })).status === 400, 'card currency must be enabled on the product');
 const nc = await call('POST', '/partner/card/add', { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'GEL', Values: { rate: 12, feePct: 1, insPct: 0.2, minAmt: 100, maxAmt: 5000, minM: 3, maxM: 24 } });
 ok(nc.status === 200, 'back: add a valid card', nc.json);
+// several cards of one offer type and currency — only on different amount ranges; another offer type may overlap
+const cardVals = (lo, hi) => ({ rate: 12, minAmt: lo, maxAmt: hi, minM: 3, maxM: 24 });
+const cardAdd = (lo, hi) => call('POST', '/partner/card/add', { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'GEL', Values: cardVals(lo, hi) });
+ok((await cardAdd(3000, 8000)).status === 400, 'back: a card whose amount range overlaps another one is refused (400)');
+const nc2 = await cardAdd(5000, 10000);
+ok(nc2.status === 200, 'back: a card on the next amount range (5 000-10 000) is fine', nc2.json);
+ok((await call('PUT', `/partner/card/edit/${nc2.json.Data.ID}/${nc2.json.Data.UID}`, { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'GEL', Values: cardVals(4000, 10000) })).status === 400, 'back: editing a card into an overlapping range is refused (400)');
+ok((await call('PUT', `/partner/card/edit/${nc2.json.Data.ID}/${nc2.json.Data.UID}`, { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'GEL', Values: cardVals(5000, 12000) })).status === 200, 'back: a card keeps its own range on edit');
+const ot2 = await prisma.referenceItem.findFirst({ where: { kind: 'offer_type', id: { not: ot.id } } });
+ok((await call('POST', '/partner/card/add', { ProductID: np.json.Data.ID, OfferTypeID: Number(ot2.id), Currency: 'GEL', Values: cardVals(3000, 8000) })).status === 200, 'back: another offer type may cover the same amounts');
 // the admin takes the type away → the product (with its cards) leaves the partner's catalogue
 ok((await call('DELETE', `/admin/organizationProductType/delete/${link.json.Data.ID}/${link.json.Data.UID}`)).status === 200, 'admin: takes the product type away');
 ok(!(await find('product')).json.Data.Items.some((p) => p.ID === np.json.Data.ID), 'partner: the product is gone from the catalogue');
