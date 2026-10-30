@@ -1,10 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { Navigate, NavLink, useParams } from 'react-router-dom';
 import { api, ApiError, Page, Ref } from '../api';
 import { ErrorLine, fmtDate, Modal, Switch, usePaged, useToast } from '../ui/ui';
 
-// Integration (back office): the bank's own system works with the same partner API as this cabinet.
-// API keys (X-Api-Key) with scopes, webhooks (signed POSTs about new applications / status changes) and their delivery log.
+// Integration (back office): the organisation's own system works with the same partner API as this cabinet.
+// Tabs: API keys (X-Api-Key) with scopes · webhooks (signed POSTs about new applications / status changes) · their delivery log —
+// /integration/keys, /integration/webhooks, /integration/log.
 // The full description of the API: Swagger at {API}/docs.
 
 const API_DOCS = `${import.meta.env.VITE_API_PUBLIC_URL ?? 'http://localhost:4000'}/docs`;
@@ -49,13 +51,22 @@ interface Delivery extends Ref {
 const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' - ') : 'შეცდომა');
 const items = <T,>(path: string, body: object = {}) => api<Page<T>>('POST', path, body).then((p) => p.Items);
 
+// the three parts are tabs, each on its own address
+const TABS = [
+  ['keys', 'API გასაღებები'],
+  ['webhooks', 'Webhook-ები'],
+  ['log', 'მიწოდების ლოგი'],
+] as const;
+
 export function IntegrationPage() {
+  const { tab = 'keys' } = useParams();
+  if (!TABS.some(([k]) => k === tab)) return <Navigate to="/integration" replace />;
   return (
     <div className="main">
       <div className="top">
         <h2>ინტეგრაცია</h2>
       </div>
-      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+      <div className="card" style={{ padding: 16 }}>
         <p style={{ margin: 0 }}>
           თქვენი სისტემა იყენებს იმავე API-ს, რასაც ეს კაბინეტი: <code>/partner/…</code>, სათაურით <code>X-Api-Key</code>. ახალ განაცხადებსა და სტატუსის ცვლილებებს webhook-ით მიიღებს.
           აღწერა და მაგალითები:{' '}
@@ -65,9 +76,16 @@ export function IntegrationPage() {
           .
         </p>
       </div>
-      <Keys />
-      <Hooks />
-      <Deliveries />
+      <nav className="tabs">
+        {TABS.map(([k, label]) => (
+          <NavLink key={k} to={`/integration/${k}`} className={() => (k === tab ? 'on' : '')}>
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+      {tab === 'keys' && <Keys />}
+      {tab === 'webhooks' && <Hooks />}
+      {tab === 'log' && <Deliveries />}
     </div>
   );
 }
@@ -119,8 +137,8 @@ function Keys() {
   };
   return (
     <>
-      <div className="top" style={{ marginTop: 8 }}>
-        <h2 style={{ fontSize: 17 }}>API გასაღებები</h2>
+      <div className="top">
+        <span />
         <button type="button" className="btn btn-green topbtn" onClick={() => setForm(true)}>
           + გასაღები
         </button>
@@ -240,8 +258,8 @@ function Hooks() {
   };
   return (
     <>
-      <div className="top" style={{ marginTop: 24 }}>
-        <h2 style={{ fontSize: 17 }}>Webhook-ები</h2>
+      <div className="top">
+        <span />
         <button type="button" className="btn btn-green topbtn" onClick={() => setForm('new')}>
           + webhook
         </button>
@@ -367,9 +385,9 @@ function Deliveries() {
   const { shown: pageRows, pager } = usePaged(q.data ?? [], [status]);
   return (
     <>
-      <div className="top" style={{ marginTop: 24 }}>
-        <h2 style={{ fontSize: 17 }}>მიწოდების ლოგი</h2>
-        <select className="fsel" style={{ maxWidth: 200 }} aria-label="სტატუსი" value={status} onChange={(e) => setStatus(e.target.value)}>
+      <div className="top">
+        <span />
+        <select className="fsel" style={{ maxWidth: 200, justifySelf: 'end' }} aria-label="სტატუსი" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">ყველა</option>
           <option value="ok">მიწოდებული</option>
           <option value="pending">მოლოდინში</option>

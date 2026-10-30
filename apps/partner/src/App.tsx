@@ -15,7 +15,7 @@ import { ROLES, useSession } from './session';
 import { Modal, useToast } from './ui/ui';
 
 // Partner cabinet (prototype partner.html): login → workspace. Every tab has its own address:
-//   /applications (/applications/{id} — that record open) · /cards (/cards/new, /cards/{id}) · /products (/products/{id}) · /users · /integration.
+//   /applications (/applications/{id} — that record open) · /cards (/cards/new, /cards/{id}) · /products (/products/{id}) · /users · /integration (/integration/{keys|webhooks|log}).
 // Sales see applications only; the back-office addresses send them back there.
 
 function useTheme(): [boolean, () => void, (d: boolean) => void] {
@@ -95,6 +95,7 @@ export function App() {
       <Route path="/products/:id" element={back ? <ProductFormPage /> : <Navigate to="/applications" replace />} />
       <Route path="/users" element={back ? <UsersPage key={p.ID} /> : <Navigate to="/applications" replace />} />
       <Route path="/integration" element={back ? <IntegrationPage key={p.ID} /> : <Navigate to="/applications" replace />} />
+      <Route path="/integration/:tab" element={back ? <IntegrationPage key={p.ID} /> : <Navigate to="/applications" replace />} />
       <Route path="/me" element={<MePage dark={dark} setDark={setDark} />} />
       <Route path="*" element={<Navigate to="/applications" replace />} />
     </Routes>
