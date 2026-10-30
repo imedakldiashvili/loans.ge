@@ -634,11 +634,10 @@ export function MarkBar({ m }: { m: OfferMarks }) {
   return (
     <div className="pick-bar">
       <span className="pick-acts">
-        <span className={`pick-n${m.chosenOffers.length ? ' on' : ''}`}>
-          {t('არჩეულია')}: <b>{m.chosenOffers.length}</b>
-        </span>
+        {/* how many are chosen — inside the button */}
         <button type="button" className="btn btn-green sm" disabled={!canSend} onClick={() => (m.setError(''), m.setAsking(true))}>
           {t('არჩეულების დადასტურება')}
+          <span className="pick-n">{m.chosenOffers.length}</span>
         </button>
       </span>
       {m.asking && <ConfirmOffers accept={m.accepts} chosen={m.marks} cancel={m.declines} pending={m.pending} busy={m.sending} error={m.error} onYes={m.send} onClose={() => m.setAsking(false)} />}
