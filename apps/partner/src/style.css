@@ -342,6 +342,7 @@
   /* application row: product · applicant · place and date on the left; timer + amount, status (text) on the right */
   .row.r4 { grid-template-columns: 40px minmax(0, 1fr) auto 40px; }
   .row .right > .amt { display: block; }
+  .row .app-no { font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
   .row .r-date { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); text-align: right; white-space: nowrap; }
   .row .amt-line { display: flex; align-items: center; gap: 8px; justify-content: flex-end; margin-top: 4px; }
   .row .st-text { font-size: 12px; font-weight: 700; white-space: nowrap; }

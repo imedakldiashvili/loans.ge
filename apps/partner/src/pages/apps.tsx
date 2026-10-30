@@ -363,15 +363,16 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
           </svg>
         </span>
         <span className="info">
-          <b>{a.ProductType.NameKa}</b>
+          {/* the number: the customer's application / this organisation's record */}
+          <b>
+            {a.ProductType.NameKa} <span className="app-no">#{a.ID}/{r.ID}</span>
+          </b>
           <small>
             {applicantName(r)}
             {taker && <span className="taker" title="აიღო"> · 👤 {taker}</span>}
           </small>
           {/* the mobile and the e-mail — once the contacts are open */}
           {(a.Phone || a.Email) && <small>{[a.Phone && `+995 ${a.Phone.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')}`, a.Email].filter(Boolean).join(' · ')}</small>}
-          {/* the city and, when there is one, the district (or village) */}
-          <small>{[cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((x) => x.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(' - ') || '—'}</small>
         </span>
         <span className="right">
           <span className="amt">{money(a.Amount, a.Currency)}</span>
@@ -381,7 +382,8 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
               {s?.ChipLabel ?? r.Status}
             </span>
           </span>
-          {/* the date — on the right, under the status */}
+          {/* the city and, when there is one, the district (or village); the date — on the right, under the status */}
+          <small className="r-date">{[cities.find((c) => c.ID === a.CityID)?.NameKa, districts.find((x) => x.ID === a.DistrictID)?.NameKa ?? a.Village].filter(Boolean).join(' - ') || '—'}</small>
           <small className="r-date">{fmtDate(a.CreatedOn)}</small>
         </span>
         <button type="button" className="ib tg" aria-label="ჩამოშლა" aria-expanded={open} onClick={onToggle}>

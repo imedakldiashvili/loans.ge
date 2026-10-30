@@ -112,13 +112,12 @@ function AppCard({ a, open, onToggle, onView }: { a: Application; open: boolean;
       <div className="arow">
         <AstIcon active={a.State === 'active'} />
         <span className="info">
-          <b>{a.ProductType.NameKa}</b>
+          <b>
+            {a.ProductType.NameKa} <span className="app-no">#{a.ID}</span>
+          </b>
           <small>{[a.Pid, fullName(a)].filter(Boolean).join(' · ') || '—'}</small>
           {(a.Phone || a.Email) && <small>{[phone(a.Phone), a.Email].filter(Boolean).join(' · ')}</small>}
-          <small>
-            {place(a)}
-            {a.Source ? ` · ${a.Source}` : ''}
-          </small>
+          {a.Source && <small>{a.Source}</small>}
         </span>
         <span className="right">
           <span className="amt">{money(a.Amount, a.Currency)}</span>
@@ -132,7 +131,8 @@ function AppCard({ a, open, onToggle, onView }: { a: Application; open: boolean;
               </span>
             ))}
           </span>
-          {/* the date — on the right, under the statuses */}
+          {/* the city - district and the date — on the right, under the statuses */}
+          <small className="r-date">{place(a)}</small>
           <small className="r-date">{fmtDate(a.CreatedOn)}</small>
         </span>
         <span className="aacts">
