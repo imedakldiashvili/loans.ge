@@ -570,7 +570,7 @@
   .cab-menu-list button:hover { background: var(--bg-soft); }
   /* the application in detail — its own page (/cabinet/view/…) */
   .app-view .view-head { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 18px; } .app-view .view-head .view-title { margin: 0; } .app-view .view-head .view-stop { margin-inline-start: auto; }   /* stopping the application: top right */
-  .app-view .view-page { margin: 0 0 40px; background: var(--card, var(--bg)); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px 0; }
+  .app-view .view-page { margin: 0 0 40px; background: var(--card, var(--bg)); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px 22px; }
   .app-view .view-title { font-size: 20px; margin: 0 0 4px; } .app-view .view-sub { margin: 0 0 16px; font-size: 13px; color: var(--muted); }
   .app-view .view-page > .cab-det-foot { margin: 18px -22px 0; }
   .view-box { max-width: 560px; text-align: start; max-height: calc(100vh - 32px); overflow-y: auto; }
