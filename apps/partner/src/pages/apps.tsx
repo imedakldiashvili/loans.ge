@@ -161,6 +161,11 @@ export function AppsPage() {
   };
   const selC = cancelKeys.filter((k) => shown.has(k)).length;
   const refresh = () => qc.invalidateQueries({ queryKey: ['apps'] });
+  // a record moved to a status the chips don't show (e.g. completed) leaves the list — it is not kept open on top
+  const changed = (status: string) => {
+    if (!shown.has(status)) setSel(null);
+    refresh();
+  };
 
   const rows = q.data?.Items ?? [];
   // the record from the address, when it is not on this page / in this filter — shown on top
@@ -241,11 +246,11 @@ export function AppsPage() {
         </span>
       </div>
       <div className="list">
-        {extra && <AppCard key={`pinned-${extra.ID}`} r={extra} open onToggle={() => setSel(null)} st={st} onChanged={refresh} />}
+        {extra && <AppCard key={`pinned-${extra.ID}`} r={extra} open onToggle={() => setSel(null)} st={st} onChanged={changed} />}
         {!rows.length ? (
           <div className="empty">{q.isLoading ? 'იტვირთება…' : shown.size ? 'მონიშნულ სტატუსებში განაცხადი არ არის' : 'მონიშნე სტატუსი, რომ განაცხადები გამოჩნდეს'}</div>
         ) : (
-          rows.map((r) => <AppCard key={r.ID} r={r} open={sel === r.ID} onToggle={() => setSel(sel === r.ID ? null : r.ID)} st={st} onChanged={refresh} />)
+          rows.map((r) => <AppCard key={r.ID} r={r} open={sel === r.ID} onToggle={() => setSel(sel === r.ID ? null : r.ID)} st={st} onChanged={changed} />)
         )}
       </div>
       {pages > 1 && (
@@ -306,7 +311,7 @@ function Countdown({ r, s }: { r: Rec; s?: StatusRow }) {
 
 type Act = Detail['Next'][number];
 
-function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; onToggle: () => void; st: (k: string) => StatusRow | undefined; onChanged: () => void }) {
+function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; onToggle: () => void; st: (k: string) => StatusRow | undefined; onChanged: (status: string) => void }) {
   const s = st(r.Status);
   const a = r.Application;
   const { cities, districts } = useRefs();
@@ -325,7 +330,7 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
     try {
       await api('PUT', `/partner/application/changeStatus/${r.ID}/${r.UID}`, { Status: n.Status });
       toast(`სტატუსი: ${st(n.Status)?.PartnerLabel}`);
-      onChanged();
+      onChanged(n.Status);
     } catch (e) {
       toast(e instanceof ApiError ? e.message : 'შეცდომა');
     }
@@ -413,7 +418,7 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
           onDone={() => {
             setAction(null);
             toast(`სტატუსი: ${st(action.Status)?.PartnerLabel}`);
-            onChanged();
+            onChanged(action.Status);
           }}
         />
       )}
