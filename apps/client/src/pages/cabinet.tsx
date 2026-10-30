@@ -76,10 +76,17 @@ export function OfferNum({ o, of, i }: { o: AppOrg; of: OfferRow; i: number }) {
 export const stCls = (k: string) => (k === 'expired' || k === 'rejected' ? 'cancelled' : k === 'withdrawn' ? 'declined' : k);
 const errText = (e: unknown) => (e instanceof ApiError ? [e.message, ...e.details.map((d) => d.Message)].join(' - ') : t('შეცდომა'));
 
+/** Status colours — the partner cabinet's (the admin may set its own). */
+const ST_COLOR: Record<string, string> = {
+  sent: 'var(--orange)', interested: 'var(--amber)', offer: 'var(--sky)', accepted: 'var(--blue)', done: 'var(--green)',
+  rejected: 'var(--grey-status)', cancelled: 'var(--grey-status)', withdrawn: 'var(--grey-status)', declined: 'var(--grey-status)', expired: 'var(--grey-status)',
+};
+
 export const useStatus = () => {
   const { statuses } = useRefs();
   const st = (k: string): StatusRow | undefined => statuses.find((s) => s.Key === k);
   return {
+    color: (k: string) => st(k)?.Color || ST_COLOR[k] || 'var(--grey-status)',
     label: (k: string) => (lang() === 'en' ? st(k)?.CustomerEn : st(k)?.CustomerKa) ?? k,
     categoryOf: (k: string) => st(k)?.Category,
     /** next status of a record that cancels it / accepts it (allowed transitions come from the API) */
@@ -351,7 +358,9 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             return (
               <div key={st} className={`cab-stat${isOpen ? '' : ' closed'}`}>
                 <div className="cab-det-group" role="button" tabIndex={0} aria-expanded={isOpen} onClick={toggle} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), toggle())}>
-                  <em className={`status ${stCls(st)}`}>{s.label(st)}</em>
+                  <em className={`status ${stCls(st)}`} style={{ color: s.color(st) }}>
+                    {s.label(st)}
+                  </em>
                   <span className="grp-right">
                     {/* the offers that came in — side by side */}
                     {st === 'offer' && (

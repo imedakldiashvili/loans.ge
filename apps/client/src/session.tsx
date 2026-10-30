@@ -100,6 +100,8 @@ export interface StatusRow {
   CustomerEn: string;
   Category: 'progress' | 'complete' | 'canceled';
   Sort: number;
+  /** set in the admin; none — the default (useStatus) */
+  Color: string | null;
 }
 
 const usePublic = <T,>(module: string) =>

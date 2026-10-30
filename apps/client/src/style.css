@@ -13,6 +13,7 @@
     --orange: #f47429;
     --orange-soft: #fdeee4;
     --green-soft: #e8f6e3;
+    --blue: #1e63b5; --sky: #2a9fd6; --amber: #d9a425; --grey-status: #8a8f9f;   /* status colours, as in the partner cabinet */
     --hero: #343c5c;
     --font: "Noto Sans Georgian", "FiraGO", "Helvetica Neue", Arial, sans-serif;
   }
@@ -21,6 +22,7 @@
     --bg: #151826; --bg-soft: #1b1f30; --card: #222740; --fg: #e8ebf5; --fg-body: #d5d9e6;
     --muted: #9aa0b8; --line: #2e3450; --green: #6cc955; --green-dark: #5ebb47;
     --orange: #f98a47; --orange-soft: #3a2a20; --green-soft: #1f3320;
+    --blue: #6ea3e6; --sky: #5fbdeb; --amber: #e9bb4a; --grey-status: #8a8f9f;
   }
 
   * { box-sizing: border-box; }
