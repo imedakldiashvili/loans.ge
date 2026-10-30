@@ -103,7 +103,7 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
     setPage(1);
     if (view !== 'profile') setLastList(view);
   }, [view]);
-  // which applications: active / complete (a loan issued) / cancelled — three checkboxes (the address only sets the start:
+  // which applications: active / complete (a loan issued) / stopped (closed without one) — three checkboxes (the address only sets the start:
   // /cabinet/closed — the complete and the cancelled ones)
   const startShow = (v: CabView) => ({ active: v !== 'done', complete: v === 'done', cancelled: v === 'done' });
   const [show, setShow] = useState(() => startShow(view));
@@ -153,10 +153,10 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
                 [
                   ['active', 'მიმდინარე', counts?.Active],
                   ['complete', 'დასრულებული', counts?.Complete],
-                  ['cancelled', 'გაუქმებული', counts?.Cancelled],
+                  ['cancelled', 'შეწყვეტილი', counts?.Cancelled],
                 ] as const
               ).map(([k, label, n]) => (
-                <label key={k} className="cab-radio cab-check">
+                <label key={k} className={`cab-radio cab-check ck-${k}`}>
                   <input type="checkbox" checked={show[k]} onChange={(e) => setShow({ ...show, [k]: e.target.checked })} />
                   <i />
                   {t(label)} <span className="rc">{n !== undefined ? `(${n})` : ''}</span>
@@ -178,7 +178,7 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
             <div className="cab-panel cab-list">
               <div className="cab-top">
                 <h2 className="cab-title">
-                  {t(state === 'active' ? 'მიმდინარე განაცხადები' : state === 'complete' ? 'დასრულებული განაცხადები' : state === 'cancelled' ? 'გაუქმებული განაცხადები' : 'განაცხადები')}
+                  {t(state === 'active' ? 'მიმდინარე განაცხადები' : state === 'complete' ? 'დასრულებული განაცხადები' : state === 'cancelled' ? 'შეწყვეტილი განაცხადები' : 'განაცხადები')}
                 </h2>
                 <span className="cab-count">
                   <b>{none ? 0 : q.data?.TotalCount ?? 0}</b>
@@ -190,7 +190,7 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
                 </button>
               </div>
               <div className="cab-cards">
-                {none && <div className="cab-group-empty">{t('მონიშნე მიმდინარე, დასრულებული ან გაუქმებული')}</div>}
+                {none && <div className="cab-group-empty">{t('მონიშნე მიმდინარე, დასრულებული ან შეწყვეტილი')}</div>}
                 {!none && q.data?.Items.map((a) => <AppCard key={a.ID} a={a} expanded={state === 'active'} onCompare={() => onCompare(a)} />)}
                 {!none && q.data && !q.data.Items.length && <div className="cab-group-empty">{t(counts && counts.Active + counts.Done === 0 ? 'განაცხადები ჯერ არ გაგიგზავნია' : 'ჯერ არ არის')}</div>}
                 {!none && q.isLoading && <div className="cab-group-empty">{t('იტვირთება…')}</div>}
@@ -302,7 +302,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
       <div className="cab-top-row">
         <button type="button" className="cab-sum" aria-expanded={open} onClick={() => setOpen(!open)}>
           {/* the application's state in the icon's colour: in progress / done / cancelled */}
-          <span className={`ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t(isClosed ? (isCancelled ? 'გაუქმებული' : 'დასრულებული') : 'მიმდინარე')}>
+          <span className={`ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t(isClosed ? (isCancelled ? 'შეწყვეტილი' : 'დასრულებული') : 'მიმდინარე')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
               <path d="M14 3v6h6M9 13h6M9 17h4" />
@@ -330,12 +330,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           <button type="button" className="cab-ico cab-view" aria-label={t('ნახვა')} title={t('ნახვა')} onClick={() => setView(true)}>
             {I.eye}
           </button>
-          {/* in progress: the timer ends the application */}
-          {!isClosed && (
-            <button type="button" className="cab-ico cab-timer" aria-label={t('განაცხადის დასრულება')} title={t('განაცხადის დასრულება')} onClick={() => setCancel(true)}>
-              {I.timer}
-            </button>
-          )}
           {/* expand: the last one on the right */}
           <button type="button" className="cab-ico cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
             <Chevron />
@@ -411,6 +405,15 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               </div>
             );
           })}
+          {/* in progress: ending the application — at the bottom of the expanded part */}
+          {!isClosed && (
+            <div className="cab-det-foot">
+              <button type="button" className="btn btn-ghost cab-end" onClick={() => setCancel(true)}>
+                {I.timer}
+                {t('განაცხადის დასრულება')}
+              </button>
+            </div>
+          )}
         </div>
       )}
       {view && <ViewModal a={a} onClose={() => setView(false)} />}

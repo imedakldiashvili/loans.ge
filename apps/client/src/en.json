@@ -316,6 +316,7 @@
  "ბოლო 24 საათი": "Last 24 hours",
  "ბოლო კვირა": "Last week",
  "ბოლო თვე": "Last month",
- "მონიშნე მიმდინარე, დასრულებული ან გაუქმებული": "Tick active, completed or cancelled",
- "გაუქმებული განაცხადები": "Cancelled applications"
+ "მონიშნე მიმდინარე, დასრულებული ან შეწყვეტილი": "Tick active, completed or stopped",
+ "შეწყვეტილი განაცხადები": "Stopped applications",
+ "შეწყვეტილი": "Stopped"
 }

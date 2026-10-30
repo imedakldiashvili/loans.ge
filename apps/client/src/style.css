@@ -44,6 +44,9 @@
   .nav { display: flex; align-items: center; gap: 28px; height: 70px; }
   .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; color: var(--green); letter-spacing: -.2px; }
   .logo b { font-weight: inherit; }
+  /* phone: the header fits — smaller gaps; very narrow: the logo mark only */
+  @media (max-width: 560px) { .nav { gap: 8px; } .nav .lang, .nav .login, .nav .userbtn, .nav .logout { margin-inline-start: 0; } }   /* the -20px pulls make up for the 28px gap only */
+  @media (max-width: 420px) { .nav .logo b { display: none; } }
   .logo span { color: var(--orange); }
   .logo img { height: 36px; width: auto; }
   .menu { display: flex; gap: 22px; font-size: 13px; color: var(--fg); margin-inline-start: 8px; }
@@ -767,6 +770,10 @@
   .lg.img { background: #fff !important; border: 1px solid var(--line); overflow: hidden; padding: 0; box-sizing: border-box; display: grid; place-items: center; }
   .lg.img img { width: 72%; height: 72%; object-fit: contain; display: block; }
   /* a closed application where nothing was accepted */
+  /* ending the application: at the bottom of the expanded part, on the right */
+  .cab-det-foot { display: flex; justify-content: flex-end; padding: 12px 14px; border-top: 1px solid var(--line); }
+  .cab-end { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; color: var(--orange); border-color: var(--line); }
+  .cab-end svg { width: 18px; height: 18px; } .cab-end:hover { color: #d9534f; border-color: #d9534f; }
   /* the amount on the right */
   .cab-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; padding-inline-end: 14px; }
   /* the application icon's colour = its state: in progress (orange), done (green), cancelled (grey) */
@@ -774,6 +781,9 @@
   /* checkboxes (active / done): a square box with a tick */
   .cab-check i { border-radius: 4px; } .cab-check i::after { width: 10px; height: 6px; border-radius: 0; background: none; border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff; transform: rotate(-45deg) translate(1px, -1px) scale(0); }
   .cab-check input:checked + i { background: var(--green); } .cab-check input:checked + i::after { transform: rotate(-45deg) translate(1px, -1px) scale(1); }
+  /* each in its state's colour (as the application icon): active orange, completed green, cancelled grey */
+  .cab-check.ck-active { --ck: var(--orange); } .cab-check.ck-complete { --ck: var(--green); } .cab-check.ck-cancelled { --ck: var(--muted); }
+  .cab-check input:checked + i { background: var(--ck, var(--green)); border-color: var(--ck, var(--green)); } .cab-check:has(input:checked), .cab-check:has(input:checked) .rc { color: var(--ck, var(--green)); }
   /* card: an organisation's offer terms under its name */
   .cab-det-row .nm-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; min-width: 0; }
   .cab-det-row .of-terms { margin-inline-start: auto; display: grid; justify-items: end; gap: 2px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
