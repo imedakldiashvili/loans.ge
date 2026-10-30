@@ -387,10 +387,13 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
         <span className="right">
           <span className="amt">{money(a.Amount, a.Currency)}</span>
           <span className="amt-line">
-            <Countdown r={r} s={s} />
             <span className="st-text" style={{ color: statusColor(s, r.Status) }}>
               {s?.ChipLabel ?? r.Status}
             </span>
+          </span>
+          {/* the time left — under the status */}
+          <span className="amt-line">
+            <Countdown r={r} s={s} />
           </span>
         </span>
         <button type="button" className="ib tg" aria-label="ჩამოშლა" aria-expanded={open} onClick={onToggle}>
