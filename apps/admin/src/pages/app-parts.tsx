@@ -364,6 +364,7 @@ export function OfferTable({ app, o, st, opts = {} }: { app: Application; o: App
                     </span>
                   )}
                   {x.t?.ChosenOn && <small className="chosen">✓ მომხმარებელმა აირჩია</small>}
+                  {x.t && !x.t.ChosenOn && ['accepted', 'done'].includes(o.Status) && <small className="not-chosen">✕ მომხმარებელმა არ აირჩია</small>}
                 </th>
               ))}
             </tr>

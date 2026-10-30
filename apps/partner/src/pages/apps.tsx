@@ -521,11 +521,13 @@ const OffersRO = ({ offers, status, st }: { offers: OfferRow[]; status: string; 
   <div className="tpl ro">
     {offers.map((t, i) => {
       const c = calcOffer({ amount: t.Amount, months: t.Months, rate: t.Rate, fee: t.Fee, insMonth: t.InsMonth });
+      // the customer chose another offer of this record — said so (grey, ✕)
+      const notChosen = ['accepted', 'done'].includes(status) && !t.ChosenOn;
       return (
-        <div key={t.ID} className={t.ChosenOn ? 'chosen' : undefined}>
+        <div key={t.ID} className={t.ChosenOn ? 'chosen' : notChosen ? 'not-chosen' : undefined}>
           <b>
             {offers.length > 1 && <OfferNum i={i} status={status} chosen={!!t.ChosenOn} st={st} />}
-            {t.ChosenOn ? '✓ მომხმარებელმა აირჩია' : 'შეთავაზება'}
+            {t.ChosenOn ? '✓ მომხმარებელმა აირჩია' : notChosen ? '✕ მომხმარებელმა არ აირჩია' : 'შეთავაზება'}
           </b>
           <em>
             {money(t.Amount, t.Currency)} · {t.Rate}% · {t.Months} თვე · თვეში <strong>{money(c?.monthly ?? 0, t.Currency)}</strong>
