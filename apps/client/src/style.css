@@ -585,7 +585,7 @@
   .offer-amt { font-size: 20px; font-weight: 700; color: var(--orange); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .offer-loan { font-size: 14px; color: var(--muted); }
   .view-box > p { margin: 0 0 16px; font-size: 13px; color: var(--muted); }
-  .view-body { display: grid; gap: 14px; }
+  .view-body { display: grid; gap: 14px; } .app-view .view-body > .view-sec:first-child { margin-bottom: 10px; }   /* the personal data a little apart */
   .view-sec { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
   .view-sec h4.center { text-align: center; background: transparent; font-size: 14px; text-transform: none; letter-spacing: 0; color: var(--muted); font-weight: 600; }
   .view-sec h4 { margin: 0; padding: 9px 14px; background: var(--bg-soft); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }

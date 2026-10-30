@@ -549,14 +549,7 @@ function AppDetails({ a }: { a: App }) {
         #{a.ID} · {t('გაგზავნილია')} {fmtDate(a.CreatedOn)}
       </p>
       <div className="view-body">
-        {sec('საკრედიტო ისტორია', [['სტატუსი', refName(creditHistory, a.CreditHistory)]])}
-        {sec('ფინანსური მდგომარეობა', [
-          ['საქმიანობის სფერო', refName(sectors, a.Sector)],
-          ...(a.Incomes ?? []).map((i): [string, string] => [refName(incomeSources, i.Src), `${fmt(i.Amount)} ₾`]),
-          ['ჯამური თვიური შემოსავალი', `${fmt(total)} ₾`],
-          ['ბანკის სერვისები', (a.Banks ?? []).map((b) => refName(organizations, b)).join(', ')],
-        ])}
-        {sec('ორგანიზაციები', a.Orgs.map((o): [string, string, string] => [n(o.Organization), s.label(o.Status), stCls(o.Status)]))}
+        {/* the personal data first, a little apart from the rest */}
         {sec('პირადი მონაცემები', [
           ['პირადი ნომერი', a.Pid],
           ['სახელი, გვარი', `${a.FirstName} ${a.LastName}`],
@@ -565,6 +558,14 @@ function AppDetails({ a }: { a: App }) {
           ['უბანი / სოფელი', n(districts.find((d) => d.ID === a.DistrictID)) || a.Village || ''],
           ['მობილური ნომერი', a.Phone ? fmtPhone(a.Phone) : ''],
         ])}
+        {sec('საკრედიტო ისტორია', [['სტატუსი', refName(creditHistory, a.CreditHistory)]])}
+        {sec('ფინანსური მდგომარეობა', [
+          ['საქმიანობის სფერო', refName(sectors, a.Sector)],
+          ...(a.Incomes ?? []).map((i): [string, string] => [refName(incomeSources, i.Src), `${fmt(i.Amount)} ₾`]),
+          ['ჯამური თვიური შემოსავალი', `${fmt(total)} ₾`],
+          ['ბანკის სერვისები', (a.Banks ?? []).map((b) => refName(organizations, b)).join(', ')],
+        ])}
+        {sec('ორგანიზაციები', a.Orgs.map((o): [string, string, string] => [n(o.Organization), s.label(o.Status), stCls(o.Status)]))}
       </div>
     </>
   );
