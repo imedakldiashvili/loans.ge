@@ -102,7 +102,7 @@ function RefList({ panelKey, module, title }: { panelKey: string; module: string
           )}
         </>
       }
-      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} size={size} onPage={setPage} onSize={setSize} />}
+      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} total={q.data?.TotalCount ?? 0} size={size} onPage={setPage} onSize={setSize} />}
     >
       <DataTable
         className="fill"

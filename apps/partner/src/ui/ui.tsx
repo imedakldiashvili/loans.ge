@@ -153,10 +153,24 @@ export function Pager({ page, totalPages, total, size, onPage, onSize }: { page:
             ›
           </button>
         </nav>
-        <span className="pcount">
-          {total} ჩანაწერი · {n} გვერდი
-        </span>
+        {/* shown on this page and the total: "ნაჩვენებია 11–20 · სულ 57" */}
+        <span className="pcount">{total ? `ნაჩვენებია ${(page - 1) * size + 1}–${Math.min(page * size, total)} · სულ ${total}` : 'სულ 0'}</span>
       </span>
     </div>
   );
+}
+
+/** Paging for a list that comes whole (products, staff, cards, keys …): this page's rows and its footer.
+ *  `reset` — values (filters) that send it back to the first page. */
+export function usePaged<T>(rows: T[], reset: unknown[] = []) {
+  const [size, setSize] = usePageSize();
+  const [page, setPage] = useState(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => setPage(1), [size, ...reset]);
+  const pages = Math.max(1, Math.ceil(rows.length / size));
+  const pg = Math.min(page, pages);
+  return {
+    shown: rows.slice((pg - 1) * size, pg * size),
+    pager: <Pager page={pg} totalPages={pages} total={rows.length} size={size} onPage={setPage} onSize={setSize} />,
+  };
 }

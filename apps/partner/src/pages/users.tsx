@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ApiError, crud, findAll } from '../api';
 import { ROLES, useRefs, useSession } from '../session';
-import { EditIcon, ErrorLine, Modal, Switch, useToast } from '../ui/ui';
+import { EditIcon, ErrorLine, Modal, Switch, usePaged, useToast } from '../ui/ui';
 import { useProducts } from './products';
 
 // Organisation staff (prototype partner.html renderUsers / userForm) — /partner/staff.
@@ -30,6 +30,7 @@ export function UsersPage() {
   const [form, setForm] = useState<Staff | 'new' | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ['staff'] });
   const list = q.data ?? [];
+  const { shown, pager } = usePaged(list);
   const self = (u: Staff) => u.ID === me?.Profile?.ID;
   const pName = (id: number) => products.data?.find((p) => p.ID === id)?.ProductType.NameKa;
 
@@ -43,7 +44,7 @@ export function UsersPage() {
       </div>
       <div className="list">
         {!list.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'მომხმარებელი არ არის'}</div>}
-        {list.map((u) => (
+        {shown.map((u) => (
           <div key={u.ID} className="card">
             <div className="prow">
               <span className="lg" style={{ background: 'var(--blue)', width: 40, height: 40, borderRadius: '50%', color: '#fff', fontWeight: 700, display: 'grid', placeItems: 'center' }}>
@@ -91,6 +92,7 @@ export function UsersPage() {
           </div>
         ))}
       </div>
+      {pager}
       {form && <UserForm u={form === 'new' ? null : form} self={form !== 'new' && self(form)} onClose={() => setForm(null)} onSaved={() => (setForm(null), refresh())} />}
     </div>
   );

@@ -85,7 +85,7 @@ export function AppsPage() {
           <PeriodFilter scope={scope} set={setScope} />
         </>
       }
-      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} size={size} onPage={setPage} onSize={setSize} />}
+      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} total={q.data?.TotalCount ?? 0} size={size} onPage={setPage} onSize={setSize} />}
     >
       {/* one card per application (as in the partner cabinet); the arrow opens its blocks */}
       <div className="tbl acards">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ApiError, Base } from '../api/client';
 import { useAll, useFind, useRowActions } from '../api/hooks';
@@ -6,7 +6,7 @@ import { useAuth } from '../auth/auth';
 import { BiInput, BiView, RowActions, Switch } from '../ui/controls';
 import { Confirm, Dialog, FieldError, FieldErrors } from '../ui/dialog';
 import { Icon } from '../ui/icons';
-import { DataTable, ListPage, StateRow } from '../ui/list-page';
+import { DataTable, ListPage, Pager, StateRow, usePageSize } from '../ui/list-page';
 import { useToast } from '../ui/toast';
 import { STATUS_CATEGORIES, statusColor, StatusRow } from './common';
 
@@ -31,7 +31,10 @@ const catLabel = (c: string) => {
 function StatusesPage() {
   const { canWrite } = useAuth();
   const toast = useToast();
-  const q = useFind<StatusRow>('status', 1, 100, { Sort: [{ Field: 'Sort', Dir: 'asc' }] });
+  const [size, setSize] = usePageSize();
+  const [page, setPage] = useState(1);
+  useEffect(() => setPage(1), [size]);
+  const q = useFind<StatusRow>('status', page, size, { Sort: [{ Field: 'Sort', Dir: 'asc' }] });
   const act = useRowActions('status');
   const writable = canWrite('status');
   const [dialog, setDialog] = useState<{ row: StatusRow | null } | null>(null);
@@ -45,6 +48,7 @@ function StatusesPage() {
       title="პარამეტრები · სტატუსები"
       desc="სტატუსების ტექსტები სამივე ზედაპირისთვის, კატეგორია (In Progress / Complete / Canceled - მონიტორინგი ამით ჯგუფდება), ტაიმერი სტატუსის დაწყებიდან და ქცევის მონიშვნები. სტატუსები და გადასვლები ბაზაშია - ახლის დამატება კოდის შეცვლის გარეშე."
       add={writable && <button type="button" className="btn btn-green" onClick={() => setDialog({ row: null })}>+ სტატუსი</button>}
+      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} total={q.data?.TotalCount ?? 0} size={size} onPage={setPage} onSize={setSize} />}
     >
       <DataTable
         head={
@@ -93,10 +97,10 @@ function StatusesPage() {
                 <Switch checked={s.IsEnable} disabled={!writable} onChange={(on) => act.enable.mutate({ r: s, on })} />
               </td>
               <td className="num" style={{ whiteSpace: 'nowrap' }}>
-                <button type="button" className="ib" title="ზემოთ" disabled={!writable || i === 0} onClick={() => act.move.mutate({ r: s, dir: 'up' })}>
+                <button type="button" className="ib" title="ზემოთ" disabled={!writable || (page - 1) * size + i === 0} onClick={() => act.move.mutate({ r: s, dir: 'up' })}>
                   <Icon.up />
                 </button>{' '}
-                <button type="button" className="ib" title="ქვემოთ" disabled={!writable || i === rows.length - 1} onClick={() => act.move.mutate({ r: s, dir: 'down' })}>
+                <button type="button" className="ib" title="ქვემოთ" disabled={!writable || (page - 1) * size + i === (q.data?.TotalCount ?? 0) - 1} onClick={() => act.move.mutate({ r: s, dir: 'down' })}>
                   <Icon.down />
                 </button>
               </td>
@@ -235,7 +239,10 @@ function TransitionsPage() {
   const toast = useToast();
   const statuses = useAll<StatusRow>('status', { Sort: [{ Field: 'Sort', Dir: 'asc' }] });
   const [from, setFrom] = useState<number | ''>('');
-  const q = useFind<Transition>('statusTransition', 1, 100, { Filter: from !== '' ? { FromStatusID: from } : {}, Sort: [{ Field: 'FromStatusID', Dir: 'asc' }] });
+  const [size, setSize] = usePageSize();
+  const [page, setPage] = useState(1);
+  useEffect(() => setPage(1), [from, size]);
+  const q = useFind<Transition>('statusTransition', page, size, { Filter: from !== '' ? { FromStatusID: from } : {}, Sort: [{ Field: 'FromStatusID', Dir: 'asc' }] });
   const act = useRowActions('statusTransition');
   const writable = canWrite('statusTransition');
   const [dialog, setDialog] = useState(false);
@@ -257,6 +264,7 @@ function TransitionsPage() {
       title="პარამეტრები · გადასვლები"
       desc="ვის შეუძლია სტატუსის შეცვლა: საიდან, სად და ვინ (მომხმარებელი, პარტნიორი, სისტემა). პარტნიორის უარს და გაუქმებას მიზეზი სჭირდება ცნობარიდან."
       add={writable && <button type="button" className="btn btn-green" onClick={() => setDialog(true)}>+ გადასვლა</button>}
+      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} total={q.data?.TotalCount ?? 0} size={size} onPage={setPage} onSize={setSize} />}
       filters={
         <select aria-label="საიდან" value={from} onChange={(e) => setFrom(e.target.value ? Number(e.target.value) : '')}>
           <option value="">ყველა სტატუსიდან</option>

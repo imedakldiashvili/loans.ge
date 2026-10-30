@@ -30,19 +30,23 @@ interface Key {
 }
 
 function ApiKeysPage() {
-  const q = useFind<Key>('apiKey', 1, 100, {});
+  const [size, setSize] = usePageSize();
+  const [page, setPage] = useState(1);
+  useEffect(() => setPage(1), [size]);
+  const q = useFind<Key>('apiKey', page, size, {});
   const rows = q.data?.Items ?? [];
   return (
     <ListPage
       title="ინტეგრაცია · API გასაღებები"
       desc={
         <>
-          ორგანიზაციების API გასაღებები - ბანკის სისტემა მათით მუშაობს partner API-ზე (X-Api-Key). გასაღებებს ორგანიზაციის ბექ-ოფისი ქმნის კაბინეტში (ინტეგრაცია); თავად გასაღები არსად ინახება.{' '}
+          ორგანიზაციების API გასაღებები - ორგანიზაციის სისტემა მათით მუშაობს partner API-ზე (X-Api-Key). გასაღებებს ორგანიზაციის ბექ-ოფისი ქმნის კაბინეტში (ინტეგრაცია); თავად გასაღები არსად ინახება.{' '}
           <a href={API_DOCS} target="_blank" rel="noreferrer">
             API დოკუმენტაცია (Swagger)
           </a>
         </>
       }
+      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} total={q.data?.TotalCount ?? 0} size={size} onPage={setPage} onSize={setSize} />}
     >
       <DataTable
         className="wide"
@@ -119,7 +123,7 @@ function WebhookLogPage() {
           <option value="failed">ვერ მიეწოდა</option>
         </select>
       }
-      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} size={size} onPage={setPage} onSize={setSize} />}
+      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} total={q.data?.TotalCount ?? 0} size={size} onPage={setPage} onSize={setSize} />}
     >
       <DataTable
         className="wide"

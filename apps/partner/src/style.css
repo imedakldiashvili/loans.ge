@@ -186,6 +186,16 @@
 
   /* Workspace */
   .ws { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; align-content: start; padding-block: 22px; min-height: calc(100vh - 70px - env(safe-area-inset-top, 0px)); }
+  /* the vertical scroll is inside the list, not the page (as in the admin): the column = 100vh, the page fills it, the list
+     takes what is left and scrolls; the title, filters and pager stay. A page without one list (forms, integration) scrolls whole. */
+  @media (min-width: 901px) {
+    .app { height: 100vh; } .col { height: 100vh; min-height: 0; display: flex; flex-direction: column; }
+    .col > .ws { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .ws > .main { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; }
+    .ws > .main > * { flex: none; }
+    .ws > .main:has(> .list):not(:has(> .list ~ .list)) { overflow: hidden; }
+    .ws > .main:has(> .list):not(:has(> .list ~ .list)) > .list { flex: 1 1 auto; min-height: 120px; overflow-y: auto; align-content: start; grid-auto-rows: max-content; padding-inline-end: 4px; scrollbar-width: thin; }   /* rows keep their height (cards are overflow: hidden) */
+  }
   .chips { display: flex; flex-wrap: nowrap; gap: 4px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; min-width: 0; }
   .main > * { min-width: 0; }
   .chip .n { font-weight: 700; }
@@ -263,7 +273,7 @@
   .empty { padding: 36px 20px; text-align: center; color: var(--muted); background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; }
   .pager { display: flex; justify-content: center; gap: 6px; } .pg-dots { padding: 0 4px; color: var(--muted); }
   .pfoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 14px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }   /* სიის ქვედა ზოლი: გვერდზე ჩანაწერი მარცხნივ, გვერდები მარჯვნივ */
-  .pfoot .pp { display: inline-flex; align-items: center; gap: 8px; } .pfoot .pp select { width: auto; height: 34px; padding: 4px 30px 4px 10px; font-size: 13px; }
+  .pfoot .pp { display: inline-flex; align-items: center; gap: 8px; } .pfoot .pp select { width: auto; height: 34px; padding: 0 30px 0 10px; border: 1px solid var(--line); border-radius: 6px; background-color: var(--bg); color: var(--fg); font-size: 13px; font-weight: 600; }   /* იგივე, რაც გვერდის ღილაკები (.pg) */
   .pfoot .pright { display: inline-flex; align-items: center; gap: 12px; flex-wrap: wrap; } .pfoot .pcount { white-space: nowrap; }
   .pg { min-width: 34px; height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font-size: 13px; font-weight: 600; cursor: pointer; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
   .pg.on { background: var(--green); border-color: var(--green); color: var(--on-accent); } .pg:disabled { opacity: .4; cursor: default; }

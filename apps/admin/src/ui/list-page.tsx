@@ -29,7 +29,7 @@ export function usePageSize(): [number, (n: number) => void] {
   ];
 }
 
-export function Pager({ page, totalPages, size, onPage, onSize }: { page: number; totalPages: number; size: number; onPage: (p: number) => void; onSize: (n: number) => void }) {
+export function Pager({ page, totalPages, total, size, onPage, onSize }: { page: number; totalPages: number; total: number; size: number; onPage: (p: number) => void; onSize: (n: number) => void }) {
   const n = Math.max(1, totalPages);
   const nums: ReactNode[] = [];
   let dots = false;
@@ -68,7 +68,8 @@ export function Pager({ page, totalPages, size, onPage, onSize }: { page: number
             ›
           </button>
         </nav>
-        <span className="pcount">{n} გვერდი</span>
+        {/* shown on this page and the total: "ნაჩვენებია 11–20 · სულ 57" */}
+        <span className="pcount">{total ? `ნაჩვენებია ${(page - 1) * size + 1}–${Math.min(page * size, total)} · სულ ${total}` : 'სულ 0'}</span>
       </span>
     </div>
   );

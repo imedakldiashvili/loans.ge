@@ -66,7 +66,7 @@ export function ProductsPage() {
       title="პროდუქტის ტიპები"
       desc="ცნობარი, რომლიდანაც პარტნიორი პროდუქტს ირჩევს (თავისუფალი სახელი არ არის). თითო ტიპს აქვს შეთავაზების ველების სქემა - რა ივსება შეთავაზების ტიპში პარტნიორის კაბინეტში."
       add={writable && <button type="button" className="btn btn-green" onClick={() => setDialog({ row: null })}>+ პროდუქტის ტიპი</button>}
-      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} size={size} onPage={setPage} onSize={setSize} />}
+      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} total={q.data?.TotalCount ?? 0} size={size} onPage={setPage} onSize={setSize} />}
     >
       <DataTable
         className="wide"
@@ -226,7 +226,10 @@ export function ProductFieldsPage() {
   const { canWrite } = useAuth();
   const writable = canWrite('productTypeField');
   const pt = useAll<ProductType>('productType').data?.find((p) => p.ID === Number(id) && p.UID === uid);
-  const q = useFind<Field>('productTypeField', 1, 100, { Filter: { ProductTypeID: Number(id) }, Sort: [{ Field: 'Sort', Dir: 'asc' }] });
+  const [size, setSize] = usePageSize();
+  const [page, setPage] = useState(1);
+  useEffect(() => setPage(1), [size]);
+  const q = useFind<Field>('productTypeField', page, size, { Filter: { ProductTypeID: Number(id) }, Sort: [{ Field: 'Sort', Dir: 'asc' }] });
   const act = useRowActions('productTypeField');
   const [dialog, setDialog] = useState<{ row: Field | null } | null>(null);
   const [del, setDel] = useState<Field | null>(null);
@@ -247,6 +250,7 @@ export function ProductFieldsPage() {
       desc={`ამ თანმიმდევრობით ივსება პარტნიორის კაბინეტში · ${pt?.Code ?? ''}`}
       back={{ label: 'პროდუქტის ტიპები', onClick: () => nav('/products') }}
       add={writable && <button type="button" className="btn btn-green" onClick={() => setDialog({ row: null })}>+ ველი</button>}
+      foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} total={q.data?.TotalCount ?? 0} size={size} onPage={setPage} onSize={setSize} />}
     >
       <div className="tbl">
         {list.length === 0 ? (
@@ -265,10 +269,10 @@ export function ProductFieldsPage() {
               </span>
               <span className="kind">{KINDS[f.Kind]}</span>
               <span style={{ whiteSpace: 'nowrap' }}>
-                <button type="button" className="ib" title="ზემოთ" disabled={!writable || i === 0} onClick={() => act.move.mutate({ r: f, dir: 'up' })}>
+                <button type="button" className="ib" title="ზემოთ" disabled={!writable || (page - 1) * size + i === 0} onClick={() => act.move.mutate({ r: f, dir: 'up' })}>
                   <Icon.up />
                 </button>{' '}
-                <button type="button" className="ib" title="ქვემოთ" disabled={!writable || i === list.length - 1} onClick={() => act.move.mutate({ r: f, dir: 'down' })}>
+                <button type="button" className="ib" title="ქვემოთ" disabled={!writable || (page - 1) * size + i === (q.data?.TotalCount ?? 0) - 1} onClick={() => act.move.mutate({ r: f, dir: 'down' })}>
                   <Icon.down />
                 </button>
                 {writable && (

@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { crud } from '../api';
-import { Chevron, curSym, EditIcon, Pager, Switch, usePageSize, useToast } from '../ui/ui';
+import { Chevron, curSym, EditIcon, Switch, usePaged, useToast } from '../ui/ui';
 import { CardForm, CardInfo, CopyIcon, DelIcon, errText, removeCard, useProducts } from './products';
 
 // Product cards (back office): every card of the organisation's products in one list. A card = an offer — its terms by
@@ -17,8 +17,6 @@ export function CardsPage() {
   const [prod, setProd] = useState('');
   const [cur, setCur] = useState('');
   const [open, setOpen] = useState<number | null>(null);
-  const [page, setPage] = useState(1);
-  const [size, setSize] = usePageSize();
   const nav = useNavigate();
   const refresh = () => qc.invalidateQueries({ queryKey: ['products'] });
   const products = q.data ?? [];
@@ -27,10 +25,7 @@ export function CardsPage() {
     .filter((p) => !prod || p.ID === Number(prod))
     .flatMap((p) => p.Cards.filter((k) => !cur || k.Currency === cur).map((k) => ({ p, k })));
   // all cards come at once (with the products) — paged here
-  const pages = Math.max(1, Math.ceil(rows.length / size));
-  const pg = Math.min(page, pages);
-  const shown = rows.slice((pg - 1) * size, pg * size);
-  useEffect(() => setPage(1), [prod, cur, size]);
+  const { shown, pager } = usePaged(rows, [prod, cur]);
 
   return (
     <div className="main">
@@ -110,7 +105,7 @@ export function CardsPage() {
           </div>
         ))}
       </div>
-      <Pager page={pg} totalPages={pages} total={rows.length} size={size} onPage={setPage} onSize={setSize} />
+      {pager}
     </div>
   );
 }

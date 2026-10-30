@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { ApiError, crud, findAll } from '../api';
 import { Field, useRefs } from '../session';
-import { Chevron, curSym, EditIcon, ErrorLine, fmt, Switch, useToast } from '../ui/ui';
+import { Chevron, curSym, EditIcon, ErrorLine, fmt, Switch, usePaged, useToast } from '../ui/ui';
 
 // Products of the organisation (prototype partner.html renderProducts / productEditPage / cardFields).
 // Product = product type (admin list) + currencies; offer types ("cards") per currency, values follow the type's field schema.
@@ -70,6 +70,7 @@ export function ProductsPage() {
   const nav = useNavigate();
   const refresh = () => qc.invalidateQueries({ queryKey: ['products'] });
   const list = q.data ?? [];
+  const { shown, pager } = usePaged(list);
   return (
     <div className="main">
       <div className="top">
@@ -78,7 +79,7 @@ export function ProductsPage() {
       {/* products are given by the admin (organisation → product types); here they are switched on / off and get their offer cards */}
       <div className="list">
         {!list.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'პროდუქტი არ არის - პროდუქტებს ადმინისტრატორი ამატებს'}</div>}
-        {list.map((p) => {
+        {shown.map((p) => {
           const curs = p.Currencies.map((c) => [c, p.Cards.filter((k) => k.Currency === c).length] as const).filter((x) => x[1]);
           return (
             <div key={p.ID} className={`card${open === p.ID ? ' open' : ''}`}>
@@ -159,6 +160,7 @@ export function ProductsPage() {
           );
         })}
       </div>
+      {pager}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api, ApiError, Page, Ref } from '../api';
-import { ErrorLine, fmtDate, Modal, Switch, useToast } from '../ui/ui';
+import { ErrorLine, fmtDate, Modal, Switch, usePaged, useToast } from '../ui/ui';
 
 // Integration (back office): the bank's own system works with the same partner API as this cabinet.
 // API keys (X-Api-Key) with scopes, webhooks (signed POSTs about new applications / status changes) and their delivery log.
@@ -104,6 +104,7 @@ function Keys() {
   const qc = useQueryClient();
   const toast = useToast();
   const q = useQuery({ queryKey: ['apiKeys'], queryFn: () => items<Key>('/partner/apiKey/find/1/100') });
+  const { shown: pageRows, pager } = usePaged(q.data ?? []);
   const [form, setForm] = useState(false);
   const [shown, setShown] = useState<string | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ['apiKeys'] });
@@ -126,7 +127,7 @@ function Keys() {
       </div>
       <div className="list">
         {!q.data?.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'გასაღები ჯერ არ არის'}</div>}
-        {q.data?.map((k) => (
+        {pageRows.map((k) => (
           <div key={k.ID} className="card">
             <div className="prow">
               <span className="pinfo">
@@ -153,6 +154,7 @@ function Keys() {
           </div>
         ))}
       </div>
+      {pager}
       {form && (
         <KeyForm
           onClose={() => setForm(false)}
@@ -222,6 +224,7 @@ function Hooks() {
   const qc = useQueryClient();
   const toast = useToast();
   const q = useQuery({ queryKey: ['webhooks'], queryFn: () => items<Hook>('/partner/webhook/find/1/100') });
+  const { shown: pageRows, pager } = usePaged(q.data ?? []);
   const [form, setForm] = useState<Hook | 'new' | null>(null);
   const [shown, setShown] = useState<string | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ['webhooks'] });
@@ -245,7 +248,7 @@ function Hooks() {
       </div>
       <div className="list">
         {!q.data?.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'webhook ჯერ არ არის'}</div>}
-        {q.data?.map((h) => (
+        {pageRows.map((h) => (
           <div key={h.ID} className="card">
             <div className="prow">
               <span className="pinfo">
@@ -282,6 +285,7 @@ function Hooks() {
           </div>
         ))}
       </div>
+      {pager}
       {form && (
         <HookForm
           h={form === 'new' ? null : form}
@@ -358,7 +362,9 @@ function Deliveries() {
   const qc = useQueryClient();
   const toast = useToast();
   const [status, setStatus] = useState('');
-  const q = useQuery({ queryKey: ['deliveries', status], queryFn: () => items<Delivery>('/partner/webhookDelivery/find/1/20', { Filter: status ? { Status: status } : {} }), refetchInterval: 10_000 });
+  const q = useQuery({ queryKey: ['deliveries', status], queryFn: () => items<Delivery>('/partner/webhookDelivery/find/1/100', { Filter: status ? { Status: status } : {} }), refetchInterval: 10_000 });
+  // the last 100 deliveries, paged here
+  const { shown: pageRows, pager } = usePaged(q.data ?? [], [status]);
   return (
     <>
       <div className="top" style={{ marginTop: 24 }}>
@@ -372,7 +378,7 @@ function Deliveries() {
       </div>
       <div className="list">
         {!q.data?.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'მიწოდება ჯერ არ ყოფილა'}</div>}
-        {q.data?.map((d) => (
+        {pageRows.map((d) => (
           <div key={d.ID} className="card">
             <div className="prow">
               <span className="pinfo">
@@ -412,6 +418,7 @@ function Deliveries() {
           </div>
         ))}
       </div>
+      {pager}
     </>
   );
 }
