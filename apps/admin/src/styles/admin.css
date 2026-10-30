@@ -317,6 +317,12 @@
   dialog::backdrop { background: rgba(52,60,92,.45); }
   .dlg-h { display: flex; align-items: center; gap: 10px; padding: 18px 28px 12px; } .dlg-h h3 { font-size: 18px; margin-inline-end: auto; }
   .dlg-b { padding: 0 28px 10px; display: grid; gap: 14px; max-height: 70vh; overflow: auto; }
+  /* organisation add / edit — a page, laid out like a dialog body */
+  .orgf { padding: 20px 24px 22px; display: grid; gap: 14px; max-width: 760px; } .orgf .lerr { margin: 0; }
+  .orgf-acts { display: flex; gap: 8px; border-top: 1px solid var(--line); margin-top: 4px; padding-top: 16px; }
+  .orgf-state { padding: 24px; color: var(--muted); }
+  /* the organisation's name in the list — a little bigger than the category next to it */
+  td.org-n .bi-v b { font-size: 15px; font-weight: 600; }
   .dlg-f { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 28px 24px; }
   .empty { padding: 36px 20px; text-align: center; color: var(--muted); }
   /* ცხრილის ქვედა ზოლი: დიაპაზონი მარცხნივ, გვერდები მარჯვნივ — ყველა სიაზე ერთნაირი */

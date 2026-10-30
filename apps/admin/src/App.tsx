@@ -8,7 +8,7 @@ import { LogsPage } from './pages/logs';
 import { MePage } from './pages/me';
 import { MonitorPage } from './pages/monitor';
 import { OffersPage } from './pages/offers';
-import { OrgsPage } from './pages/orgs';
+import { OrgFormPage, OrgsPage } from './pages/orgs';
 import { ProductFieldsPage, ProductsPage } from './pages/products';
 import { RefsPage } from './pages/refs';
 import { SettingsPage } from './pages/settings';
@@ -30,6 +30,8 @@ export function App() {
         <Route path="/offers" element={<OffersPage />} />
         <Route path="/offers/:id/:uid" element={<OffersPage />} />
         <Route path="/orgs" element={<OrgsPage />} />
+        <Route path="/orgs/new" element={<OrgFormPage />} />
+        <Route path="/orgs/:id/:uid" element={<OrgFormPage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:id/:uid" element={<ProductFieldsPage />} />
         <Route path="/refs/:key" element={<RefsPage />} />

@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { FormEvent, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError, Base, crud, upload } from '../api/client';
 import { useAll, useFind, useInvalidate, useRowActions } from '../api/hooks';
 import { useAuth } from '../auth/auth';
 import { ArrowsCell, BiInput, BiView, RowActions, Switch } from '../ui/controls';
-import { Confirm, Dialog, FieldError, FieldErrors } from '../ui/dialog';
+import { Confirm, FieldError, FieldErrors } from '../ui/dialog';
 import { DataTable, ListPage, Pager, StateRow, usePageSize } from '../ui/list-page';
 import { useToast } from '../ui/toast';
 import { CATEGORIES, OrgMark } from './common';
@@ -43,11 +45,15 @@ export function OrgsPage() {
   const [size, setSize] = usePageSize();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [dialog, setDialog] = useState<{ row: Org | null } | null>(null);
+  // filters: type (category) and partner yes / no
+  const [category, setCategory] = useState('');
+  const [partner, setPartner] = useState<'' | 'yes' | 'no'>('');
   const [del, setDel] = useState<Org | null>(null);
-  useEffect(() => setPage(1), [search, size]);
+  const nav = useNavigate();
+  useEffect(() => setPage(1), [search, size, category, partner]);
 
-  const q = useFind<Org>('organization', page, size, { Filter: search ? { Search: search } : {}, Sort: [{ Field: 'Sort', Dir: 'asc' }] });
+  const filter = { ...(search ? { Search: search } : {}), ...(category ? { Category: category } : {}), ...(partner ? { IsPartner: partner === 'yes' } : {}) };
+  const q = useFind<Org>('organization', page, size, { Filter: filter, Sort: [{ Field: 'Sort', Dir: 'asc' }] });
   const links = useAll<OrgPt>('organizationProductType');
   const staff = useAll<Staff>('staff');
   const act = useRowActions('organization');
@@ -59,8 +65,25 @@ export function OrgsPage() {
     <ListPage
       title="ორგანიზაციები"
       desc="ბანკები, მისოები, სალიზინგოები და სუბიექტები. პარტნიორი იღებს განაცხადებს; არაპარტნიორი ბანკი მხოლოდ ვიზარდის მე-4 ნაბიჯში ჩანს („რომელი ბანკის სერვისებით სარგებლობთ“). გამორთული ორგანიზაცია არსად ჩანს და მისი თანამშრომლები ვერ შედიან."
-      add={writable && <button type="button" className="btn btn-green" onClick={() => setDialog({ row: null })}>+ ორგანიზაცია</button>}
-      filters={<input className="search" type="search" placeholder="ძებნა: დასახელება" value={search} onChange={(e) => setSearch(e.target.value)} />}
+      add={writable && <button type="button" className="btn btn-green" onClick={() => nav('/orgs/new')}>+ ორგანიზაცია</button>}
+      filters={
+        <>
+          <input className="search" type="search" placeholder="ძებნა: დასახელება" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <select aria-label="ტიპი" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="">ყველა ტიპი</option>
+            {Object.entries(CATEGORIES).map(([k, c]) => (
+              <option key={k} value={k}>
+                {c.ka}
+              </option>
+            ))}
+          </select>
+          <select aria-label="პარტნიორი" value={partner} onChange={(e) => setPartner(e.target.value as '' | 'yes' | 'no')}>
+            <option value="">პარტნიორი და არა</option>
+            <option value="yes">პარტნიორი</option>
+            <option value="no">არაპარტნიორი</option>
+          </select>
+        </>
+      }
       foot={<Pager page={page} totalPages={q.data?.TotalPages ?? 1} size={size} onPage={setPage} onSize={setSize} />}
     >
       <DataTable
@@ -86,7 +109,7 @@ export function OrgsPage() {
             const cat = CATEGORIES[o.Category];
             return (
               <tr key={o.ID} className={o.IsEnable ? '' : 'inactive'}>
-                <td style={{ whiteSpace: 'nowrap' }}>
+                <td className="org-n" style={{ whiteSpace: 'nowrap' }}>
                   <OrgMark org={o} cls="fl" />
                   <BiView ka={o.NameKa} en={o.NameEn} />
                 </td>
@@ -104,13 +127,12 @@ export function OrgsPage() {
                   <Switch checked={o.IsEnable} disabled={!writable} onChange={(on) => act.enable.mutate({ r: o, on }, { onSuccess: () => toast(on ? 'ორგანიზაცია ჩაირთო' : 'ორგანიზაცია გამოირთო') })} />
                 </td>
                 <ArrowsCell index={offset + i} count={q.data?.TotalCount ?? 0} disabled={!writable || act.move.isPending} onMove={(dir) => act.move.mutate({ r: o, dir })} />
-                {writable ? <RowActions onEdit={() => setDialog({ row: o })} onDelete={() => setDel(o)} /> : <td className="acts" />}
+                {writable ? <RowActions onEdit={() => nav(`/orgs/${o.ID}/${o.UID}`)} onDelete={() => setDel(o)} /> : <td className="acts" />}
               </tr>
             );
           })
         )}
       </DataTable>
-      {dialog && <OrgDialog row={dialog.row} links={(links.data ?? []).filter((l) => l.OrganizationID === dialog.row?.ID)} onClose={() => setDialog(null)} />}
       {del && (
         <Confirm
           title={`წავშალოთ „${del.NameKa}"?`}
@@ -126,9 +148,42 @@ export function OrgsPage() {
   );
 }
 
-function OrgDialog({ row, links, onClose }: { row: Org | null; links: OrgPt[]; onClose: () => void }) {
+/** Add / edit an organisation — its own page (/orgs/new, /orgs/{id}/{uid}), not a dialog. */
+export function OrgFormPage() {
+  const { id, uid } = useParams();
+  const nav = useNavigate();
+  const ref = id && uid ? { ID: Number(id), UID: uid } : null;
+  const org = useQuery({ queryKey: ['organization', 'detail', id, uid], queryFn: () => crud.detail<Org>('organization', ref!), enabled: !!ref });
+  const links = useAll<OrgPt>('organizationProductType');
+  const back = () => nav('/orgs');
+  const loading = !!ref && (org.isLoading || links.isLoading);
+  return (
+    <ListPage title={ref ? 'ორგანიზაციის რედაქტირება' : 'ახალი ორგანიზაცია'} back={{ label: 'ორგანიზაციები', onClick: back }}>
+      {loading ? (
+        <div className="orgf-state">იტვირთება…</div>
+      ) : ref && !org.data ? (
+        <div className="orgf-state">{org.error?.message ?? 'ორგანიზაცია ვერ მოიძებნა'}</div>
+      ) : (
+        <OrgForm
+          key={ref ? `${org.data!.ID}-${org.data!.UpdatedOn ?? ''}` : 'new'}
+          row={org.data ?? null}
+          links={(links.data ?? []).filter((l) => l.OrganizationID === org.data?.ID)}
+          // a new organisation opens its own page, so the logo can be uploaded; an edit goes back to the list
+          onSaved={(r, isNew) => (isNew ? nav(`/orgs/${r.ID}/${r.UID}`, { replace: true }) : back())}
+          onCancel={back}
+        />
+      )}
+    </ListPage>
+  );
+}
+
+function OrgForm({ row, links, onSaved, onCancel }: { row: Org | null; links: OrgPt[]; onSaved: (r: { ID: number; UID: string }, isNew: boolean) => void; onCancel: () => void }) {
   const toast = useToast();
   const invalidate = useInvalidate();
+  const { canWrite } = useAuth();
+  const writable = canWrite('organization');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
   const productTypes = useAll<ProductType>('productType', { Sort: [{ Field: 'Sort', Dir: 'asc' }] });
   const [name, setName] = useState({ ka: row?.NameKa ?? '', en: row?.NameEn ?? '' });
   const [category, setCategory] = useState(row?.Category ?? 'bank');
@@ -177,13 +232,34 @@ function OrgDialog({ row, links, onClose }: { row: Org | null; links: OrgPt[]; o
     for (const l of links.filter((l) => !want.includes(l.ProductTypeID))) await crud.remove('organizationProductType', l);
     await invalidate('organization', 'organizationProductType');
     toast(row ? 'შენახულია' : 'დაემატა');
+    return ref;
+  };
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setError('');
+    setErrors({});
+    try {
+      const ref = await save();
+      onSaved(ref, !row);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message);
+        setErrors(Object.fromEntries(err.details.map((d) => [d.Field, d.Message])));
+      } else if (err instanceof Error && err.message) setError(err.message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
-    <Dialog title={row ? 'ორგანიზაციის რედაქტირება' : 'ახალი ორგანიზაცია'} onOk={save} onClose={onClose} onErrors={setErrors}>
+    <form className="orgf" onSubmit={submit}>
+      {error && <div className="lerr">{error}</div>}
       <div className="f">
         <label>დასახელება</label>
-        <BiInput value={name} onChange={setName} placeholder="მაგ. ბანკი G" />
+        <BiInput value={name} onChange={setName} placeholder="მაგ. საქართველოს ბანკი" />
         <FieldError errors={errors} field="NameKa" />
       </div>
       <div className="f">
@@ -268,6 +344,16 @@ function OrgDialog({ row, links, onClose }: { row: Org | null; links: OrgPt[]; o
           <small>ვიზარდში ორგანიზაცია მხოლოდ ამ თანხებზე გამოჩნდება; ცარიელი - შეზღუდვის გარეშე</small>
         </div>
       )}
-    </Dialog>
+      <div className="orgf-acts">
+        {writable && (
+          <button type="submit" className="btn btn-green" disabled={busy}>
+            {row ? 'შენახვა' : 'დამატება'}
+          </button>
+        )}
+        <button type="button" className="btn btn-ghost" onClick={onCancel}>
+          გაუქმება
+        </button>
+      </div>
+    </form>
   );
 }
