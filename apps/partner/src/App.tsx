@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
 import { api, ApiError, Ref } from './api';
 import logo from './logo.png';
@@ -93,9 +93,16 @@ export function App() {
   );
   const themeBtn = (
     <button type="button" className="ctl" title="თემა" aria-label="თემა" onClick={toggleTheme}>
+      {/* sun in dark, moon in light — the theme it switches to (as in admin) */}
       <svg viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="4" />
-        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+        {dark ? (
+          <>
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+          </>
+        ) : (
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+        )}
       </svg>
     </button>
   );
@@ -108,21 +115,21 @@ export function App() {
     </Link>
   );
 
-  // not signed in: the login page under a plain header
+  // not signed in: the login dialog alone — the logo and the theme switch sit in it
   if (!p)
     return (
-      <>
-        <header>
-          <div className="wrap nav">
-            {logoLink('logo')}
-            <span className="tag">პარტნიორი</span>
-            {themeBtn}
-          </div>
-        </header>
-        <main className="wrap">
-          <Login />
-        </main>
-      </>
+      <main className="login-page">
+        <Login
+          top={
+            <div className="login-top">
+              {logoLink('logo')}
+              <span className="tag">პარტნიორი</span>
+              <span style={{ flex: 1 }} />
+              {themeBtn}
+            </div>
+          }
+        />
+      </main>
     );
 
   // signed in: the menu on the left (as in admin) — logo and fold on top, the sections, the organisation / user / bell / theme / logout at the bottom
@@ -179,7 +186,7 @@ const MENU: { to: string; label: string; icon: string; back?: boolean }[] = [
 ];
 
 /** Login: e-mail or mobile → one-time code (POST /public/auth/sendOtp → verifyOtp, gateway partner). */
-function Login() {
+function Login({ top }: { top: ReactNode }) {
   const { refresh } = useSession();
   const [login, setLogin] = useState('');
   const [code, setCode] = useState('');
@@ -213,6 +220,7 @@ function Login() {
   };
   return (
     <section className="login">
+      {top}
       <h2>პარტნიორის კაბინეტი</h2>
       <p>{challenge ? `კოდი გაიგზავნა: ${login}` : 'შეიყვანე ელ.ფოსტა ან მობილური — ერთჯერად კოდს გამოგიგზავნით'}</p>
       {!challenge ? (
