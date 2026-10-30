@@ -708,7 +708,7 @@
   .pick input:indeterminate + i::after { width: 10px; height: 0; border-left: 0; border-bottom: 2.5px solid #fff; transform: none; }
   .pick input:focus-visible + i { outline: 2px solid var(--orange); outline-offset: 2px; }
   .pick-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 0 12px; border-top: 1px solid var(--line); }
-  .pick-bar .pick-n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 4px; border: 1px solid currentColor; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pick-bar .pick-n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 4px; border: 1px solid #fff; background: #fff; color: var(--green); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .pick-bar .pick-acts { margin-inline-start: auto; display: flex; align-items: center; gap: 12px; }
   .pick-bar .btn.sm { height: 34px; padding: 0 14px; font-size: 13px; }
   .pick-bar .btn:disabled { opacity: .5; cursor: default; }
