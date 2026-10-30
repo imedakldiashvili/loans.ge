@@ -467,8 +467,8 @@
   .recv-offers:hover:not(.none) { filter: brightness(.96); }
   @media (max-width: 560px) { .recv-offers span { display: none; } }   /* phone: the icon and the number */
   /* the offers button is as tall as the application icon (44px) */
-  /* the detailed view: as the expanded part's view icons (white, a light frame, a grey icon); on hover its icon and frame take the state's colour */
-  .cab-details-ico { --c: var(--orange); width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--muted); cursor: pointer; flex: none; }
+  /* the detailed view: white, a grey icon (as the expanded part's view icons), framed in the state's colour; on hover the icon takes it too */
+  .cab-details-ico { --c: var(--orange); width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--c); border-radius: 10px; background: var(--bg); color: var(--muted); cursor: pointer; flex: none; }
   .cab-details-ico.st-done { --c: var(--green); } .cab-details-ico.st-off { --c: var(--muted); } .cab-details-ico svg { width: 22px; height: 22px; } .cab-details-ico:hover { color: var(--c); border-color: var(--c); }
   .cab-card.open .cab-toggle svg { transform: rotate(180deg); }   /* the chevron only turns; its colour stays */
   .cab-det { background: var(--bg); color: var(--fg); padding: 2px 18px 14px; display: grid; gap: 10px; }
