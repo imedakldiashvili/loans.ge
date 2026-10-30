@@ -19,9 +19,6 @@ export function MePage({ dark, setDark }: { dark: boolean; setDark: (d: boolean)
           <b>{p.DisplayName || '—'}</b>
           <span>როლი</span>
           <b>{ROLES[p.Role]}</b>
-          {/* the cities this account works in — a sales manager may be limited to some */}
-          <span>ლოკაცია</span>
-          <b>{p.ScopeCities?.length ? p.ScopeCities.map((id) => cities.find((c) => c.ID === id)?.NameKa).filter(Boolean).join(', ') : 'ყველა'}</b>
           <span>ელ. ფოსტა</span>
           <b>{u.Email || '—'}</b>
           <span>მობილური</span>
@@ -43,6 +40,13 @@ export function MePage({ dark, setDark }: { dark: boolean; setDark: (d: boolean)
               {org?.NameKa}
             </b>
           )}
+        </div>
+      </div>
+      {/* the cities this account works in — a sales manager may be limited to some; its own card, like the theme */}
+      <div className="card me-card">
+        <div className="kv">
+          <span>ლოკაცია</span>
+          <b>{p.ScopeCities?.length ? p.ScopeCities.map((id) => cities.find((c) => c.ID === id)?.NameKa).filter(Boolean).join(', ') : 'ყველა'}</b>
         </div>
       </div>
       <div className="card me-card">

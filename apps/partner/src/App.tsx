@@ -245,7 +245,7 @@ function Login({ top }: { top: ReactNode }) {
         <form className="f" onSubmit={send}>
           <div className="fld">
             <label htmlFor="lUser">ელ.ფოსტა</label>
-            <input id="lUser" type="email" inputMode="email" autoComplete="username" placeholder="მაგ. office@2.ge" value={login} onChange={(e) => setLogin(e.target.value)} autoFocus />
+            <input id="lUser" type="email" inputMode="email" autoComplete="username" placeholder="მაგ. office@7.ge" value={login} onChange={(e) => setLogin(e.target.value)} autoFocus />
           </div>
           <button type="submit" className="btn btn-green full" disabled={busy || !login.trim()}>
             კოდის გაგზავნა
