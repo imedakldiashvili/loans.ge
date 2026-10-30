@@ -337,10 +337,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
         <div className="cab-right">
           <span className="cab-right-col">
             <i className="amt">{money(a.Amount, a.Currency)}</i>
-            {/* the detailed view (its own page), before the offers */}
-            <button type="button" className={`cab-details-ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
-              {I.eye}
-            </button>
             {/* the offers that came in — in the application icon's colour; always shown (none yet: 0, not clickable); filled while an answer is awaited */}
             <button
               type="button"
@@ -352,6 +348,10 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               {I.compare}
               <span>{t('შეთავაზებები')}</span>
               <b>{received}</b>
+            </button>
+            {/* the detailed view (its own page), after the offers; on white, as the organisations' view icons */}
+            <button type="button" className="cab-ico cab-details-ico" title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
+              {I.eye}
             </button>
           </span>
           <button type="button" className="cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
