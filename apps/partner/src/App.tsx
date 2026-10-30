@@ -56,6 +56,10 @@ export function App() {
     }
   }, [small]);
   const [askOut, setAskOut] = useState(false);
+  // no session (logged out, or it expired with the dialog open) — no logout dialog
+  useEffect(() => {
+    if (!me) setAskOut(false);
+  }, [me]);
   const nav = useNavigate();
   const p = me?.Profile;
   const back = p?.Role === 'back';
@@ -182,7 +186,15 @@ export function App() {
         <Modal title="გასვლა" onClose={() => setAskOut(false)}>
           <p className="ask-text">მართლა გინდა გასვლა?</p>
           <div className="acts">
-            <button type="button" className="btn btn-red" onClick={() => void logout()} autoFocus>
+            <button
+              type="button"
+              className="btn btn-red"
+              onClick={() => {
+                setAskOut(false); // App stays mounted while logged out — the dialog must not wait for the next login
+                void logout();
+              }}
+              autoFocus
+            >
               გასვლა
             </button>
             <button type="button" className="btn btn-ghost" onClick={() => setAskOut(false)}>
