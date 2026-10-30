@@ -629,8 +629,8 @@ export function MarkButtons({ o, of, m }: { o: AppOrg; of: OfferRow; m: OfferMar
 
 /** Counts and "send" (with a summary first). */
 export function MarkBar({ m }: { m: OfferMarks }) {
-  // nothing chosen is an answer too — then every offer (and every organisation still without one) is cancelled
-  const canSend = !m.sending;
+  // at least one offer chosen (giving up on all of them is the application's own „finish“)
+  const canSend = !m.sending && m.chosenOffers.length > 0;
   return (
     <div className="pick-bar">
       <span className="pick-acts">
