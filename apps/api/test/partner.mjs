@@ -29,6 +29,7 @@ ok(det.Next.map((n) => n.Status).sort().join() === 'interested,rejected' && det.
 ok((await find('product')).status === 200, 'sales: read products');
 ok((await call('POST', '/partner/product/add', { ProductTypeID: 1, Currencies: ['GEL'] })).status === 403, 'sales: cannot add products → 403');
 ok((await find('staff')).status === 403, 'sales: no staff list → 403');
+ok((await find('offer')).status === 403, 'sales: no sent-offers list → 403');
 
 // ── status flow: sent → interested → offer → (customer only) accepted ✗ → cancelled
 const ch = (r, body) => call('PUT', `/partner/application/changeStatus/${r.ID}/${r.UID}`, body);
@@ -114,20 +115,42 @@ if (free) {
 // ── back office: catalogue and staff
 forget('partner');
 await login('partner', 'office@7.ge');
+// the sent offers: this organisation's only, newest first, with the customer, the record and who sent it
+const offs = (await find('offer')).json.Data;
+const dbOffs = await prisma.offer.count({ where: { isDeleted: false, applicationOrg: { organization: { nameKa: 'მისო A' }, isDeleted: false } } });
+ok(offs.TotalCount === dbOffs && offs.Items.every((o, i, a) => !i || a[i - 1].CreatedOn >= o.CreatedOn), "offers: the organisation's sent offers, newest first", offs.TotalCount);
+const mineOff = offs.Items.find((o) => o.ApplicationOrg.ID === sent.ID);
+ok(mineOff && mineOff.SentBy && mineOff.ApplicationOrg.Application.Pid && mineOff.Card?.OfferTypeID, 'offers: customer, record, card and who sent it', mineOff);
+ok((await find('offer', { Filter: { Search: mineOff.ApplicationOrg.Application.Pid } })).json.Data.Items.every((o) => o.ApplicationOrg.Application.Pid === mineOff.ApplicationOrg.Application.Pid), 'offers: search by personal number');
+const chosenN = (await find('offer', { Filter: { Chosen: true } })).json.Data;
+ok(chosenN.Items.every((o) => o.ChosenOn) && chosenN.TotalCount + (await find('offer', { Filter: { Chosen: false } })).json.Data.TotalCount === offs.TotalCount, 'offers: chosen / not chosen filter');
 const pts = await prisma.productType.findMany();
-const quick = pts.find((p) => p.code === 'mortgage_loan'); // მისო A does not accept it
+const mortgage = pts.find((p) => p.code === 'mortgage_loan'); // მისო A does not have it yet
 const consumer = pts.find((p) => p.code === 'consumer_loan');
-ok((await call('POST', '/partner/product/add', { ProductTypeID: Number(quick.id), Currencies: ['GEL'] })).status === 400, 'product type not accepted by the organisation → 400');
-const np = await call('POST', '/partner/product/add', { ProductTypeID: Number(consumer.id), Description: 'ტესტი', Currencies: ['GEL'] });
-ok(np.status === 200, 'back: add product', np.json);
+// products come from the admin (organisation → product types): the partner can't add or delete them
+ok((await call('POST', '/partner/product/add', { ProductTypeID: Number(consumer.id), Currencies: ['GEL'] })).status === 404, 'back: cannot add a product - the admin adds them (404)');
+const misoA = await prisma.organization.findFirst({ where: { nameKa: 'მისო A', isDeleted: false } });
+await login('admin', 'admin@loans.ge');
+const link = await call('POST', '/admin/organizationProductType/add', { OrganizationID: Number(misoA.id), ProductTypeID: Number(mortgage.id) });
+ok(link.status === 200, 'admin: gives მისო A a product type (mortgage)', link.json);
+const mine = (await find('product')).json.Data.Items;
+const np = { json: { Data: mine.find((p) => p.ProductTypeID === Number(mortgage.id)) } };
+ok(np.json.Data && np.json.Data.IsEnable === false && np.json.Data.Currencies.join() === 'GEL', 'partner: the new product appears, switched off, in GEL', mine.map((p) => p.ProductTypeID));
 const npRow = await prisma.partnerProduct.findUnique({ where: { id: BigInt(np.json.Data.ID) }, include: { organization: true } });
 ok(npRow.organization.nameKa === 'მისო A', 'product belongs to the caller organisation');
+ok((await call('PUT', `/partner/product/edit/${np.json.Data.ID}/${np.json.Data.UID}`, { ProductTypeID: Number(consumer.id), Currencies: ['GEL'] })).status === 400, 'back: cannot move a product to another type (400)');
+ok((await call('PUT', `/partner/product/edit/${np.json.Data.ID}/${np.json.Data.UID}`, { ProductTypeID: Number(mortgage.id), Description: 'ტესტი', Currencies: ['GEL'] })).status === 200, 'back: edits description / currencies');
+ok((await call('PUT', `/partner/product/enable/${np.json.Data.ID}/${np.json.Data.UID}`)).status === 200, 'back: switches the product on');
+ok((await call('DELETE', `/partner/product/delete/${np.json.Data.ID}/${np.json.Data.UID}`)).status === 404, 'back: cannot delete a product (404)');
 const ot = await prisma.referenceItem.findFirst({ where: { kind: 'offer_type' } });
 const bad = await call('POST', '/partner/card/add', { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'GEL', Values: { rate: 'x', minAmt: 5000, maxAmt: 100, unknownKey: 1 } });
 ok(bad.status === 400 && ['Values.rate', 'Values.unknownKey', 'Values.maxAmt', 'Values.minM'].every((f) => bad.json.Error.Details.some((d) => d.Field === f)), 'card values checked against the product field schema', bad.json.Error);
 ok((await call('POST', '/partner/card/add', { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'USD', Values: { rate: 12, minAmt: 100, maxAmt: 5000, minM: 3, maxM: 24 } })).status === 400, 'card currency must be enabled on the product');
 const nc = await call('POST', '/partner/card/add', { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'GEL', Values: { rate: 12, feePct: 1, insPct: 0.2, minAmt: 100, maxAmt: 5000, minM: 3, maxM: 24 } });
 ok(nc.status === 200, 'back: add a valid card', nc.json);
+// the admin takes the type away → the product (with its cards) leaves the partner's catalogue
+ok((await call('DELETE', `/admin/organizationProductType/delete/${link.json.Data.ID}/${link.json.Data.UID}`)).status === 200, 'admin: takes the product type away');
+ok(!(await find('product')).json.Data.Items.some((p) => p.ID === np.json.Data.ID), 'partner: the product is gone from the catalogue');
 
 const staff = (await find('staff')).json.Data;
 const orgStaff = await prisma.userProfile.count({ where: { organizationId: npRow.organizationId, isDeleted: false } });
