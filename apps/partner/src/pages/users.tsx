@@ -2,10 +2,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ApiError, crud, findAll } from '../api';
 import { ROLES, useRefs, useSession } from '../session';
-import { EditIcon, ErrorLine, Modal, Switch, usePaged, useToast } from '../ui/ui';
+import { Chevron, EditIcon, ErrorLine, Modal, Switch, usePaged, useToast } from '../ui/ui';
 import { useProducts } from './products';
 
 // Organisation staff (prototype partner.html renderUsers / userForm) — /partner/staff.
+// A row: name + role · e-mail, mobile · the number of products and cities (no limit — all); the names open below it.
 
 interface Staff {
   ID: number;
@@ -25,6 +26,7 @@ export function UsersPage() {
   const { cities } = useRefs();
   const products = useProducts();
   const qc = useQueryClient();
+  const [open, setOpen] = useState<number | null>(null);
   const toast = useToast();
   const q = useQuery({ queryKey: ['staff'], queryFn: () => findAll<Staff>('partner', 'staff') });
   const [form, setForm] = useState<Staff | 'new' | null>(null);
@@ -32,7 +34,10 @@ export function UsersPage() {
   const list = q.data ?? [];
   const { shown, pager } = usePaged(list);
   const self = (u: Staff) => u.ID === me?.Profile?.ID;
-  const pName = (id: number) => products.data?.find((p) => p.ID === id)?.ProductType.NameKa;
+  // the scope in full (the row's expanded part): names; no limit (and back office) — all
+  const limited = (u: Staff, ids: number[]) => u.Role === 'sales' && ids.length > 0;
+  const prodNames = (u: Staff) => (limited(u, u.ScopeProducts) ? u.ScopeProducts.map((id) => products.data?.find((p) => p.ID === id)?.ProductType.NameKa).filter(Boolean).join(', ') : 'ყველა');
+  const cityNames = (u: Staff) => (limited(u, u.ScopeCities) ? u.ScopeCities.map((id) => cities.find((c) => c.ID === id)?.NameKa).filter(Boolean).join(', ') : 'ყველა');
 
   return (
     <div className="main">
@@ -45,30 +50,30 @@ export function UsersPage() {
       <div className="list">
         {!list.length && <div className="empty">{q.isLoading ? 'იტვირთება…' : 'მომხმარებელი არ არის'}</div>}
         {shown.map((u) => (
-          <div key={u.ID} className="card">
-            <div className="prow">
+          <div key={u.ID} className={`card${open === u.ID ? ' open' : ''}`}>
+            <div className="prow urow">
               <span className="lg" style={{ background: 'var(--blue)', width: 40, height: 40, borderRadius: '50%', color: '#fff', fontWeight: 700, display: 'grid', placeItems: 'center' }}>
                 {u.DisplayName.slice(0, 1)}
               </span>
+              {/* the name, and under it the role */}
               <span className="pinfo">
                 <b>
                   {u.DisplayName}
                   {self(u) && <small> (შენ)</small>}
                 </b>
-                <small>{[u.User.Phone, u.User.Email].filter(Boolean).join(' · ')}</small>
                 <span>
                   <span className={`st role ${u.Role}`}>{ROLES[u.Role]}</span>
                 </span>
               </span>
+              {/* the contacts: e-mail, mobile — one per line */}
+              <span className="pinfo ucont">
+                <small>{u.User.Email || '-'}</small>
+                <small>{u.User.Phone || '-'}</small>
+              </span>
+              {/* the scope: the number of products and the cities; no limit (and back office) — all */}
               <span className="pmeta">
-                {u.Role === 'sales' ? (
-                  <>
-                    <small>პროდუქტები: {u.ScopeProducts.length ? u.ScopeProducts.map(pName).filter(Boolean).join(', ') : 'ყველა'}</small>
-                    <small>ლოკაცია: {u.ScopeCities.length ? u.ScopeCities.map((id) => cities.find((c) => c.ID === id)?.NameKa).filter(Boolean).join(', ') : 'ყველა'}</small>
-                  </>
-                ) : (
-                  <small>სრული წვდომა</small>
-                )}
+                <small>პროდუქტები: {limited(u, u.ScopeProducts) ? u.ScopeProducts.length : 'ყველა'}</small>
+                <small>ლოკაცია: {limited(u, u.ScopeCities) ? u.ScopeCities.length : 'ყველა'}</small>
               </span>
               <span className="racts p">
                 <Switch
@@ -88,7 +93,22 @@ export function UsersPage() {
                   <EditIcon />
                 </button>
               </span>
+              <button type="button" className="ib tg" aria-label="ჩამოშლა" aria-expanded={open === u.ID} onClick={() => setOpen(open === u.ID ? null : u.ID)}>
+                <Chevron />
+              </button>
             </div>
+            {open === u.ID && (
+              <div className="det cards">
+                <span className="pinfo">
+                  <small>
+                    <b>პროდუქტები:</b> {prodNames(u)}
+                  </small>
+                  <small>
+                    <b>ლოკაცია:</b> {cityNames(u)}
+                  </small>
+                </span>
+              </div>
+            )}
           </div>
         ))}
       </div>
