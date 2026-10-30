@@ -337,6 +337,10 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
         <div className="cab-right">
           <span className="cab-right-col">
             <i className="amt">{money(a.Amount, a.Currency)}</i>
+            {/* the detailed view (its own page), before the offers */}
+            <button type="button" className="cab-ico cab-details-ico" title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
+              {I.eye}
+            </button>
             {/* the offers that came in — in the application icon's colour; always shown (none yet: 0, not clickable); filled while an answer is awaited */}
             <button
               type="button"
@@ -421,13 +425,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               </div>
             );
           })}
-          {/* the detailed view — its own page (stopping the application is at its bottom) */}
-          <div className="cab-det-foot">
-            <button type="button" className="btn btn-green cab-end cab-details" onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
-              {I.eye}
-              {t('დეტალური ნახვა')}
-            </button>
-          </div>
         </div>
       )}
       {offer && <OfferModal o={offer} onClose={() => setOffer(null)} />}
