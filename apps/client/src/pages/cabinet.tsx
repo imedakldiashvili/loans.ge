@@ -636,11 +636,11 @@ export function MarkBar({ m }: { m: OfferMarks }) {
       <span className="pick-acts">
         <button type="button" className="btn btn-green sm" disabled={!canSend} onClick={() => (m.setError(''), m.setAsking(true))}>
           {t('არჩეულების დადასტურება')}
+          {/* how many are chosen — in its frame, inside the button */}
+          <span className="pick-n" title={t('არჩეულია')}>
+            {m.chosenOffers.length}
+          </span>
         </button>
-        {/* how many are chosen — to the right of the button */}
-        <span className={`pick-n${m.chosenOffers.length ? ' on' : ''}`} title={t('არჩეულია')}>
-          {m.chosenOffers.length}
-        </span>
       </span>
       {m.asking && <ConfirmOffers accept={m.accepts} chosen={m.marks} cancel={m.declines} pending={m.pending} busy={m.sending} error={m.error} onYes={m.send} onClose={() => m.setAsking(false)} />}
     </div>
