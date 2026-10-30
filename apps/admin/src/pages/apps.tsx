@@ -112,10 +112,14 @@ function AppCard({ a, open, onToggle, onView }: { a: Application; open: boolean;
       <div className="arow">
         <AstIcon active={a.State === 'active'} />
         <span className="info">
-          <b>{a.ProductType.NameKa}</b>
-          <small className="app-no">#{a.ID}</small>
+          {/* the product and the application's number on one line */}
+          <b>
+            {a.ProductType.NameKa} <span className="app-no">- #{a.ID}</span>
+          </b>
           {/* the city - district, under the product */}
           <small>{place(a)}</small>
+          {/* the date — under the city - district */}
+          <small>{fmtDate(a.CreatedOn)}</small>
           {a.Source && <small>{a.Source}</small>}
         </span>
         {/* the middle column: the customer (personal number, name), the mobile, the e-mail — one line each */}
@@ -136,8 +140,6 @@ function AppCard({ a, open, onToggle, onView }: { a: Application; open: boolean;
               </span>
             ))}
           </span>
-          {/* the date — on the right, under the statuses */}
-          <small className="r-date">{fmtDate(a.CreatedOn)}</small>
         </span>
         <span className="aacts">
           <button type="button" className="ib" title="შეთავაზებები" onClick={() => nav(`/apps/${a.ID}/${a.UID}/compare`)}>
