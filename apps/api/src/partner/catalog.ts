@@ -57,6 +57,13 @@ export const validateCardValues = async (prisma: PrismaService, productTypeId: b
     }
     if (v === null || v === '') continue;
     if (f.kind === 'bool' && typeof v !== 'boolean') details.push({ field: `Values.${k}`, message: 'კი / არა' });
+    if (f.kind === 'pctMin') {
+      // { pct, min }: the percentage is required, the minimum amount optional
+      const o = (typeof v === 'object' ? v : {}) as { pct?: unknown; min?: unknown };
+      const pos = (x: unknown) => typeof x === 'number' && !Number.isNaN(x) && x >= 0;
+      if (!pos(o.pct)) details.push({ field: `Values.${k}.pct`, message: 'პროცენტი - დადებითი რიცხვი' });
+      if (o.min !== undefined && o.min !== null && !pos(o.min)) details.push({ field: `Values.${k}.min`, message: 'მინიმუმი - დადებითი რიცხვი' });
+    } else if (typeof v === 'object') details.push({ field: `Values.${k}`, message: 'არასწორი მნიშვნელობა' });
     if (['number', 'money', 'int'].includes(f.kind) && (typeof v !== 'number' || Number.isNaN(v) || v < 0)) details.push({ field: `Values.${k}`, message: 'დადებითი რიცხვი' });
     if (f.kind === 'int' && typeof v === 'number' && !Number.isInteger(v)) details.push({ field: `Values.${k}`, message: 'მთელი რიცხვი' });
     if (f.kind === 'select' && !((f.options as string[] | null) ?? []).includes(String(v))) details.push({ field: `Values.${k}`, message: 'არასწორი ვარიანტი' });
@@ -75,7 +82,7 @@ export const cards: CrudConfig = {
   scopeFn: () => ({ product: { organizationId: org(), isDeleted: false, ...productScope() } }),
   schema: z.object({
     productId: id, offerTypeId: id, currency: z.string().trim().toUpperCase().length(3),
-    values: z.record(z.union([z.number(), z.string(), z.boolean(), z.null()])),
+    values: z.record(z.union([z.number(), z.string(), z.boolean(), z.null(), z.object({ pct: z.unknown(), min: z.unknown() }).partial()])),
   }),
   filterFields: ['productId', 'currency', 'offerTypeId'],
   include: { product: { select: { id: true, uid: true, productTypeId: true, currencies: true } } },

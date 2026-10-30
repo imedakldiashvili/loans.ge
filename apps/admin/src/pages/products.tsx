@@ -28,8 +28,9 @@ interface Field extends Base {
   Key: string;
   LabelKa: string;
   LabelEn: string;
-  Kind: 'number' | 'money' | 'int' | 'select' | 'bool';
-  DefaultValue: number | string | boolean | null;
+  Kind: 'number' | 'money' | 'int' | 'select' | 'bool' | 'pctMin';
+  /** pctMin: { Pct, Min } — 2% (min. 10 ₾) */
+  DefaultValue: number | string | boolean | { Pct: number; Min: number | null } | null;
   Step: number | null;
   Options: string[] | null;
   Sort: number;
@@ -39,7 +40,9 @@ interface OrgPt extends Base {
 }
 
 const RANGES = [100, 1000, 10000, 100000];
-const KINDS: Record<Field['Kind'], string> = { number: 'რიცხვი', money: 'თანხა', int: 'მთელი', select: 'არჩევანი', bool: 'კი/არა' };
+const KINDS: Record<Field['Kind'], string> = { number: 'რიცხვი', money: 'თანხა', int: 'მთელი', select: 'არჩევანი', bool: 'კი/არა', pctMin: '% + მინ. თანხა' };
+/** pctMin as text: "2% მინ. 10 ₾" (no minimum — just "2%") */
+const pctMinText = (v: Field['DefaultValue']) => (v && typeof v === 'object' ? `${v.Pct}%${v.Min !== null && v.Min !== undefined ? ` მინ. ${v.Min} ₾` : ''}` : '');
 
 export function ProductsPage() {
   const { canWrite } = useAuth();
@@ -230,7 +233,13 @@ export function ProductFieldsPage() {
   const list = q.data?.Items ?? [];
 
   const detail = (f: Field) =>
-    f.Kind === 'select' ? ' · ' + (f.Options ?? []).join(' / ') : f.Kind === 'bool' ? ' · ნაგულისხმევი: ' + (f.DefaultValue ? 'კი' : 'არა') : f.DefaultValue !== null ? ' · ნაგულისხმევი: ' + f.DefaultValue : '';
+    f.Kind === 'select'
+      ? ' · ' + (f.Options ?? []).join(' / ')
+      : f.Kind === 'bool'
+        ? ' · ნაგულისხმევი: ' + (f.DefaultValue ? 'კი' : 'არა')
+        : f.Kind === 'pctMin'
+          ? f.DefaultValue ? ' · ნაგულისხმევი: ' + pctMinText(f.DefaultValue) : ''
+          : f.DefaultValue !== null ? ' · ნაგულისხმევი: ' + f.DefaultValue : '';
 
   return (
     <ListPage
@@ -307,7 +316,7 @@ function FieldDialog({ row, onSave, onClose }: { row: Field | null; onSave: (b: 
   const [key, setKey] = useState(row?.Key ?? '');
   const [kind, setKind] = useState<Field['Kind']>(row?.Kind ?? 'number');
   const [label, setLabel] = useState({ ka: row?.LabelKa ?? '', en: row?.LabelEn ?? '' });
-  const [def, setDef] = useState(row?.Kind === 'bool' ? (row.DefaultValue ? 'კი' : 'არა') : String(row?.DefaultValue ?? ''));
+  const [def, setDef] = useState(row?.Kind === 'bool' ? (row.DefaultValue ? 'კი' : 'არა') : row?.Kind === 'pctMin' ? pctMinText(row.DefaultValue) : String(row?.DefaultValue ?? ''));
   const [step, setStep] = useState(String(row?.Step ?? ''));
   const [options, setOptions] = useState((row?.Options ?? []).join(', '));
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -315,8 +324,12 @@ function FieldDialog({ row, onSave, onClose }: { row: Field | null; onSave: (b: 
   const save = () => {
     const opts = options.split(',').map((s) => s.trim()).filter(Boolean);
     const dv = def.trim();
+    // pctMin: "2% მინ. 10" → { Pct: 2, Min: 10 } (the first number — the percentage, the second — the minimum)
+    const nums = (dv.match(/\d+(?:[.,]\d+)?/g) ?? []).map((x) => Number(x.replace(',', '.')));
     const DefaultValue =
-      kind === 'bool' ? /^(კი|true|1|yes)$/i.test(dv) : kind === 'select' ? (opts.includes(dv) ? dv : opts[0] ?? null) : dv === '' ? null : kind === 'int' ? Math.round(Number(dv)) : Number(dv);
+      kind === 'pctMin'
+        ? nums.length ? { Pct: nums[0], Min: nums[1] ?? null } : null
+        : kind === 'bool' ? /^(კი|true|1|yes)$/i.test(dv) : kind === 'select' ? (opts.includes(dv) ? dv : opts[0] ?? null) : dv === '' ? null : kind === 'int' ? Math.round(Number(dv)) : Number(dv);
     return onSave({
       Key: key.trim(), Kind: kind, LabelKa: label.ka, LabelEn: label.en || label.ka, DefaultValue,
       Step: (kind === 'number' || kind === 'money') && Number(step) ? Number(step) : null,
@@ -352,7 +365,7 @@ function FieldDialog({ row, onSave, onClose }: { row: Field | null; onSave: (b: 
       <div className="fgrid" style={{ padding: 0 }}>
         <div className="f">
           <label htmlFor="fDef">ნაგულისხმევი</label>
-          <input id="fDef" value={def} placeholder={kind === 'bool' ? 'კი / არა' : ''} onChange={(e) => setDef(e.target.value)} />
+          <input id="fDef" value={def} placeholder={kind === 'bool' ? 'კი / არა' : kind === 'pctMin' ? 'მაგ. 2% მინ. 10 ₾' : ''} onChange={(e) => setDef(e.target.value)} />
         </div>
         {(kind === 'number' || kind === 'money') && (
           <div className="f">

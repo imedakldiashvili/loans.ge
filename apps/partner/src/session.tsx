@@ -111,8 +111,9 @@ export interface Field {
   ProductTypeID: number;
   Key: string;
   LabelKa: string;
-  Kind: 'number' | 'money' | 'int' | 'select' | 'bool';
-  DefaultValue: number | string | boolean | null;
+  Kind: 'number' | 'money' | 'int' | 'select' | 'bool' | 'pctMin';
+  /** pctMin: { Pct, Min } — 2% (min. 10 ₾) */
+  DefaultValue: number | string | boolean | { Pct: number; Min: number | null } | null;
   Step: number | null;
   Options: string[] | null;
   Sort: number;

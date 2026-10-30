@@ -93,8 +93,9 @@ const configs: CrudConfig[] = [
       productTypeId: id,
       key: z.string().trim().regex(/^[a-zA-Z][a-zA-Z0-9]*$/, 'ლათინური ასოები და ციფრები, ასოთი იწყება'),
       labelKa: z.string().trim().min(1), labelEn: z.string().trim().min(1),
-      kind: z.enum(['number', 'money', 'int', 'select', 'bool']),
-      defaultValue: z.union([z.number(), z.string(), z.boolean()]).nullable().default(null),
+      // pctMin: a percentage with a minimum amount — { pct, min }, e.g. 2% (min. 10 ₾)
+      kind: z.enum(['number', 'money', 'int', 'select', 'bool', 'pctMin']),
+      defaultValue: z.union([z.number(), z.string(), z.boolean(), z.object({ pct: z.number().min(0), min: z.number().min(0).nullable().default(null) })]).nullable().default(null),
       step: z.number().positive().nullable().default(null),
       options: z.array(z.string().trim().min(1)).nullable().default(null),
       sort,

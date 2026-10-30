@@ -148,6 +148,16 @@ ok((await call('PUT', `/partner/card/edit/${nc2.json.Data.ID}/${nc2.json.Data.UI
 ok((await call('PUT', `/partner/card/edit/${nc2.json.Data.ID}/${nc2.json.Data.UID}`, { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'GEL', Values: cardVals(5000, 12000) })).status === 200, 'back: a card keeps its own range on edit');
 const ot2 = await prisma.referenceItem.findFirst({ where: { kind: 'offer_type', id: { not: ot.id } } });
 ok((await call('POST', '/partner/card/add', { ProductID: np.json.Data.ID, OfferTypeID: Number(ot2.id), Currency: 'GEL', Values: cardVals(3000, 8000) })).status === 200, 'back: another offer type may cover the same amounts');
+// a "% + min. amount" value (2% min. 10 ₾): the admin adds the field, the partner fills { pct, min }
+const pmKey = `pm${Date.now().toString(36)}`;
+const pmf = await call('POST', '/admin/productTypeField/add', { ProductTypeID: Number(mortgage.id), Key: pmKey, LabelKa: 'საკომისიო', LabelEn: 'Fee', Kind: 'pctMin', DefaultValue: { Pct: 2, Min: 10 } });
+const pmRow = await prisma.productTypeField.findUnique({ where: { id: BigInt(pmf.json.Data.ID) } });
+ok(pmf.status === 200 && pmRow.kind === 'pctMin' && pmRow.defaultValue?.pct === 2 && pmRow.defaultValue?.min === 10, 'admin: a "% + min. amount" field (2% min. 10 ₾)', pmRow);
+const pmCard = await call('POST', '/partner/card/add', { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'GEL', Values: { ...cardVals(20000, 30000), [pmKey]: { Pct: 2.5, Min: 15 } } });
+const pmVal = pmCard.status === 200 ? (await prisma.partnerOfferCard.findUnique({ where: { id: BigInt(pmCard.json.Data.ID) } })).values[pmKey] : null;
+ok(pmVal?.pct === 2.5 && pmVal?.min === 15, 'back: a card keeps the "% + min." value', pmCard.json);
+ok((await call('POST', '/partner/card/add', { ProductID: np.json.Data.ID, OfferTypeID: Number(ot.id), Currency: 'GEL', Values: { ...cardVals(40000, 50000), [pmKey]: { Pct: 'x' } } })).status === 400, 'back: a "% + min." value needs a percentage (400)');
+await call('DELETE', `/admin/productTypeField/delete/${pmf.json.Data.ID}/${pmf.json.Data.UID}`);
 // the admin takes the type away → the product (with its cards) leaves the partner's catalogue
 ok((await call('DELETE', `/admin/organizationProductType/delete/${link.json.Data.ID}/${link.json.Data.UID}`)).status === 200, 'admin: takes the product type away');
 ok(!(await find('product')).json.Data.Items.some((p) => p.ID === np.json.Data.ID), 'partner: the product is gone from the catalogue');
