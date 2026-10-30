@@ -714,6 +714,8 @@
   .pick-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 0 12px; border-top: 1px solid var(--line); }
   .pick-bar .pick-n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 4px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .pick-bar .pick-n.on { border-color: var(--green); color: var(--green); }
+  /* inside the green button: a white number on a translucent badge */
+  .pick-bar .btn .pick-n, .pick-bar .btn .pick-n.on { background: rgba(255,255,255,.22); border-color: transparent; color: #fff; }
   .pick-bar .pick-acts { margin-inline-start: auto; display: flex; align-items: center; gap: 12px; }
   .pick-bar .btn.sm { height: 34px; padding: 0 14px; font-size: 13px; }
   .pick-bar .btn:disabled { opacity: .5; cursor: default; }
