@@ -467,7 +467,9 @@
   .recv-offers:hover:not(.none) { filter: brightness(.96); }
   @media (max-width: 560px) { .recv-offers span { display: none; } }   /* phone: the icon and the number */
   /* the offers button is as tall as the application icon (44px) */
-  .cab-right .cab-details-ico { width: 44px; padding: 0; justify-content: center; } .cab-right .cab-details-ico svg { width: 20px; height: 20px; }   /* the detailed view: as the offers button, the icon only */   /* the detailed view: an icon as tall as the offers */
+  /* the detailed view: always framed, never filled — the icon and its light background in the application icon's colours */
+  .cab-details-ico { --c: var(--orange); --cs: var(--orange-soft); width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--c); border-radius: 10px; background: var(--cs); color: var(--c); cursor: pointer; flex: none; }
+  .cab-details-ico.st-done { --c: var(--green); --cs: var(--green-soft); } .cab-details-ico.st-off { --c: var(--muted); --cs: var(--bg-soft); } .cab-details-ico svg { width: 20px; height: 20px; } .cab-details-ico:hover { filter: brightness(.96); }   /* the detailed view: an icon as tall as the offers */
   .cab-card.open .cab-toggle svg { transform: rotate(180deg); } .cab-card.open .cab-toggle { color: var(--green); }
   .cab-det { background: var(--bg); color: var(--fg); padding: 2px 18px 14px; display: grid; gap: 10px; }
   .cab-stat { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
