@@ -337,12 +337,12 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             {GROUP_ORDER.map((k) => {
               const c = a.Orgs.filter((o) => o.Status === k).length;
               return c ? (
-                <b key={k} style={{ color: s.color(k) }} title={`${s.label(k)}: ${c}`}>
+                <b key={k} style={{ ['--c' as string]: s.color(k) }} title={`${s.label(k)}: ${c}`}>
                   {c}
                 </b>
               ) : null;
             })}
-            <span title={t('სულ გაეგზავნა')}>/ {a.Orgs.length}</span>
+            <span className="tot" title={t('სულ გაეგზავნა')}>/ {a.Orgs.length}</span>
           </span>
         </div>
         <div className="cab-acts">
