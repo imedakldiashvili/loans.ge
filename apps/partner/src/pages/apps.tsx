@@ -194,6 +194,18 @@ export function AppsPage() {
       </div>
       <div className="srow">
         <input className="search" type="search" placeholder="ძებნა: პირადი ნომერი, სახელი გვარი, მობილური" value={search} onChange={(e) => setSearch(e.target.value)} />
+        {back && (
+          <select className="fsel" aria-label="თანამშრომელი" value={who} onChange={(e) => setWho(e.target.value)}>
+            <option value="">აირჩიე თანამშრომელი</option>
+            <option value="free">არავის აუღია</option>
+            {(staff.data ?? []).map((u) => (
+              <option key={u.ID} value={u.ID}>
+                {u.DisplayName}
+                {u.ID === me?.Profile?.ID ? ' (შენ)' : ''}
+              </option>
+            ))}
+          </select>
+        )}
         <select className="fsel" aria-label="ლოკაცია" value={city} onChange={(e) => setCity(e.target.value)}>
           <option value="all">აირჩიე ლოკაცია</option>
           {myCities.map((c) => {
@@ -220,18 +232,6 @@ export function AppsPage() {
           <option value="7d">ბოლო კვირა</option>
           <option value="30d">ბოლო თვე</option>
         </select>
-        {back && (
-          <select className="fsel" aria-label="თანამშრომელი" value={who} onChange={(e) => setWho(e.target.value)}>
-            <option value="">აირჩიე თანამშრომელი</option>
-            <option value="free">არავის აუღია</option>
-            {(staff.data ?? []).map((u) => (
-              <option key={u.ID} value={u.ID}>
-                {u.DisplayName}
-                {u.ID === me?.Profile?.ID ? ' (შენ)' : ''}
-              </option>
-            ))}
-          </select>
-        )}
       </div>
       <div className="chips">
         {mainKeys.map((k) => {
