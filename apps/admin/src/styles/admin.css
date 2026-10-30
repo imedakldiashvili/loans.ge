@@ -357,16 +357,17 @@
   /* applications — one card per application (as in the partner cabinet); opened: blocks, the first one open */
   .acards { display: grid; align-content: start; gap: 10px; padding: 12px; background: var(--bg-soft); } .acards-empty { margin: 0; padding: 24px; text-align: center; color: var(--muted); }
   .acard { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; } .acard.open { border-color: var(--green); }
-  .arow { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 12px 16px; } .arow > * { min-width: 0; }
+  .arow { display: grid; grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1.2fr) auto auto; gap: 14px; align-items: center; padding: 12px 16px; } .arow > * { min-width: 0; }
   .arow .ast svg { width: 36px; height: 36px; display: block; }
   .arow .info { display: grid; gap: 3px; } .arow .app-no { font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; } .arow .info b { font-size: 15px; color: var(--fg); } .arow small { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
   .arow .right { display: grid; gap: 4px; justify-items: end; text-align: right; } .arow .amt { font-size: 18px; font-weight: 700; color: var(--fg); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .arow .scs { margin-top: 0; justify-content: flex-end; align-items: center; } .arow .scs .otot { height: 22px; min-width: 24px; font-size: 12px; } .arow .r-date { white-space: nowrap; }
   .arow .aacts { display: flex; gap: 6px; } .acard.open .arow .ib.tg svg { transform: rotate(180deg); } .acard.open .arow .ib.tg { color: var(--green); border-color: var(--green); }
+  .arow .who-col { display: grid; gap: 3px; } .arow .who-col small { font-size: 13px; color: var(--fg); } .arow .who-col small + small { font-size: 12px; color: var(--muted); }
   .adet { display: grid; gap: 10px; padding: 0 16px 16px; }
   .dsec { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
   .dsec summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: var(--bg-soft); } .dsec summary::-webkit-details-marker { display: none; }
   .dsec summary svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; color: var(--muted); transition: transform .2s; }
   .dsec[open] summary svg { transform: rotate(180deg); } .dsec[open] summary { border-bottom: 1px solid var(--line); }
   .dsec h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin: 0; } .dbody { padding: 12px 14px; }
-  @media (max-width: 700px) { .arow { grid-template-columns: 40px minmax(0, 1fr); } .arow .right { grid-column: 2; justify-items: start; text-align: left; } .arow .aacts { grid-column: 2; } .adet { padding-inline: 10px; } }
+  @media (max-width: 700px) { .arow { grid-template-columns: 40px minmax(0, 1fr); } .arow .who-col, .arow .right { grid-column: 2; justify-items: start; text-align: left; } .arow .aacts { grid-column: 2; } .adet { padding-inline: 10px; } }

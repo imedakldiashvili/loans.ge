@@ -114,9 +114,12 @@ function AppCard({ a, open, onToggle, onView }: { a: Application; open: boolean;
         <span className="info">
           <b>{a.ProductType.NameKa}</b>
           <small className="app-no">#{a.ID}</small>
+          {a.Source && <small>{a.Source}</small>}
+        </span>
+        {/* the middle column: the customer (personal number, name), the mobile and the e-mail */}
+        <span className="who-col">
           <small>{[a.Pid, fullName(a)].filter(Boolean).join(' · ') || '—'}</small>
           {(a.Phone || a.Email) && <small>{[phone(a.Phone), a.Email].filter(Boolean).join(' · ')}</small>}
-          {a.Source && <small>{a.Source}</small>}
         </span>
         <span className="right">
           <span className="amt">{money(a.Amount, a.Currency)}</span>

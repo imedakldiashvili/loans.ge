@@ -364,16 +364,19 @@ function AppCard({ r, open, onToggle, st, onChanged }: { r: Rec; open: boolean; 
           </svg>
         </span>
         <span className="info">
-          {/* under the product, the number: the customer's application / this organisation's record */}
-          <b>{a.ProductType.NameKa}</b>
-          <small className="app-no">#{a.ID}/{r.ID}</small>
-          {(!r.IsMasked || taker) && (
-            <small>
-              {applicantName(r)}
-              {taker && <span className="taker" title="აიღო">{r.IsMasked ? '' : ' · '}👤 {taker}</span>}
+          {/* the product and its number on one line: the customer's application / this organisation's record */}
+          <b>
+            {a.ProductType.NameKa} <span className="app-no">- #{a.ID}/{r.ID}</span>
+          </b>
+          {taker && (
+            <small className="taker" title="აიღო">
+              👤 {taker}
             </small>
           )}
-          {/* the mobile and the e-mail — once the contacts are open */}
+        </span>
+        {/* the middle column: the applicant (personal number, name) and, once the contacts are open, the mobile and the e-mail */}
+        <span className="who-col">
+          {!r.IsMasked && <small>{applicantName(r)}</small>}
           {(a.Phone || a.Email) && <small>{[a.Phone && `+995 ${a.Phone.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')}`, a.Email].filter(Boolean).join(' · ')}</small>}
         </span>
         <span className="right">
