@@ -173,10 +173,8 @@ function Keys() {
                 <small>
                   <code>lgk_{k.Prefix}_…</code>
                 </small>
-                {/* the scopes, one per line */}
-                {k.Scopes.map((sc) => (
-                  <small key={sc}>{SCOPES.find((x) => x[0] === sc)?.[1] ?? sc}</small>
-                ))}
+                {/* the scopes: their own line, all on it */}
+                <small>{k.Scopes.map((sc) => SCOPES.find((x) => x[0] === sc)?.[1] ?? sc).join(', ')}</small>
                 <small>
                   ბოლო გამოყენება: {k.LastUsedOn ? fmtDate(k.LastUsedOn) : '-'}
                   {k.ExpiresOn ? ` · მოქმედებს ${fmtDate(k.ExpiresOn)}-მდე` : ''}
