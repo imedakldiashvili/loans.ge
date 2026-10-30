@@ -133,60 +133,6 @@
       "sort": 1070
     },
     {
-      "id": "o8",
-      "name": "მისო B",
-      "nameEn": "MFO B",
-      "cat": "მიკროსაფინანსო",
-      "color": "#7b4fb5",
-      "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt2",
-        "pt3",
-        "pt5",
-        "pt6",
-        "pt7"
-      ],
-      "sort": 1080
-    },
-    {
-      "id": "o9",
-      "name": "მისო C",
-      "nameEn": "MFO C",
-      "cat": "მიკროსაფინანსო",
-      "color": "#0f9d8a",
-      "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt2",
-        "pt3",
-        "pt5",
-        "pt6",
-        "pt7"
-      ],
-      "sort": 1090
-    },
-    {
-      "id": "o10",
-      "name": "მისო D",
-      "nameEn": "MFO D",
-      "cat": "მიკროსაფინანსო",
-      "color": "#c0392b",
-      "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt2",
-        "pt3",
-        "pt5",
-        "pt6",
-        "pt7"
-      ],
-      "sort": 1100
-    },
-    {
       "id": "o11",
       "name": "ლიზინგი A",
       "nameEn": "Leasing A",
@@ -201,20 +147,6 @@
       "sort": 1110
     },
     {
-      "id": "o12",
-      "name": "ლიზინგი B",
-      "nameEn": "Leasing B",
-      "cat": "სალიზინგო",
-      "color": "#2e7d32",
-      "active": true,
-      "partner": true,
-      "products": [
-        "pt3",
-        "pt6"
-      ],
-      "sort": 1120
-    },
-    {
       "id": "o13",
       "name": "სუბიექტი A",
       "nameEn": "Entity A",
@@ -227,20 +159,6 @@
         "pt2"
       ],
       "sort": 1130
-    },
-    {
-      "id": "o14",
-      "name": "სუბიექტი B",
-      "nameEn": "Entity B",
-      "cat": "სესხის გამცემი სუბიექტი",
-      "color": "#7b4fb5",
-      "active": true,
-      "partner": true,
-      "products": [
-        "pt1",
-        "pt2"
-      ],
-      "sort": 1140
     },
     {
       "id": "o15",
@@ -2224,174 +2142,6 @@
       ]
     },
     {
-      "org": "o8",
-      "list": [
-        {
-          "id": "u1",
-          "name": "ნინო კაპანაძე",
-          "role": "sales",
-          "phone": "+995 555 10 10 08",
-          "email": "sales1@8.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u2",
-          "name": "გიორგი მაისურაძე",
-          "role": "sales",
-          "phone": "+995 555 20 20 08",
-          "email": "sales2@8.ge",
-          "active": true,
-          "products": [
-            "p1",
-            "p3"
-          ],
-          "cities": [
-            "თბილისი",
-            "რუსთავი"
-          ]
-        },
-        {
-          "id": "u3",
-          "name": "თამარ ბერიძე",
-          "role": "back",
-          "phone": "+995 555 30 30 08",
-          "email": "office@8.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u4",
-          "name": "ლევან ხუციშვილი",
-          "role": "sales",
-          "phone": "+995 555 40 40 08",
-          "email": "sales3@8.ge",
-          "active": false,
-          "products": [
-            "p2"
-          ],
-          "cities": [
-            "ბათუმი",
-            "ქობულეთი"
-          ]
-        }
-      ]
-    },
-    {
-      "org": "o9",
-      "list": [
-        {
-          "id": "u1",
-          "name": "გიორგი მაისურაძე",
-          "role": "sales",
-          "phone": "+995 555 10 10 09",
-          "email": "sales1@9.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u2",
-          "name": "თამარ ბერიძე",
-          "role": "sales",
-          "phone": "+995 555 20 20 09",
-          "email": "sales2@9.ge",
-          "active": true,
-          "products": [
-            "p1",
-            "p3"
-          ],
-          "cities": [
-            "თბილისი",
-            "რუსთავი"
-          ]
-        },
-        {
-          "id": "u3",
-          "name": "ლევან ხუციშვილი",
-          "role": "back",
-          "phone": "+995 555 30 30 09",
-          "email": "office@9.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u4",
-          "name": "ანა გელაშვილი",
-          "role": "sales",
-          "phone": "+995 555 40 40 09",
-          "email": "sales3@9.ge",
-          "active": false,
-          "products": [
-            "p2"
-          ],
-          "cities": [
-            "ბათუმი",
-            "ქობულეთი"
-          ]
-        }
-      ]
-    },
-    {
-      "org": "o10",
-      "list": [
-        {
-          "id": "u1",
-          "name": "თამარ ბერიძე",
-          "role": "sales",
-          "phone": "+995 555 10 10 10",
-          "email": "sales1@10.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u2",
-          "name": "ლევან ხუციშვილი",
-          "role": "sales",
-          "phone": "+995 555 20 20 10",
-          "email": "sales2@10.ge",
-          "active": true,
-          "products": [
-            "p1",
-            "p3"
-          ],
-          "cities": [
-            "თბილისი",
-            "რუსთავი"
-          ]
-        },
-        {
-          "id": "u3",
-          "name": "ანა გელაშვილი",
-          "role": "back",
-          "phone": "+995 555 30 30 10",
-          "email": "office@10.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u4",
-          "name": "დავით ლომიძე",
-          "role": "sales",
-          "phone": "+995 555 40 40 10",
-          "email": "sales3@10.ge",
-          "active": false,
-          "products": [
-            "p2"
-          ],
-          "cities": [
-            "ბათუმი",
-            "ქობულეთი"
-          ]
-        }
-      ]
-    },
-    {
       "org": "o11",
       "list": [
         {
@@ -2448,62 +2198,6 @@
       ]
     },
     {
-      "org": "o12",
-      "list": [
-        {
-          "id": "u1",
-          "name": "ანა გელაშვილი",
-          "role": "sales",
-          "phone": "+995 555 10 10 12",
-          "email": "sales1@12.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u2",
-          "name": "დავით ლომიძე",
-          "role": "sales",
-          "phone": "+995 555 20 20 12",
-          "email": "sales2@12.ge",
-          "active": true,
-          "products": [
-            "p1",
-            "p3"
-          ],
-          "cities": [
-            "თბილისი",
-            "რუსთავი"
-          ]
-        },
-        {
-          "id": "u3",
-          "name": "მარიამ წერეთელი",
-          "role": "back",
-          "phone": "+995 555 30 30 12",
-          "email": "office@12.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u4",
-          "name": "ნინო კაპანაძე",
-          "role": "sales",
-          "phone": "+995 555 40 40 12",
-          "email": "sales3@12.ge",
-          "active": false,
-          "products": [
-            "p2"
-          ],
-          "cities": [
-            "ბათუმი",
-            "ქობულეთი"
-          ]
-        }
-      ]
-    },
-    {
       "org": "o13",
       "list": [
         {
@@ -2548,62 +2242,6 @@
           "role": "sales",
           "phone": "+995 555 40 40 13",
           "email": "sales3@13.ge",
-          "active": false,
-          "products": [
-            "p2"
-          ],
-          "cities": [
-            "ბათუმი",
-            "ქობულეთი"
-          ]
-        }
-      ]
-    },
-    {
-      "org": "o14",
-      "list": [
-        {
-          "id": "u1",
-          "name": "მარიამ წერეთელი",
-          "role": "sales",
-          "phone": "+995 555 10 10 14",
-          "email": "sales1@14.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u2",
-          "name": "ნინო კაპანაძე",
-          "role": "sales",
-          "phone": "+995 555 20 20 14",
-          "email": "sales2@14.ge",
-          "active": true,
-          "products": [
-            "p1",
-            "p3"
-          ],
-          "cities": [
-            "თბილისი",
-            "რუსთავი"
-          ]
-        },
-        {
-          "id": "u3",
-          "name": "გიორგი მაისურაძე",
-          "role": "back",
-          "phone": "+995 555 30 30 14",
-          "email": "office@14.ge",
-          "active": true,
-          "products": null,
-          "cities": null
-        },
-        {
-          "id": "u4",
-          "name": "თამარ ბერიძე",
-          "role": "sales",
-          "phone": "+995 555 40 40 14",
-          "email": "sales3@14.ge",
           "active": false,
           "products": [
             "p2"
@@ -3056,7 +2694,7 @@
       "amount": "1 500 ₾",
       "name": "თამარ გელაშვილი",
       "city": "ქუთაისი",
-      "orgs": 3,
+      "orgs": 1,
       "phone": "555 00 37 11",
       "email": "client3@example.com",
       "pid": "01011023757",
@@ -3094,56 +2732,6 @@
               "at": 1792143670059,
               "status": "accepted",
               "by": "მომხმარებელი: თამარ გელაშვილი"
-            }
-          ]
-        },
-        {
-          "name": "მისო B",
-          "status": "offer",
-          "sentAt": 1792140190059,
-          "statusAt": 1792141810059,
-          "offerAt": 1792141810059,
-          "terms": {
-            "amount": 1500,
-            "months": 60,
-            "rate": 14,
-            "fee": 15,
-            "insMonth": 3
-          },
-          "log": [
-            {
-              "at": 1792140190059,
-              "status": "sent",
-              "by": "მომხმარებელი: თამარ გელაშვილი"
-            },
-            {
-              "at": 1792140670059,
-              "status": "interested",
-              "by": "თამარ ბერიძე (მისო B)"
-            },
-            {
-              "at": 1792141810059,
-              "status": "offer",
-              "by": "თამარ ბერიძე (მისო B)"
-            }
-          ]
-        },
-        {
-          "name": "მისო C",
-          "status": "cancelled",
-          "sentAt": 1792140190059,
-          "statusAt": 1792141990059,
-          "reason": "საკრედიტო ისტორია არ აკმაყოფილებს",
-          "log": [
-            {
-              "at": 1792140190059,
-              "status": "sent",
-              "by": "მომხმარებელი: თამარ გელაშვილი"
-            },
-            {
-              "at": 1792141990059,
-              "status": "cancelled",
-              "by": "თამარ ბერიძე (მისო C)"
             }
           ]
         }
@@ -3299,7 +2887,7 @@
       "amount": "14 000 ₾",
       "name": "ანა ჯაფარიძე",
       "city": "რუსთავი",
-      "orgs": 3,
+      "orgs": 2,
       "phone": "555 00 61 85",
       "email": "client5@example.com",
       "pid": "01011039595",
@@ -3337,43 +2925,6 @@
               "at": 1792053910059,
               "status": "accepted",
               "by": "მომხმარებელი: ანა ჯაფარიძე"
-            }
-          ]
-        },
-        {
-          "name": "მისო D",
-          "status": "cancelled",
-          "sentAt": 1792050190059,
-          "statusAt": 1792054390059,
-          "offerAt": 1792052590059,
-          "terms": {
-            "amount": 14000,
-            "months": 48,
-            "rate": 15.5,
-            "fee": 140,
-            "insMonth": 28
-          },
-          "reason": "შეთავაზების პირობები შეიცვალა",
-          "log": [
-            {
-              "at": 1792050190059,
-              "status": "sent",
-              "by": "მომხმარებელი: ანა ჯაფარიძე"
-            },
-            {
-              "at": 1792050670059,
-              "status": "interested",
-              "by": "ანა გელაშვილი (მისო D)"
-            },
-            {
-              "at": 1792052590059,
-              "status": "offer",
-              "by": "ანა გელაშვილი (მისო D)"
-            },
-            {
-              "at": 1792054390059,
-              "status": "cancelled",
-              "by": "ანა გელაშვილი (მისო D)"
             }
           ]
         },
@@ -3425,7 +2976,7 @@
       "amount": "60 000 ₾",
       "name": "დავით ლომიძე",
       "city": "თბილისი",
-      "orgs": 3,
+      "orgs": 1,
       "phone": "555 00 74 22",
       "email": "client6@example.com",
       "pid": "01011047514",
@@ -3468,73 +3019,6 @@
               "at": 1792058890059,
               "status": "done",
               "by": "მარიამ წერეთელი (ბაზისბანკი)"
-            }
-          ]
-        },
-        {
-          "name": "მისო B",
-          "status": "declined",
-          "sentAt": 1791963790059,
-          "statusAt": 1791969670059,
-          "offerAt": 1791967270059,
-          "terms": {
-            "amount": 60000,
-            "months": 12,
-            "rate": 12.9,
-            "fee": 600,
-            "insMonth": 120
-          },
-          "log": [
-            {
-              "at": 1791963790059,
-              "status": "sent",
-              "by": "მომხმარებელი: დავით ლომიძე"
-            },
-            {
-              "at": 1791964270059,
-              "status": "interested",
-              "by": "დავით ლომიძე (მისო B)"
-            },
-            {
-              "at": 1791967270059,
-              "status": "offer",
-              "by": "დავით ლომიძე (მისო B)"
-            },
-            {
-              "at": 1791969670059,
-              "status": "declined",
-              "by": "მომხმარებელი: დავით ლომიძე"
-            }
-          ]
-        },
-        {
-          "name": "სუბიექტი B",
-          "status": "offer",
-          "sentAt": 1791963790059,
-          "statusAt": 1791968050059,
-          "offerAt": 1791968050059,
-          "terms": {
-            "amount": 60000,
-            "months": 36,
-            "rate": 15.5,
-            "fee": 600,
-            "insMonth": 120
-          },
-          "log": [
-            {
-              "at": 1791963790059,
-              "status": "sent",
-              "by": "მომხმარებელი: დავით ლომიძე"
-            },
-            {
-              "at": 1791964270059,
-              "status": "interested",
-              "by": "თამარ ბერიძე (სუბიექტი B)"
-            },
-            {
-              "at": 1791968050059,
-              "status": "offer",
-              "by": "თამარ ბერიძე (სუბიექტი B)"
             }
           ]
         }
@@ -3664,52 +3148,11 @@
       "amount": "18 000 ₾",
       "name": "ზურაბ წერეთელი",
       "city": "ბათუმი",
-      "orgs": 3,
+      "orgs": 2,
       "phone": "555 00 98 96",
       "email": "client8@example.com",
       "pid": "01011063352",
       "orgList": [
-        {
-          "name": "ლიზინგი B",
-          "status": "done",
-          "sentAt": 1791438190059,
-          "statusAt": 1791534670059,
-          "offerAt": 1791441070059,
-          "terms": {
-            "amount": 18000,
-            "months": 48,
-            "rate": 12.9,
-            "fee": 180,
-            "insMonth": 36
-          },
-          "log": [
-            {
-              "at": 1791438190059,
-              "status": "sent",
-              "by": "მომხმარებელი: ზურაბ წერეთელი"
-            },
-            {
-              "at": 1791438670059,
-              "status": "interested",
-              "by": "ლევან ხუციშვილი (ლიზინგი B)"
-            },
-            {
-              "at": 1791441070059,
-              "status": "offer",
-              "by": "ლევან ხუციშვილი (ლიზინგი B)"
-            },
-            {
-              "at": 1791443470059,
-              "status": "accepted",
-              "by": "მომხმარებელი: ზურაბ წერეთელი"
-            },
-            {
-              "at": 1791534670059,
-              "status": "done",
-              "by": "ლევან ხუციშვილი (ლიზინგი B)"
-            }
-          ]
-        },
         {
           "name": "ლიზინგი A",
           "status": "cancelled",
@@ -4056,13 +3499,13 @@
       "amount": "800 ₾",
       "name": "სალომე ქავთარაძე",
       "city": "ქუთაისი",
-      "orgs": 2,
+      "orgs": 1,
       "phone": "555 01 36 07",
       "email": "client11@example.com",
       "pid": "01011087109",
       "orgList": [
         {
-          "name": "მისო C",
+          "name": "მისო A",
           "status": "done",
           "sentAt": 1791888190059,
           "statusAt": 1791982510059,
@@ -4099,24 +3542,6 @@
               "at": 1791982510059,
               "status": "done",
               "by": "ლევან ხუციშვილი (მისო C)"
-            }
-          ]
-        },
-        {
-          "name": "მისო D",
-          "status": "expired",
-          "sentAt": 1791888190059,
-          "statusAt": 1791891790059,
-          "log": [
-            {
-              "at": 1791888190059,
-              "status": "sent",
-              "by": "მომხმარებელი: სალომე ქავთარაძე"
-            },
-            {
-              "at": 1791891790059,
-              "status": "expired",
-              "by": "სისტემა"
             }
           ]
         }
