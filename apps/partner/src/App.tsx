@@ -11,7 +11,7 @@ import { chime, useTitleCounter } from './attention';
 import { Bell } from './bell';
 import { useLiveEvents } from './live';
 import { ROLES, useSession } from './session';
-import { useToast } from './ui/ui';
+import { Modal, useToast } from './ui/ui';
 
 // Partner cabinet (prototype partner.html): login → workspace. Every tab has its own address:
 //   /applications (/applications/{id} — that record open) · /products (/products/new, /products/{id}) · /users · /integration.
@@ -55,6 +55,7 @@ export function App() {
       /* storage blocked */
     }
   }, [small]);
+  const [askOut, setAskOut] = useState(false);
   const nav = useNavigate();
   const p = me?.Profile;
   const back = p?.Role === 'back';
@@ -166,7 +167,7 @@ export function App() {
           </NavLink>
           <div className="sb-ctl">
             <Bell gateway="partner" onOpen={(n) => nav(n.ApplicationOrgID ? `/applications/${n.ApplicationOrgID}` : '/applications')} />
-            <button type="button" className="ctl danger" title="გასვლა" aria-label="გასვლა" onClick={() => void logout()}>
+            <button type="button" className="ctl danger" title="გასვლა" aria-label="გასვლა" onClick={() => setAskOut(true)}>
               <svg viewBox="0 0 24 24">
                 <path d="M10 17l5-5-5-5M15 12H3M21 3v18" />
               </svg>
@@ -177,6 +178,19 @@ export function App() {
       <main className="col">
         <section className="ws">{routes}</section>
       </main>
+      {askOut && (
+        <Modal title="გასვლა" onClose={() => setAskOut(false)}>
+          <p className="ask-text">მართლა გინდა გასვლა?</p>
+          <div className="acts">
+            <button type="button" className="btn btn-red" onClick={() => void logout()} autoFocus>
+              გასვლა
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={() => setAskOut(false)}>
+              დახურვა
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

@@ -249,6 +249,7 @@
   .modal-box .form h4 { margin: 10px 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .mhead { padding: 22px 28px 14px; display: grid; grid-template-columns: 1fr auto; gap: 10px 16px; align-items: start; } .mhead h3 { grid-column: 1 / -1; }
   .mright { text-align: right; padding-top: 0; } .mright b { display: block; font-size: 15px; line-height: 1.6; font-weight: 600; color: var(--fg); font-variant-numeric: tabular-nums; white-space: nowrap; } .mright small { display: block; font-size: 13px; color: var(--muted); white-space: nowrap; margin-top: 0; } .mhead h3 { font-size: 18px; margin-bottom: 2px; } .mhead p { margin: 0 0 6px; color: var(--fg); font-size: 15px; font-weight: 600; }
+  .modal-box .ask-text { margin: 0; padding: 4px 28px 18px; color: var(--muted); }
   .modal-box .acts { background: transparent; padding: 0 28px 18px; border-top: 0; } .modal-box .form { padding: 4px 28px 22px; border-top: 0; }
   .cd { display: inline-flex; align-items: center; height: 28px; padding: 0 9px; border: 1px solid var(--orange); border-radius: 999px; background: var(--orange-soft); color: var(--orange); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .cd.over { color: var(--red); border-color: var(--red); background: var(--red-soft); }

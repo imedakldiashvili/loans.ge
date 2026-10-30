@@ -5,6 +5,7 @@ import { crud } from '../api/client';
 import { useLiveEvents } from '../api/live';
 import { ADMIN_ROLES, useAuth } from '../auth/auth';
 import logo from '../assets/logo.png';
+import { Confirm } from '../ui/dialog';
 import { Icon } from '../ui/icons';
 import { groupOf, MENU } from './menu';
 
@@ -63,6 +64,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const loc = useLocation();
   const nav = useNavigate();
   const [small, setSmall] = useState(() => store.get('adminSb') === '1');
+  const [askOut, setAskOut] = useState(false);
   const active = groupOf(loc.pathname);
   const [open, setOpen] = useState<string | undefined>(active);
   const counts = useMenuCounts();
@@ -130,12 +132,13 @@ export function Shell({ children }: { children: ReactNode }) {
             </span>
           </button>
           <div className="sb-ctl">
-            <button type="button" className="ctl danger" title="გასვლა" aria-label="გასვლა" onClick={() => void logout()}>
+            <button type="button" className="ctl danger" title="გასვლა" aria-label="გასვლა" onClick={() => setAskOut(true)}>
               <Icon.logout />
             </button>
           </div>
         </div>
       </aside>
+      {askOut && <Confirm title="გასვლა" text="მართლა გინდა გასვლა?" okLabel="გასვლა" onOk={logout} onClose={() => setAskOut(false)} />}
       <div className="col">
         <main className="wrap">
           <section className="ws">
