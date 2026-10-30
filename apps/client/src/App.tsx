@@ -151,8 +151,9 @@ export function App() {
                 aria-label={t('გასვლა')}
                 title={t('გასვლა')}
                 onClick={async () => {
-                  await logout();
+                  // home first: logging out on a cabinet page would make it ask for a login (the PIN window) at once
                   nav('/');
+                  await logout();
                 }}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
