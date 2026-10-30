@@ -693,7 +693,7 @@
 
   /* application card: product · name · date on the left, amount on the right */
   .cab-card .info .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .cab-card .info .app-no { font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cab-card .info .app-no { font: inherit; color: inherit; font-variant-numeric: tabular-nums; }
 
   /* ticking offers to answer them together */
   .cab-det-row.pickable { grid-template-columns: 22px 28px 1fr auto; }
