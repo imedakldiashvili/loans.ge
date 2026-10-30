@@ -1,6 +1,6 @@
 import { calcOffer } from '@loans/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError, crud, findAll, Page, Ref } from '../api';
@@ -517,26 +517,35 @@ const OfferNum = ({ i, status, chosen, st }: { i: number; status: string; chosen
   );
 };
 
-const OffersRO = ({ offers, status, st }: { offers: OfferRow[]; status: string; st: (k: string) => StatusRow | undefined }) => (
-  <div className="tpl ro">
-    {offers.map((t, i) => {
-      const c = calcOffer({ amount: t.Amount, months: t.Months, rate: t.Rate, fee: t.Fee, insMonth: t.InsMonth });
-      // the customer chose another offer of this record — said so (grey, ✕)
-      const notChosen = ['accepted', 'done'].includes(status) && !t.ChosenOn;
-      return (
-        <div key={t.ID} className={t.ChosenOn ? 'chosen' : notChosen ? 'not-chosen' : undefined}>
-          <b>
-            {offers.length > 1 && <OfferNum i={i} status={status} chosen={!!t.ChosenOn} st={st} />}
-            {t.ChosenOn ? '✓ მომხმარებელმა აირჩია' : notChosen ? '✕ მომხმარებელმა არ აირჩია' : 'შეთავაზება'}
-          </b>
-          <em>
-            {money(t.Amount, t.Currency)} · {t.Rate}% · {t.Months} თვე · თვეში <strong>{money(c?.monthly ?? 0, t.Currency)}</strong>
-          </em>
-        </div>
-      );
-    })}
-  </div>
-);
+const OffersRO = ({ offers, status, st }: { offers: OfferRow[]; status: string; st: (k: string) => StatusRow | undefined }) => {
+  // the customer answered (an offer chosen): the chosen ones first, a line, then the ones not chosen — the numbers keep the sending order
+  const answered = ['accepted', 'done'].includes(status) && offers.some((t) => t.ChosenOn);
+  const rows = offers.map((t, i) => ({ t, i })).sort((a, b) => (answered ? Number(!a.t.ChosenOn) - Number(!b.t.ChosenOn) : 0));
+  const sepAt = answered ? rows.findIndex((x) => !x.t.ChosenOn) : -1;
+  return (
+    <div className="tpl ro">
+      {rows.map(({ t, i }, k) => {
+        const c = calcOffer({ amount: t.Amount, months: t.Months, rate: t.Rate, fee: t.Fee, insMonth: t.InsMonth });
+        // the customer chose another offer of this record — said so (grey, ✕)
+        const notChosen = ['accepted', 'done'].includes(status) && !t.ChosenOn;
+        return (
+          <Fragment key={t.ID}>
+            {k === sepAt && <hr className="of-sep" />}
+            <div className={t.ChosenOn ? 'chosen' : notChosen ? 'not-chosen' : undefined}>
+              <b>
+                {offers.length > 1 && <OfferNum i={i} status={status} chosen={!!t.ChosenOn} st={st} />}
+                {t.ChosenOn ? '✓ მომხმარებელმა აირჩია' : notChosen ? '✕ მომხმარებელმა არ აირჩია' : 'შეთავაზება'}
+              </b>
+              <em>
+                {money(t.Amount, t.Currency)} · {t.Rate}% · {t.Months} თვე · თვეში <strong>{money(c?.monthly ?? 0, t.Currency)}</strong>
+              </em>
+            </div>
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+};
 
 /** Status change form in the modal: offer (cards), reason (reject / cancel), or "loan issued". */
 function ActionModal({ d, act, st, onClose, onDone }: { d: Detail; act: Act; st: (k: string) => StatusRow | undefined; onClose: () => void; onDone: () => void }) {
