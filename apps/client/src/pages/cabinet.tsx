@@ -349,8 +349,8 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               <span>{t('შეთავაზებები')}</span>
               <b>{received}</b>
             </button>
-            {/* the detailed view (its own page), after the offers; on white, as the organisations' view icons */}
-            <button type="button" className="cab-ico cab-details-ico" title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
+            {/* the detailed view (its own page), after the offers; styled as the application icon (its state's colours) */}
+            <button type="button" className={`cab-details-ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
               {I.eye}
             </button>
           </span>
