@@ -4,7 +4,7 @@ import { Icon } from '../ui/icons';
 
 /** My data: the signed-in admin's own details and the theme (opened from the user at the bottom of the menu). */
 export function MePage() {
-  const { me, logout } = useAuth();
+  const { me } = useAuth();
   const [theme, setTheme] = useThemeSetting();
   const u = me?.User;
   return (
@@ -12,13 +12,6 @@ export function MePage() {
       <div className="lp-top">
         <div className="lp-title">
           <h2>ჩემი მონაცემები</h2>
-        </div>
-        {/* logout — top right */}
-        <div className="lp-add">
-          <button type="button" className="btn btn-red me-out" onClick={() => void logout()}>
-            <Icon.logout />
-            გასვლა
-          </button>
         </div>
       </div>
       <div className="panel me-panel">
