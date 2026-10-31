@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useRef, useState } from 'react';
 import { api } from '../api';
 import { CATEGORIES, OrgLogo, ProductType, useRefs } from '../session';
 import { fmt } from '../ui';
+import logo from '../logo.png';
 
 // Home page (prototype hero, #how, .advsec), quick form, partners / terms / about pages.
 
@@ -115,64 +116,106 @@ export function QuickForm({ onSubmit, initial }: { onSubmit: (s: Start) => void;
   );
 }
 
-export function Home({ onStart, purpose }: { onStart: (s: Start) => void; purpose?: number }) {
+type Stats = { Applications: number; Customers: number; Organizations: number };
+
+/** The numbers: applications, users, partner organisations. */
+function HeroStats({ stats }: { stats?: Stats }) {
+  return (
+    <div className="stats">
+      <div className="stat">
+        <i>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+            <path d="M14 3v6h6M9 13h6M9 17h6" />
+          </svg>
+        </i>
+        <b>{fmt(stats?.Applications ?? 0)}</b>
+        <span>
+          {t('შევსებული')}
+          <br />
+          {lang() === 'en' ? 'applications' : 'განაცხადი'}
+        </span>
+      </div>
+      <div className="stat">
+        <i>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="9" cy="8" r="3.5" />
+            <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
+            <circle cx="17" cy="9" r="2.5" />
+            <path d="M15.5 20h6a5 5 0 0 0-4-4.8" />
+          </svg>
+        </i>
+        <b>{fmt(stats?.Customers ?? 0)}</b>
+        <span>
+          {t('რეგისტრირებული')}
+          <br />
+          {lang() === 'en' ? 'users' : 'მომხმარებელი'}
+        </span>
+      </div>
+      <div className="stat">
+        <i>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 21h18M5 21V7l7-4 7 4v14" />
+            <path d="M9 21v-4h6v4M9 11h2M13 11h2M9 15h2M13 15h2" />
+          </svg>
+        </i>
+        <b>{fmt(stats?.Organizations ?? 0)}</b>
+        <span>
+          {t('პარტნიორი')}
+          <br />
+          {t('ორგანიზაცია')}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** The hero's left side: title, text, then the numbers. */
+function HeroText({ stats }: { stats?: Stats }) {
+  return (
+    <div className="hero-text">
+      <h1>{up(t('აირჩიე სესხი საუკეთესო პირობებით'))}</h1>
+      <p>{t('შეავსე ერთი განაცხადი და მიიღე შეთავაზებები რამდენიმე საფინანსო ორგანიზაციისგან. შეადარე პროცენტი, ვადა და ყოველთვიური გადასახადი ერთ გვერდზე.')}</p>
+      <HeroStats stats={stats} />
+    </div>
+  );
+}
+
+export function Home({ onStart, onNew, purpose }: { onStart: (s: Start) => void; onNew: () => void; purpose?: number }) {
   const stats = useQuery({ queryKey: ['public', 'stats'], queryFn: () => api<{ Applications: number; Customers: number; Organizations: number }>('GET', '/public/stats/summary'), staleTime: 60_000 }).data;
   return (
     <>
-      <section className="hero">
+      {/* the hero with the fields — hidden for now (the one below opens the dialog instead); kept to bring back */}
+      <section className="hero" hidden>
         <div className="wrap">
-          <div className="hero-text">
-            <h1>{up(t('აირჩიე სესხი საუკეთესო პირობებით'))}</h1>
-            <p>{t('შეავსე ერთი განაცხადი და მიიღე შეთავაზებები რამდენიმე საფინანსო ორგანიზაციისგან. შეადარე პროცენტი, ვადა და ყოველთვიური გადასახადი ერთ გვერდზე.')}</p>
-            <div className="stats">
-              <div className="stat">
-                <i>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                    <path d="M14 3v6h6M9 13h6M9 17h6" />
-                  </svg>
-                </i>
-                <b>{fmt(stats?.Applications ?? 0)}</b>
-                <span>
-                  {t('შევსებული')}
-                  <br />
-                  {lang() === 'en' ? 'applications' : 'განაცხადი'}
-                </span>
-              </div>
-              <div className="stat">
-                <i>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="9" cy="8" r="3.5" />
-                    <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
-                    <circle cx="17" cy="9" r="2.5" />
-                    <path d="M15.5 20h6a5 5 0 0 0-4-4.8" />
-                  </svg>
-                </i>
-                <b>{fmt(stats?.Customers ?? 0)}</b>
-                <span>
-                  {t('რეგისტრირებული')}
-                  <br />
-                  {lang() === 'en' ? 'users' : 'მომხმარებელი'}
-                </span>
-              </div>
-              <div className="stat">
-                <i>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 21h18M5 21V7l7-4 7 4v14" />
-                    <path d="M9 21v-4h6v4M9 11h2M13 11h2M9 15h2M13 15h2" />
-                  </svg>
-                </i>
-                <b>{fmt(stats?.Organizations ?? 0)}</b>
-                <span>
-                  {t('პარტნიორი')}
-                  <br />
-                  {t('ორგანიზაცია')}
-                </span>
-              </div>
-            </div>
-          </div>
+          <HeroText stats={stats} />
           <div className="hero-side">
             <QuickForm onSubmit={onStart} initial={purpose} />
+          </div>
+        </div>
+      </section>
+      {/* the same section, the new design to compare: no fields — the button opens the "new application" dialog (as in the cabinet) */}
+      <section className="hero hero-alt">
+        {/* left: the title and the text, the numbers under them; right: the logo and the button under it — the bottoms level */}
+        <div className="wrap">
+          <div className="ha-text">
+            <h1>{up(t('აირჩიე სესხი საუკეთესო პირობებით'))}</h1>
+            <p>{t('შეავსე ერთი განაცხადი და მიიღე შეთავაზებები რამდენიმე საფინანსო ორგანიზაციისგან. შეადარე პროცენტი, ვადა და ყოველთვიური გადასახადი ერთ გვერდზე.')}</p>
+          </div>
+          {/* the right side: the logo right above the button, at the bottom (level with the numbers) */}
+          <div className="ha-side">
+            <div className="hero-logo">
+              <img src={logo} alt="" width={120} height={111} />
+              <b>
+                Loans<span>.ge</span>
+              </b>
+            </div>
+            <button type="button" className="btn btn-green hero-go" onClick={onNew}>
+              {t('შეავსე განაცხადი')}
+            </button>
+          </div>
+          <div className="ha-stats">
+            <HeroStats stats={stats} />
           </div>
         </div>
       </section>

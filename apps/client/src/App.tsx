@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAskLogin } from './auth';
 import { Bell } from './bell';
@@ -68,10 +68,72 @@ function ComparePage() {
   return <Compare id={Number(id)} uid={uid ?? ''} onBack={() => nav('/cabinet')} />;
 }
 
-function HomePage({ onStart }: { onStart: (s: Start) => void }) {
+function HomePage({ onStart, onNew }: { onStart: (s: Start) => void; onNew: (loan?: number) => void }) {
   const { search } = useLocation();
+  const nav = useNavigate();
   const loan = Number(new URLSearchParams(search).get('loan')) || undefined;
-  return <Home onStart={onStart} purpose={loan} />;
+  // /?loan=… (a footer link): the new-application dialog opens with that loan chosen
+  useEffect(() => {
+    if (!loan) return;
+    onNew(loan);
+    nav('/', { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loan]);
+  return <Home onStart={onStart} onNew={() => onNew()} purpose={loan} />;
+}
+
+/** The user icon once signed in: a menu under it — the name, the cabinet, the profile and logging out. */
+function UserMenu({ name, onLogout }: { name: string; onLogout: () => void }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: MouseEvent) => !box.current?.contains(e.target as Node) && setOpen(false);
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', away);
+    document.addEventListener('keydown', esc);
+    return () => {
+      document.removeEventListener('mousedown', away);
+      document.removeEventListener('keydown', esc);
+    };
+  }, [open]);
+  const close = () => setOpen(false);
+  return (
+    <div className="usermenu" ref={box}>
+      <button type="button" className="theme userbtn" aria-label={t('კაბინეტი')} title={name} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21a8 8 0 0 1 16 0" />
+        </svg>
+      </button>
+      {open && (
+        <div className="um-pop" role="menu">
+          <div className="um-name">{name}</div>
+          <Link role="menuitem" to="/cabinet" onClick={close}>
+            {t('ჩემი განაცხადები')}
+          </Link>
+          <Link role="menuitem" to="/cabinet/profile" onClick={close}>
+            {t('პროფილი')}
+          </Link>
+          <button
+            type="button"
+            role="menuitem"
+            className="um-out"
+            onClick={() => {
+              close();
+              onLogout();
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 17l5-5-5-5M15 12H3" />
+              <path d="M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5" />
+            </svg>
+            {t('გასვლა')}
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function App() {
@@ -86,7 +148,8 @@ export function App() {
   const { pathname } = useLocation();
   const [start, setStart] = useState<Start | null>(null);
   const [sent, setSent] = useState<Sent | null>(null);
-  const [newApp, setNewApp] = useState(false);
+  // the new-application dialog (loan: preselected — a footer link /?loan=…)
+  const [newApp, setNewApp] = useState<false | { loan?: number }>(false);
 
   useEffect(() => {
     document.body.classList.remove('in-wizard', 'in-cabinet', 'in-partners');
@@ -134,7 +197,7 @@ export function App() {
           {!loading && !me && (
             // signing in: the user icon (as in the header once signed in), the words in the tooltip
             <a
-              className="theme userbtn"
+              className="theme userbtn guest"
               href="/cabinet"
               aria-label={t('შესვლა')}
               title={t('შესვლა')}
@@ -152,40 +215,26 @@ export function App() {
           {me && (
             <>
               <Bell gateway="client" onOpen={() => nav('/cabinet')} />
-              <Link className="theme userbtn" to="/cabinet" aria-label={t('კაბინეტი')} title={me.User.UserName || me.User.Email?.split('@')[0] || t('კაბინეტი')}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 21a8 8 0 0 1 16 0" />
-                </svg>
-              </Link>
-              <button
-                type="button"
-                className="theme logout"
-                aria-label={t('გასვლა')}
-                title={t('გასვლა')}
-                onClick={async () => {
+              <UserMenu
+                name={me.User.UserName || me.User.Email?.split('@')[0] || t('კაბინეტი')}
+                onLogout={async () => {
                   // home first: logging out on a cabinet page would make it ask for a login (the PIN window) at once
                   nav('/');
                   await logout();
                 }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10 17l5-5-5-5M15 12H3" />
-                  <path d="M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5" />
-                </svg>
-              </button>
+              />
             </>
           )}
         </div>
       </header>
 
       <Routes>
-        <Route path="/" element={<HomePage onStart={begin} />} />
+        <Route path="/" element={<HomePage onStart={begin} onNew={(loan) => setNewApp({ loan })} />} />
         {/* the wizard starts from the home page (loan, amount, currency) — opened directly it goes back there */}
         <Route path="/apply" element={start ? <Wizard key={`${start.productType.ID}-${start.amount}`} start={start} onSent={setSent} /> : <Navigate to="/" replace />} />
-        <Route path="/cabinet" element={<RequireLogin><Cabinet view="active" onNew={() => setNewApp(true)} /></RequireLogin>} />
-        <Route path="/cabinet/closed" element={<RequireLogin><Cabinet view="done" onNew={() => setNewApp(true)} /></RequireLogin>} />
-        <Route path="/cabinet/profile" element={<RequireLogin><Cabinet view="profile" onNew={() => setNewApp(true)} /></RequireLogin>} />
+        <Route path="/cabinet" element={<RequireLogin><Cabinet view="active" onNew={() => setNewApp({})} /></RequireLogin>} />
+        <Route path="/cabinet/closed" element={<RequireLogin><Cabinet view="done" onNew={() => setNewApp({})} /></RequireLogin>} />
+        <Route path="/cabinet/profile" element={<RequireLogin><Cabinet view="profile" onNew={() => setNewApp({})} /></RequireLogin>} />
         <Route path="/cabinet/compare/:id/:uid" element={<RequireLogin><ComparePage /></RequireLogin>} />
         <Route path="/cabinet/view/:id/:uid" element={<RequireLogin><ViewPage /></RequireLogin>} />
         <Route path="/partners" element={<PartnersPage />} />
@@ -197,7 +246,7 @@ export function App() {
       {newApp && (
         <Modal onClose={() => setNewApp(false)} className="newapp-box" labelledBy="newAppTitle">
           <h3 id="newAppTitle">{t('ახალი განაცხადი')}</h3>
-          <QuickForm onSubmit={begin} />
+          <QuickForm onSubmit={begin} initial={newApp.loan} />
         </Modal>
       )}
       {sent && (

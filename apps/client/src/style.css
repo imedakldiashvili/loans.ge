@@ -48,7 +48,7 @@
   .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; color: var(--green); letter-spacing: -.2px; }
   .logo b { font-weight: inherit; }
   /* phone: the header fits — smaller gaps; very narrow: a smaller logo, tighter still */
-  @media (max-width: 560px) { .nav { gap: 8px; } .nav .lang, .nav .login, .nav .userbtn, .nav .logout { margin-inline-start: 0; } }   /* the -20px pulls make up for the 28px gap only */
+  @media (max-width: 560px) { .nav { gap: 8px; } .nav .lang, .nav .login, .nav .userbtn, .nav .logout, .nav .usermenu { margin-inline-start: 0; } }   /* the -20px pulls make up for the 28px gap only */
   @media (max-width: 420px) { .nav { gap: 5px; padding-inline: 10px; } .nav .logo { font-size: 17px; gap: 5px; } .nav .logo img { width: 34px; height: auto; } .lang span { padding: 4px 5px; } }   /* narrow phones: "Loans.ge" stays — a smaller logo and tighter gaps */
   @media (max-width: 349px) { .nav .logo b { display: none; } }   /* the smallest phones (320px): the logo mark only */
   .logo span { color: var(--orange); }
@@ -87,6 +87,18 @@
   .tag { display: inline-block; background: var(--orange-soft); color: var(--orange); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin-bottom: 14px; }
   /* Calculator */
   .hero-side { display: flex; }
+  /* the hero copy without fields (to compare): the left side as above, the right column just the button, vertically in the middle */
+  .hero-alt { border-bottom: 1px solid var(--line); } .hero-go-side { flex-direction: column; align-items: center; justify-content: center; gap: 40px; }
+  @media (min-width: 901px) { .hero { min-height: 450px; display: flex; align-items: center; } .hero .wrap { width: 100%; } }   /* both heroes as tall as the next section ("აირჩიე საუკეთესო შეთავაზება"), the content in the middle */
+  /* left: [title + text] over [numbers]; right: [logo] over [button], the whole side down to the bottom (the button level with the numbers) */
+  .hero-alt .wrap { grid-template-columns: 3fr 2fr; grid-template-areas: "text side" "stats side"; row-gap: 24px; align-items: end; }
+  .ha-text { grid-area: text; display: grid; gap: 14px; } .hero-alt .ha-text p { min-height: 0; } .ha-stats { grid-area: stats; }
+  .ha-side { grid-area: side; display: flex; flex-direction: column; align-items: center; gap: 42px; } .ha-side .hero-go { width: 100%; }
+  @media (max-width: 900px) { .hero-alt .wrap { grid-template-columns: 1fr; grid-template-areas: "logo" "text" "stats" "go"; row-gap: 22px; justify-items: center; text-align: center; } .ha-side { display: contents; } .ha-side .hero-logo { grid-area: logo; } .ha-side .hero-go { grid-area: go; width: auto; } }   /* narrow: logo, text, numbers, then the button */ .hero-alt .hero-text { justify-content: center; gap: 18px; } .hero-go-side .stat { gap: 5px; }   /* the left side keeps even gaps; the right side a little smaller */
+  .hero-logo { display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: 700; font-size: 36px; color: var(--green); letter-spacing: -.3px; } .hero-logo b { font-weight: inherit; } .hero-logo span { color: var(--orange); } .hero-logo img { width: 120px; height: auto; }   /* the logo above the numbers, larger than in the header */
+  .hero-go-side .stats { flex-wrap: nowrap; justify-content: center; gap: 6px; } .hero-go-side .stat { width: 96px; flex: none; }   /* the numbers in the right column: one line, smaller and close together */
+  .hero-go-side .stat i { width: 38px; height: 38px; border-radius: 10px; } .hero-go-side .stat i svg { width: 19px; height: 19px; } .hero-go-side .stat b { font-size: 20px; } .hero-go-side .stat span { font-size: 11.5px; }
+  .stats-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; } .hero-go { padding: 16px 36px; font-size: 16px; }   /* larger, under the logo circle */
   .calc { padding: 0; margin: 0; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
   .calc h3 { font-size: 17px; margin-bottom: 16px; }
   .calc label { display: block; font-size: 13px; font-weight: 500; color: var(--fg); margin-bottom: 6px; }
@@ -384,8 +396,18 @@
   body.in-cabinet .hero, body.in-cabinet #how, body.in-cabinet .advsec, body.in-cabinet .partners, body.in-cabinet .wizard { display: none !important; }
   .userbtn { margin-inline-start: -20px; }
   .userbtn[hidden], .login[hidden] { display: none !important; }
+  .userbtn.guest { color: #fff; background: var(--orange); border-color: var(--orange); } /* not signed in: the user icon on orange */
+  .userbtn.guest:hover { filter: brightness(.92); }
   .logout { margin-inline-start: -20px; } /* სახელთან ახლოს — 8px დაშორება */
   .logout[hidden] { display: none !important; }
+  /* the user menu (signed in): under the user icon — the name, the cabinet, the profile, logging out */
+  .usermenu { position: relative; margin-inline-start: -20px; } .usermenu .userbtn { margin-inline-start: 0; }
+  .um-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; min-width: 200px; padding: 6px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, .14); display: grid; }
+  .um-name { padding: 8px 10px 10px; margin-bottom: 4px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+  .um-pop a, .um-pop .um-out { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 0; border-radius: 6px; background: none; font: inherit; font-size: 13px; color: var(--fg); text-align: start; cursor: pointer; }
+  .um-pop a:hover, .um-pop .um-out:hover { background: var(--bg-soft); }
+  .um-pop .um-out { margin-top: 4px; border-top: 1px solid var(--line); border-radius: 0 0 6px 6px; color: var(--muted); }
+  .um-pop .um-out svg { width: 16px; height: 16px; }
   .cabinet { background: var(--bg-soft); padding-block: 32px 70px; min-height: 60vh; }
   .cab-layout { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
   .cab-side { display: grid; gap: 12px; }
