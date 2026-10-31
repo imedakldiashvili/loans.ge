@@ -761,7 +761,9 @@
   .bell-btn { position: relative; }
   .bell-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .bell-n { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #d9534f; color: #fff; font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; }
-  .bell-menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; width: min(360px, calc(100vw - 24px)); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, .14); overflow: hidden; }
+  .bell-menu { position: absolute; top: calc(100% + 8px); right: -46px; z-index: 30; width: min(360px, calc(100vw - 24px)); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, .14); overflow: hidden; }
+  /* the list's right edge at the header's right edge: past the user icon (its 38px + the 8px gap) */
+  @media (max-width: 420px) { .bell-menu { right: -43px; } }   /* narrow phones: a 5px gap */
   .bell-head, .bell-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; }
   .bell-head { border-bottom: 1px solid var(--line); }
   .bell-head b { color: var(--fg); font-size: 14px; }
@@ -979,3 +981,5 @@
   }
   /* narrow phones: the amount on its own line, the buttons under it */
   @media (max-width: 380px) { .cab-top-row .cab-right-col { flex-wrap: wrap; row-gap: 8px; } .cab-top-row .cab-right-col .amt { flex-basis: 100%; } }
+  /* phone: the application states (in progress / completed / stopped) each on its own line, the period under them */
+  @media (max-width: 560px) { .cab-nav.cab-nav-sub .cab-check { flex: 1 1 100%; height: 36px; } }
