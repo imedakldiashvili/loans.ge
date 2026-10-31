@@ -323,6 +323,9 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             <b>
               {n(a.ProductType)} <small className="app-no">- #{a.ID}</small>
             </b>
+          </span>
+          {/* a line of its own under the icon and the product: the person on the left, the place and the date on the right */}
+          <span className="meta">
             <span className="who">
               {/* personal number before the name (as in the partner cabinet) */}
               {a.Pid ? `${a.Pid} · ` : ''}
