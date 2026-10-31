@@ -995,8 +995,8 @@
   .cab-card .cab-sum .info .amt { justify-self: end; }
   /* the number sits on the card's top line, in the middle (as a legend): the card lets it out, the list gives it room */
   .cab-card { position: relative; overflow: visible; }
-  .cab-cards { gap: 22px; padding-top: 10px; }
-  .cab-no { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); z-index: 1; padding: 1px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--card, var(--bg)); font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cab-cards { gap: 24px; padding-top: 12px; }
+  .cab-no { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); z-index: 1; padding: 2px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--card, var(--bg)); font-size: 14px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .cab-card .cab-sum .info b { grid-area: name; } .cab-card .cab-sum .info .app-no { grid-area: no; }
   .cab-card .cab-sum .info .amt { grid-area: amt; font-size: 20px; }   /* the amount: a column of its own on the right */
   /* expand / fold: a full-width line at the bottom of the card, the chevron in its middle */
@@ -1011,5 +1011,6 @@
   }
   .cab-card.open .cab-toggle-bar svg { transform: rotate(180deg); }   /* open: the chevron points up (fold), closed: down (expand) */
 
-  /* phone: the loan, the amount under it (a long loan name has no room beside the amount) */
-  @media (max-width: 680px) { .cab-card .cab-sum .info { grid-template-columns: minmax(0, 1fr); grid-template-areas: "name" "amt"; row-gap: 2px; } .cab-card .cab-sum .info .amt { justify-self: start; } }
+  /* phone: the loan and the amount still on one line — the icon gives up its room, the text a little smaller */
+  @media (max-width: 680px) { .cab-top-row .cab-sum { grid-template-columns: 1fr; } .cab-top-row .cab-sum .ico { display: none; } .cab-card .cab-sum .info b { font-size: 15px; } .cab-card .cab-sum .info .amt { font-size: 17px; } }
+  .cab-card .cab-sum { cursor: default; }   /* not clickable: only the fold line and the offers are */

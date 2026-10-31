@@ -312,7 +312,8 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
       {/* the application's number on the card's top line, in the middle (the same number the partners and the support see) */}
       <small className="cab-no">#{a.ID}</small>
       <div className="cab-top-row">
-        <button type="button" className="cab-sum" aria-expanded={open} onClick={() => setOpen(!open)}>
+        {/* the summary is not clickable: only the fold line and the offers are */}
+        <div className="cab-sum">
           {/* the application's state in the icon's colour: in progress / done / cancelled */}
           <span className={`ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t(isClosed ? (isCancelled ? 'შეწყვეტილი' : 'დასრულებული') : 'მიმდინარე')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -325,7 +326,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             <b>{n(a.ProductType)}</b>
             <i className="amt">{money(a.Amount, a.Currency)}</i>
           </span>
-        </button>
+        </div>
         {/* the offers received */}
         <div className="cab-right">
           <span className="cab-right-col">
