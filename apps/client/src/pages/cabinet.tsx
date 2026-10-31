@@ -319,11 +319,10 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             </svg>
           </span>
           <span className="info">
-            {/* the product with the amount on its line; the application's number under them — the same number the partners and the support see */}
-            <b>
-              {n(a.ProductType)} <i className="amt">{money(a.Amount, a.Currency)}</i>
-            </b>
+            {/* one column: the product, the application's number under it (the same number the partners and the support see); the amount in a second column */}
+            <b>{n(a.ProductType)}</b>
             <small className="app-no">#{a.ID}</small>
+            <i className="amt">{money(a.Amount, a.Currency)}</i>
           </span>
         </button>
         {/* the offers received */}

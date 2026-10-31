@@ -984,9 +984,17 @@
   .cab-det .meta { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
   .cab-det-head .cab-details-ico { flex: none; }
   .cab-det .meta .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  /* the amount on the loan's line: as large as the loan's name, on the right */
-  .cab-card .info b { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 12px; }
-  .cab-card .info b .amt { font-size: inherit; margin-inline-start: auto; }   /* the amount pushed to the right of the loan's line */
+  /* the loan and its number in one column, the amount in a second */
+  .cab-card .cab-sum .info { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name amt" "no amt"; column-gap: 16px; row-gap: 4px; align-items: center; }
+  .cab-card .cab-sum .info b { grid-area: name; } .cab-card .cab-sum .info .app-no { grid-area: no; }
+  .cab-card .cab-sum .info .amt { grid-area: amt; font-size: 20px; }   /* the amount: a column of its own on the right */
   /* expand / fold: a full-width line at the bottom of the card, the chevron in its middle */
   .cab-card .cab-toggle-bar { width: 100%; height: 28px; border-top: 1px solid var(--line); border-radius: 0 0 8px 8px; }
   .cab-card .cab-toggle-bar, .cab-card .cab-toggle-bar:hover { background: transparent; } .cab-card .cab-toggle-bar:hover { color: var(--fg); }   /* the card's own background, only the chevron darkens */
+  /* phone: the offers button a full line of its own under the loan — the icon, the words, the count at the end */
+  @media (max-width: 680px) {
+    .cab-top-row .cab-right-col { flex: 1 1 100%; }
+    .cab-top-row .recv-offers { flex: 1; justify-content: flex-start; }
+    .cab-top-row .recv-offers span { display: inline; }
+    .cab-top-row .recv-offers b { margin-inline-start: auto; }
+  }
