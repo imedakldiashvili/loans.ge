@@ -1,5 +1,6 @@
 import { n, t, up } from '../i18n';
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, Ref } from '../api';
 import { OtpModal, useAskLogin } from '../auth';
 import { CATEGORIES, OrgLogo, useRefs, useSession } from '../session';
@@ -21,6 +22,7 @@ const STEPS = 6;
 
 export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => void }) {
   const { me } = useSession();
+  const go = useNavigate();
   const askLogin = useAskLogin();
   const refs = useRefs();
   const [step, setStep] = useState(1);
@@ -106,9 +108,12 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
     setOtp(true);
   };
 
+  // back: the previous step; on the first one — the page the wizard was opened from (home without one)
+  const back = () => (step > 1 ? setStep(step - 1) : (window.history.state?.idx ?? 0) > 0 ? go(-1) : go('/'));
+
   const nav = (cls: string) => (
     <>
-      <button type="button" className="btn btn-ghost" disabled={step === 1} onClick={() => setStep(step - 1)}>
+      <button type="button" className="btn btn-ghost" onClick={back}>
         {cls === 'head' && (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 6l-6 6 6 6" />
@@ -236,7 +241,7 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
                 </div>
               </div>
               {/* the organisations that lend the amount chosen above — their numbers follow it */}
-              <h3 className="wz-subtitle">{t('ორგანიზაციების არჩევა')}</h3>
+              <h3 className="wz-subtitle">{t('ორგანიზაციების სია')}</h3>
               <p className="wz-note">{t('მონიშნე ორგანიზაციები, რომლებსაც გინდა განაცხადი გაუგზავნო.')}</p>
               <div className="wz-form wz-form-wide">
                 <div className="org-groups">
