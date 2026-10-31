@@ -973,16 +973,15 @@
     .cab-top-row .cab-sum { flex: 1 1 100%; padding: 14px 14px 10px; gap: 12px; }
     .cab-card .info b { font-size: 16px; }
     .cab-top-row .cab-right { width: 100%; padding: 0 10px 12px 14px; gap: 8px; }
-    .cab-top-row .cab-right-col { flex: 1; min-width: 0; gap: 8px; }
-    .cab-top-row .cab-right-col .amt { margin-inline-end: auto; font-size: 19px; }
+    .cab-top-row .cab-right-col { flex: 1; min-width: 0; gap: 8px; justify-content: flex-end; }
     .cab-top-row .cab-right { gap: 4px; } .cab-top-row .cab-right-col { gap: 6px; }
     .cab-top-row .recv-offers { height: 40px; padding: 0 6px 0 10px; gap: 6px; } .cab-top-row .recv-offers svg { width: 20px; height: 20px; } .cab-top-row .recv-offers b { width: 40px; }
     .cab-top-row .cab-details-ico { width: 40px; height: 40px; }
   }
-  /* narrow phones: the amount on its own line, the buttons under it */
-  @media (max-width: 380px) { .cab-top-row .cab-right-col { flex-wrap: wrap; row-gap: 8px; } .cab-top-row .cab-right-col .amt { flex-basis: 100%; } }
   /* phone: the application states (in progress / completed / stopped) each on its own line, the period under them */
   @media (max-width: 560px) { .cab-nav.cab-nav-sub .cab-check { flex: 1 1 100%; height: 36px; justify-content: flex-start; } }   /* to the left */
-  /* the card's person / place and date: first in the expanded part — the person left, the place and date right */
-  .cab-det .meta { display: flex; padding: 10px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; min-width: 0; }
-  .cab-det .meta .when { margin-inline-start: auto; text-align: end; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  /* the card's person / place and date: first in the expanded part, one under the other, on the left */
+  .cab-det .meta { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+  .cab-det .meta .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  /* the amount on the loan's line: as large as the loan's name, after it */
+  .cab-card .info b .amt { font-size: inherit; margin-inline-start: 6px; }

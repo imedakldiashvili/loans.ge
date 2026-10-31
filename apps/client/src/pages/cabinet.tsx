@@ -321,14 +321,14 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           <span className="info">
             {/* the product with the application's number beside it — the same number the partners and the support see */}
             <b>
-              {n(a.ProductType)} <small className="app-no">- #{a.ID}</small>
+              {/* the amount on the same line as the loan */}
+              {n(a.ProductType)} <small className="app-no">- #{a.ID}</small> <i className="amt">{money(a.Amount, a.Currency)}</i>
             </b>
           </span>
         </button>
-        {/* the amount, the offers received beside it, the expand to the right */}
+        {/* the offers received, the detailed view, the expand to the right */}
         <div className="cab-right">
           <span className="cab-right-col">
-            <i className="amt">{money(a.Amount, a.Currency)}</i>
             {/* the offers that came in — in the application icon's colour; always shown (none yet: 0, not clickable); filled while an answer is awaited */}
             <button
               type="button"
