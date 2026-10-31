@@ -198,7 +198,7 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
               </div>
               <div className="cab-cards">
                 {none && <div className="cab-group-empty">{t('მონიშნე მიმდინარე, დასრულებული ან შეწყვეტილი')}</div>}
-                {!none && q.data?.Items.map((a) => <AppCard key={a.ID} a={a} expanded={state === 'active'} onCompare={() => onCompare(a)} />)}
+                {!none && q.data?.Items.map((a) => <AppCard key={a.ID} a={a} expanded={false} onCompare={() => onCompare(a)} />)}
                 {!none && q.data && !q.data.Items.length && <div className="cab-group-empty">{t(counts && counts.Active + counts.Done === 0 ? 'განაცხადები ჯერ არ გაგიგზავნია' : 'ჯერ არ არის')}</div>}
                 {!none && q.isLoading && <div className="cab-group-empty">{t('იტვირთება…')}</div>}
               </div>
