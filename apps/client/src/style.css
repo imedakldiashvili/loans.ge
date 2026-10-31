@@ -982,8 +982,8 @@
   /* the card's person / place and date: first in the expanded part, one under the other, on the left */
   .cab-det-head { display: flex; align-items: center; gap: 12px; padding: 10px 18px; margin-inline: -18px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }   /* lines above and under the person, edge to edge of the card (out of the expanded part's 18px side padding) */
   .cab-det .meta { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
-  .cab-det-foot-view { display: flex; justify-content: center; padding-top: 10px; border-top: 1px solid var(--line); }   /* a line above it, as under the person / place */
-  .cab-view-link { border: 1px solid var(--line); background: var(--bg); padding: 8px 20px; font: inherit; font-size: 13px; font-weight: 600; color: var(--green); cursor: pointer; border-radius: 6px; }   /* a white button, green words */
+  .cab-det-foot-view { display: flex; justify-content: center; padding: 10px 18px 0; margin-inline: -18px; border-top: 1px solid var(--line); }   /* a line above it, as under the person / place */
+  .cab-view-link { border: 1px solid var(--line); background: var(--bg); padding: 8px 20px; font: inherit; font-size: 13px; font-weight: 600; color: var(--fg); cursor: pointer; border-radius: 6px; }   /* the words in the text colour: white in the dark theme */
   .cab-view-link:hover { border-color: var(--green); } .cab-view-link:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }   /* the detailed view: at the bottom of the expanded part, on the right */
   .cab-det .meta .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
   /* the loan and its number in one column, the amount in a second */
