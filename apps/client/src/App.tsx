@@ -276,7 +276,8 @@ export function App() {
             </a>
           )}
           {me && (
-            <>
+            // signed in: the notifications and the user in one frame
+            <div className="me-group">
               <Bell gateway="client" onOpen={() => nav('/cabinet')} />
               <UserMenu
                 name={me.User.UserName || me.User.Email?.split('@')[0] || t('კაბინეტი')}
@@ -286,7 +287,7 @@ export function App() {
                   await logout();
                 }}
               />
-            </>
+            </div>
           )}
         </div>
       </header>

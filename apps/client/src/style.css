@@ -48,7 +48,7 @@
   .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; color: var(--green); letter-spacing: -.2px; }
   .logo b { font-weight: inherit; }
   /* phone: the header fits — smaller gaps; very narrow: a smaller logo, tighter still */
-  @media (max-width: 560px) { .nav { gap: 8px; } .nav .lang, .nav .login, .nav .userbtn, .nav .logout, .nav .usermenu, .nav .langmenu { margin-inline-start: 0; } }   /* the -20px pulls make up for the 28px gap only */
+  @media (max-width: 560px) { .nav { gap: 8px; } .nav .lang, .nav .login, .nav .userbtn, .nav .logout, .nav .usermenu, .nav .langmenu, .nav .me-group { margin-inline-start: 0; } }   /* the -20px pulls make up for the 28px gap only */
   @media (max-width: 420px) { .nav { gap: 5px; padding-inline: 10px; } .nav .logo { font-size: 17px; gap: 5px; } .nav .logo img { width: 34px; height: auto; } .lang span { padding: 4px 5px; } }   /* narrow phones: "Loans.ge" stays — a smaller logo and tighter gaps */
   @media (max-width: 349px) { .nav .logo b { display: none; } }   /* the smallest phones (320px): the logo mark only */
   .logo span { color: var(--orange); }
@@ -412,11 +412,15 @@
   .userbtn { margin-inline-start: -20px; }
   .userbtn[hidden], .login[hidden] { display: none !important; }
   .usermenu .userbtn { color: var(--green); border-color: var(--green); } /* signed in: the user icon green */
-  .usermenu .userbtn:hover { background: var(--bg-soft); } /* not signed in: the user icon plain, as the other header buttons */
+  .usermenu .userbtn:hover { background: var(--bg-soft); }
   .logout { margin-inline-start: -20px; } /* სახელთან ახლოს — 8px დაშორება */
   .logout[hidden] { display: none !important; }
   /* the user menu (signed in): under the user icon — the name, the cabinet, the profile, logging out */
   .usermenu { position: relative; margin-inline-start: -20px; } .usermenu .userbtn { margin-inline-start: 0; }
+  /* signed in: the notifications and the user in one frame, a line between them */
+  .me-group { margin-inline-start: -20px; display: flex; align-items: center; height: 36px; border: 1px solid var(--line); border-radius: 4px; }
+  .me-group .theme { height: 34px; border: 0; border-radius: 3px; }
+  .me-group .usermenu { margin-inline-start: 0; border-inline-start: 1px solid var(--line); }
   .um-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; min-width: 200px; padding: 6px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, .14); display: grid; }
   .um-name { padding: 8px 10px 10px; margin-bottom: 4px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
   .um-pop a, .um-pop .um-out { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 0; border-radius: 6px; background: none; font: inherit; font-size: 13px; color: var(--fg); text-align: start; cursor: pointer; }
