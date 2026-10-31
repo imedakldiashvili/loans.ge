@@ -48,7 +48,7 @@
   .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; color: var(--green); letter-spacing: -.2px; }
   .logo b { font-weight: inherit; }
   /* phone: the header fits — smaller gaps; very narrow: a smaller logo, tighter still */
-  @media (max-width: 560px) { .nav { gap: 8px; } .nav .lang, .nav .login, .nav .userbtn, .nav .logout, .nav .usermenu { margin-inline-start: 0; } }   /* the -20px pulls make up for the 28px gap only */
+  @media (max-width: 560px) { .nav { gap: 8px; } .nav .lang, .nav .login, .nav .userbtn, .nav .logout, .nav .usermenu, .nav .langmenu { margin-inline-start: 0; } }   /* the -20px pulls make up for the 28px gap only */
   @media (max-width: 420px) { .nav { gap: 5px; padding-inline: 10px; } .nav .logo { font-size: 17px; gap: 5px; } .nav .logo img { width: 34px; height: auto; } .lang span { padding: 4px 5px; } }   /* narrow phones: "Loans.ge" stays — a smaller logo and tighter gaps */
   @media (max-width: 349px) { .nav .logo b { display: none; } }   /* the smallest phones (320px): the logo mark only */
   .logo span { color: var(--orange); }
@@ -424,6 +424,15 @@
   .um-pop a:hover, .um-pop .um-out:hover { background: var(--bg-soft); }
   .um-pop .um-out { margin-top: 4px; border-top: 1px solid var(--line); border-radius: 0 0 6px 6px; color: var(--muted); }
   .um-pop .um-out svg { width: 16px; height: 16px; }
+  /* the language: the current flag, the languages in a menu under it */
+  .langmenu { position: relative; margin-inline-start: -20px; }
+  .langmenu .theme { margin-inline-start: 0; }
+  .flag { display: block; width: 22px; height: 15px; flex: none; border-radius: 2px; overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
+  .flag svg { display: block; width: 100%; height: 100%; }
+  .lang-pop { min-width: 160px; }
+  .lang-pop button { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 0; border-radius: 6px; background: none; font: inherit; font-size: 13px; color: var(--fg); text-align: start; cursor: pointer; }
+  .lang-pop button:hover { background: var(--bg-soft); }
+  .lang-pop button.on { background: var(--green-soft); font-weight: 700; }
   .cabinet { background: var(--bg-soft); padding-block: 32px 70px; min-height: 60vh; }
   .cab-layout { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
   .cab-side { display: grid; gap: 12px; }

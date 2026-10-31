@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAskLogin } from './auth';
 import { Bell } from './bell';
-import { n, t, useLang } from './i18n';
+import { Lang, n, t, useLang } from './i18n';
 import { useLiveEvents } from './live';
 import logo from './logo.png';
 import { AppView, Cabinet } from './pages/cabinet';
@@ -82,8 +82,8 @@ function HomePage({ onStart, onNew }: { onStart: (s: Start) => void; onNew: (loa
   return <Home onStart={onStart} onNew={() => onNew()} purpose={loan} />;
 }
 
-/** The user icon once signed in: a menu under it — the name, the cabinet, the profile and logging out. */
-function UserMenu({ name, onLogout }: { name: string; onLogout: () => void }) {
+/** A header menu's open state: closes on a click outside its box or on Escape. */
+function usePop() {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -97,6 +97,72 @@ function UserMenu({ name, onLogout }: { name: string; onLogout: () => void }) {
       document.removeEventListener('keydown', esc);
     };
   }, [open]);
+  return { open, setOpen, box };
+}
+
+/** The flags (inline: emoji flags do not show on Windows). */
+const FLAGS: Record<Lang, ReactNode> = {
+  ka: (
+    <svg viewBox="0 0 30 20" aria-hidden="true">
+      <rect width="30" height="20" fill="#fff" />
+      <path d="M13 0h4v20h-4zM0 8h30v4H0z" fill="#e8112d" />
+      <path d="M6 2.2h1v1.3h1.3v1H7v1.3H6V4.5H4.7v-1H6zM23 2.2h1v1.3h1.3v1H24v1.3h-1V4.5h-1.3v-1H23zM6 14.2h1v1.3h1.3v1H7v1.3H6v-1.3H4.7v-1H6zM23 14.2h1v1.3h1.3v1H24v1.3h-1v-1.3h-1.3v-1H23z" fill="#e8112d" />
+    </svg>
+  ),
+  en: (
+    <svg viewBox="0 0 60 30" aria-hidden="true">
+      <clipPath id="ukc">
+        <path d="M30 15h30v15zv15H0zH0V0zV0h30z" />
+      </clipPath>
+      <rect width="60" height="30" fill="#012169" />
+      <path d="M0 0l60 30m0-30L0 30" stroke="#fff" strokeWidth="6" />
+      <path d="M0 0l60 30m0-30L0 30" clipPath="url(#ukc)" stroke="#c8102e" strokeWidth="4" />
+      <path d="M30 0v30M0 15h60" stroke="#fff" strokeWidth="10" />
+      <path d="M30 0v30M0 15h60" stroke="#c8102e" strokeWidth="6" />
+    </svg>
+  ),
+};
+const LANGS: [Lang, string][] = [
+  ['ka', 'ქართული'],
+  ['en', 'English'],
+];
+
+/** The language: the current flag in the header, a menu of the languages under it. */
+function LangMenu() {
+  const { lang: cur, toggle } = useLang();
+  const { open, setOpen, box } = usePop();
+  return (
+    <div className="langmenu" ref={box}>
+      <button type="button" className="theme langbtn" aria-label="Language" title={LANGS.find(([k]) => k === cur)?.[1]} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <i className="flag">{FLAGS[cur]}</i>
+      </button>
+      {open && (
+        <div className="um-pop lang-pop" role="menu">
+          {LANGS.map(([k, label]) => (
+            <button
+              key={k}
+              type="button"
+              role="menuitemradio"
+              aria-checked={k === cur}
+              className={k === cur ? 'on' : ''}
+              onClick={() => {
+                if (k !== cur) toggle();
+                setOpen(false);
+              }}
+            >
+              <i className="flag">{FLAGS[k]}</i>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** The user icon once signed in: a menu under it — the name, the cabinet, the profile and logging out. */
+function UserMenu({ name, onLogout }: { name: string; onLogout: () => void }) {
+  const { open, setOpen, box } = usePop();
   const close = () => setOpen(false);
   return (
     <div className="usermenu" ref={box}>
@@ -141,7 +207,7 @@ export function App() {
   // partners' answers arrive live: the cabinet and the comparison reload when an event comes
   useLiveEvents(me ? '/client/events/stream' : null, [['apps'], ['app']]);
   const askLogin = useAskLogin();
-  const { toggle: toggleLang } = useLang(); // re-renders the whole site on a language change
+  useLang(); // re-renders the whole site on a language change
   const { productTypes } = useRefs();
   const [, toggleTheme] = useTheme();
   const nav = useNavigate();
@@ -190,10 +256,7 @@ export function App() {
               <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
             </svg>
           </button>
-          <button className="lang" type="button" aria-label="Switch language" onClick={toggleLang}>
-            <span>ქარ</span>
-            <span>EN</span>
-          </button>
+          <LangMenu />
           {!loading && !me && (
             // signing in: the user icon (as in the header once signed in), the words in the tooltip
             <a
