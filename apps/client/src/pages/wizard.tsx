@@ -6,7 +6,7 @@ import { CATEGORIES, OrgLogo, useRefs, useSession } from '../session';
 import { Chevron, fmt, fmtPhone, money } from '../ui';
 import { AmountPicker, Start } from './home';
 
-// Application wizard (prototype #wizard): amount → credit history → sector → incomes → banks → organisations → personal data.
+// Application wizard (prototype #wizard): amount and organisations → credit history → sector → incomes → banks → personal data.
 // Personal data needs a login (the application belongs to the account); the phone is confirmed with an SMS code
 // unless it is the account's own phone. POST /client/application/add.
 
@@ -17,14 +17,14 @@ export interface Sent {
   orgs: number;
 }
 
-const STEPS = 7;
+const STEPS = 6;
 
 export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => void }) {
   const { me } = useSession();
   const askLogin = useAskLogin();
   const refs = useRefs();
   const [step, setStep] = useState(1);
-  // the amount: the first step (as the quick form had it), starting from what the start brought
+  // the amount: the first step, with the organisations that lend it (as the quick form had it), starting from what the start brought
   const [amt, setAmt] = useState({ amount: start.amount, currency: start.currency });
   const onAmount = useCallback((amount: number, currency: string) => setAmt({ amount, currency }), []);
   const [credit, setCredit] = useState('');
@@ -49,12 +49,11 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [amt.amount]);
   const valid = (n: number) =>
-    n === 1 ? amt.amount > 0
+    n === 1 ? amt.amount > 0 && orgs.length > 0
     : n === 2 ? !!credit
     : n === 3 ? !!sector
     : n === 4 ? Object.keys(incomes).length > 0
     : n === 5 ? true // banks are optional
-    : n === 6 ? orgs.length > 0
     : /^\d{11}$/.test(p.pid) && !!p.first.trim() && !!p.last.trim() && !!p.dob && !!p.city && /^5\d{8}$/.test(p.phone);
 
   // personal data needs an account: ask to log in, then fill from the profile
@@ -159,16 +158,6 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
         </div>
         <div className="wz-head">{nav('head')}</div>
         <div className="wz-body">
-          {step === 1 && (
-            <div className="wz-panel">
-              <h2 className="sec-title">{up(t('სესხის თანხა'))}</h2>
-              <div className="wz-form">
-                <div className="calc wz-amount">
-                  <AmountPicker pt={pt} amount={amt.amount} currency={amt.currency} onChange={onAmount} />
-                </div>
-              </div>
-            </div>
-          )}
           {step === 2 && (
             <div className="wz-panel">
               <h2 className="sec-title">{up(t('საკრედიტო ისტორია'))}</h2>
@@ -238,9 +227,16 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
               </div>
             </div>
           )}
-          {step === 6 && (
+          {step === 1 && (
             <div className="wz-panel">
-              <h2 className="sec-title">{up(t('ორგანიზაციების არჩევა'))}</h2>
+              <h2 className="sec-title">{up(t('სესხის თანხა'))}</h2>
+              <div className="wz-form wz-form-wide">
+                <div className="calc wz-amount">
+                  <AmountPicker pt={pt} amount={amt.amount} currency={amt.currency} onChange={onAmount} />
+                </div>
+              </div>
+              {/* the organisations that lend the amount chosen above — their numbers follow it */}
+              <h3 className="wz-subtitle">{t('ორგანიზაციების არჩევა')}</h3>
               <p className="wz-note">{t('მონიშნე ორგანიზაციები, რომლებსაც გინდა განაცხადი გაუგზავნო. თითოეული ცალ-ცალკე მოგცემს შეთავაზებას.')}</p>
               <div className="wz-form wz-form-wide">
                 <div className="org-groups">
@@ -268,11 +264,9 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
                             <i />
                             <h3>{t(label)}</h3>
                           </label>
-                          {cnt > 0 && (
-                            <span className="org-cnt">
-                              {cnt}/{list.length}
-                            </span>
-                          )}
+                          <span className={`org-cnt${cnt ? '' : ' none'}`}>
+                            {cnt}/{list.length}
+                          </span>
                           <button
                             type="button"
                             className="org-toggle"
@@ -312,7 +306,7 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
               </div>
             </div>
           )}
-          {step === 7 && (
+          {step === 6 && (
             <div className="wz-panel">
               <h2 className="sec-title">{up(t('პირადი მონაცემები'))}</h2>
               <div className="wz-form">
