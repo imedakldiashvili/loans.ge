@@ -319,10 +319,15 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             </svg>
           </span>
           <span className="info">
-            {/* one line: the product, the application's number in the middle (the same number the partners and the support see), the amount */}
-            <b>{n(a.ProductType)}</b>
+            {/* the top line: the person (personal number before the name, as in the partner cabinet), the application's number in the middle
+                (the same number the partners and the support see), the amount; the product under them */}
+            <span className="who">
+              {a.Pid ? `${a.Pid} · ` : ''}
+              {a.FirstName} {a.LastName}
+            </span>
             <small className="app-no">#{a.ID}</small>
             <i className="amt">{money(a.Amount, a.Currency)}</i>
+            <b>{n(a.ProductType)}</b>
           </span>
         </button>
         {/* the offers received */}
@@ -347,14 +352,9 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
       </div>
       {open && (
         <div className="cab-det">
-          {/* first in the expanded part: the person, the place and the date */}
+          {/* first in the expanded part: the date and the place */}
           <div className="cab-det-head">
             <span className="meta">
-              <span className="who">
-                {/* personal number before the name (as in the partner cabinet) */}
-                {a.Pid ? `${a.Pid} · ` : ''}
-                {a.FirstName} {a.LastName}
-              </span>
               {/* the date, the place under it */}
               <small className="when">{fmtDate(a.CreatedOn)}</small>
               <small className="when">{[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '-'}</small>

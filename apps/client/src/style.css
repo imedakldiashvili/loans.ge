@@ -991,7 +991,8 @@
   .cab-view-link:hover { border-color: var(--muted); } .cab-view-link:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }   /* the detailed view: at the bottom of the expanded part, on the right */
   .cab-det .meta .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
   /* one line: the loan on the left, the number in the middle, the amount on the right */
-  .cab-card .cab-sum .info { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "name no amt"; column-gap: 16px; align-items: center; }   /* the loan | the number in the middle | the amount */
+  .cab-card .cab-sum .info { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "who no amt" "name name name"; column-gap: 16px; row-gap: 4px; align-items: center; }   /* the person | the number in the middle | the amount; the loan under them */
+  .cab-card .cab-sum .info .who { grid-area: who; min-width: 0; }
   .cab-card .cab-sum .info .app-no { justify-self: center; font-size: 14px; } .cab-card .cab-sum .info .amt { justify-self: end; }
   .cab-card .cab-sum .info b { grid-area: name; } .cab-card .cab-sum .info .app-no { grid-area: no; }
   .cab-card .cab-sum .info .amt { grid-area: amt; font-size: 20px; }   /* the amount: a column of its own on the right */
