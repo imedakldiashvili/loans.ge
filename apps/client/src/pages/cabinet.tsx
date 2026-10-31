@@ -314,13 +314,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
       <div className="cab-top-row">
         {/* the summary is not clickable: only the fold line and the offers are */}
         <div className="cab-sum">
-          {/* the application's state in the icon's colour: in progress / done / cancelled */}
-          <span className={`ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t(isClosed ? (isCancelled ? 'შეწყვეტილი' : 'დასრულებული') : 'მიმდინარე')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-              <path d="M14 3v6h6M9 13h6M9 17h4" />
-            </svg>
-          </span>
           <span className="info">
             {/* the product, the amount on the right */}
             <b>{n(a.ProductType)}</b>
@@ -338,7 +331,11 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               disabled={!received}
               onClick={onCompare}
             >
-              {I.compare}
+              {/* the application's icon (its state's colour comes from the button) */}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                <path d="M14 3v6h6M9 13h6M9 17h4" />
+              </svg>
               <span>{t('შეთავაზებები')}</span>
               <b>
                 {received}/{a.Orgs.length}

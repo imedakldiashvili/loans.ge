@@ -1016,3 +1016,4 @@
   .cab-card .cab-sum { cursor: default; }   /* not clickable: only the fold line and the offers are */
   /* the application's icon a little smaller */
   .cab-top-row .cab-sum .ico { width: 36px; height: 36px; border-radius: 8px; } .cab-top-row .cab-sum .ico svg { width: 18px; height: 18px; }
+  .cab-top-row .cab-sum { grid-template-columns: 1fr; }   /* no icon of its own any more: it is in the offers button */
