@@ -1011,6 +1011,8 @@
   }
   .cab-card.open .cab-toggle-bar svg { transform: rotate(180deg); }   /* open: the chevron points up (fold), closed: down (expand) */
 
-  /* phone: the loan and the amount still on one line — the icon gives up its room, the text a little smaller */
-  @media (max-width: 680px) { .cab-top-row .cab-sum { grid-template-columns: 1fr; } .cab-top-row .cab-sum .ico { display: none; } .cab-card .cab-sum .info b { font-size: 15px; } .cab-card .cab-sum .info .amt { font-size: 17px; } }
+  /* phone: the loan and the amount still on one line — a smaller icon, the text a little smaller */
+  @media (max-width: 680px) { .cab-top-row .cab-sum { gap: 10px; } .cab-top-row .cab-sum .ico { width: 30px; height: 30px; } .cab-top-row .cab-sum .ico svg { width: 16px; height: 16px; } .cab-card .cab-sum .info b { font-size: 15px; overflow-wrap: anywhere; } .cab-card .cab-sum .info .amt { font-size: 17px; } }
   .cab-card .cab-sum { cursor: default; }   /* not clickable: only the fold line and the offers are */
+  /* the application's icon a little smaller */
+  .cab-top-row .cab-sum .ico { width: 36px; height: 36px; border-radius: 8px; } .cab-top-row .cab-sum .ico svg { width: 18px; height: 18px; }
