@@ -580,7 +580,10 @@
   .verify::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
   .prof-info { display: grid; }
   .prof-row { display: grid; grid-template-columns: 200px 1fr auto; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; min-height: 52px; }
-  .prof-edit { padding: 7px 14px; font-size: 12px; min-width: 96px; }
+  .prof-edit { width: 34px; height: 34px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: none; color: var(--green); cursor: pointer; }
+  .prof-edit svg { width: 16px; height: 16px; }
+  .prof-edit:hover { border-color: var(--green); background: var(--green-soft); }
+  .prof-edit:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   .prof-row:first-child { border-top: 0; padding-top: 0; }
   .prof-row span { color: var(--muted); }
   .prof-row b { font-weight: 500; color: var(--fg); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
@@ -961,3 +964,18 @@
   /* toasts: bottom centre, above dialogs */
   .toasts { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 100; display: grid; gap: 8px; width: max-content; max-width: calc(100vw - 32px); pointer-events: none; }
   .toast { padding: 10px 16px; border-radius: 8px; background: #2b3045; color: #fff; font-size: 14px; text-align: center; white-space: pre-line; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+
+  /* phone: the application card's head in two rows — the product and the person on top, the amount and the buttons under them */
+  @media (max-width: 680px) {
+    .cab-top-row { flex-wrap: wrap; padding-right: 0; }
+    .cab-top-row .cab-sum { flex: 1 1 100%; padding: 14px 14px 10px; gap: 12px; }
+    .cab-card .info b { font-size: 16px; }
+    .cab-top-row .cab-right { width: 100%; padding: 0 10px 12px 14px; gap: 8px; }
+    .cab-top-row .cab-right-col { flex: 1; min-width: 0; gap: 8px; }
+    .cab-top-row .cab-right-col .amt { margin-inline-end: auto; font-size: 19px; }
+    .cab-top-row .cab-right { gap: 4px; } .cab-top-row .cab-right-col { gap: 6px; }
+    .cab-top-row .recv-offers { height: 40px; padding: 0 6px 0 10px; gap: 6px; } .cab-top-row .recv-offers svg { width: 20px; height: 20px; } .cab-top-row .recv-offers b { width: 40px; }
+    .cab-top-row .cab-details-ico { width: 40px; height: 40px; }
+  }
+  /* narrow phones: the amount on its own line, the buttons under it */
+  @media (max-width: 380px) { .cab-top-row .cab-right-col { flex-wrap: wrap; row-gap: 8px; } .cab-top-row .cab-right-col .amt { flex-basis: 100%; } }

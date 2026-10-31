@@ -810,9 +810,13 @@ function Profile() {
   if (!d) return <div className="cab-group-empty">{t('იტვირთება…')}</div>;
   const c = d.Customer;
   const loc = [n(cities.find((x) => x.ID === c?.CityID)), n(districts.find((x) => x.ID === c?.DistrictID)) || c?.Village].filter(Boolean).join(', ');
+  // change: a pencil, the words in the tooltip
   const btn = (f: Field) => (
-    <button type="button" className="btn btn-green prof-edit" onClick={() => setEdit(f)}>
-      {t('შეცვლა')}
+    <button type="button" className="prof-edit" title={t(TITLES[f])} aria-label={t(TITLES[f])} onClick={() => setEdit(f)}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
+      </svg>
     </button>
   );
   const saved = async () => {
