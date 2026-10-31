@@ -355,9 +355,9 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                 {a.Pid ? `${a.Pid} · ` : ''}
                 {a.FirstName} {a.LastName}
               </span>
-              <small className="when">
-                {[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '-'} · {fmtDate(a.CreatedOn)}
-              </small>
+              {/* the date, the place under it */}
+              <small className="when">{fmtDate(a.CreatedOn)}</small>
+              <small className="when">{[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '-'}</small>
             </span>
           </div>
           {GROUP_ORDER.map((st) => {
@@ -424,10 +424,10 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               </div>
             );
           })}
-          {/* last in the expanded part: the detailed view (its own page) */}
+          {/* last in the expanded part: the detailed view (its own page) — the words, centred */}
           <div className="cab-det-foot-view">
-            <button type="button" className={`cab-details-ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
-              {I.eye}
+            <button type="button" className="cab-view-link" onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
+              {t('დეტალური ნახვა')}
             </button>
           </div>
         </div>
