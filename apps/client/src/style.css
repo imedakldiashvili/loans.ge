@@ -411,9 +411,8 @@
   body.in-cabinet .hero, body.in-cabinet #how, body.in-cabinet .advsec, body.in-cabinet .partners, body.in-cabinet .wizard { display: none !important; }
   .userbtn { margin-inline-start: -20px; }
   .userbtn[hidden], .login[hidden] { display: none !important; }
-  .userbtn.guest { color: var(--orange); border-color: var(--orange); } /* not signed in: the user icon orange */
   .usermenu .userbtn { color: var(--green); border-color: var(--green); } /* signed in: the user icon green */
-  .userbtn.guest:hover, .usermenu .userbtn:hover { background: var(--bg-soft); }
+  .usermenu .userbtn:hover { background: var(--bg-soft); } /* not signed in: the user icon plain, as the other header buttons */
   .logout { margin-inline-start: -20px; } /* სახელთან ახლოს — 8px დაშორება */
   .logout[hidden] { display: none !important; }
   /* the user menu (signed in): under the user icon — the name, the cabinet, the profile, logging out */
