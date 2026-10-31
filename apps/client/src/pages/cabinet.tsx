@@ -326,7 +326,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             <small className="app-no">#{a.ID}</small>
           </span>
         </button>
-        {/* the offers received and the detailed view */}
+        {/* the offers received */}
         <div className="cab-right">
           <span className="cab-right-col">
             {/* the offers that came in — in the application icon's colour; always shown (none yet: 0, not clickable); filled while an answer is awaited */}
@@ -343,26 +343,27 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                 {received}/{a.Orgs.length}
               </b>
             </button>
-            {/* the detailed view (its own page), after the offers; styled as the application icon (its state's colours) */}
-            <button type="button" className={`cab-details-ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
-              {I.eye}
-            </button>
           </span>
         </div>
       </div>
       {open && (
         <div className="cab-det">
-          {/* first in the expanded part: the person on the left, the place and the date on the right */}
-          <span className="meta">
-            <span className="who">
-              {/* personal number before the name (as in the partner cabinet) */}
-              {a.Pid ? `${a.Pid} · ` : ''}
-              {a.FirstName} {a.LastName}
+          {/* first in the expanded part: the person and the place / date on the left, the detailed view (its own page) on the right */}
+          <div className="cab-det-head">
+            <span className="meta">
+              <span className="who">
+                {/* personal number before the name (as in the partner cabinet) */}
+                {a.Pid ? `${a.Pid} · ` : ''}
+                {a.FirstName} {a.LastName}
+              </span>
+              <small className="when">
+                {[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '-'} · {fmtDate(a.CreatedOn)}
+              </small>
             </span>
-            <small className="when">
-              {[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '-'} · {fmtDate(a.CreatedOn)}
-            </small>
-          </span>
+            <button type="button" className={`cab-details-ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
+              {I.eye}
+            </button>
+          </div>
           {GROUP_ORDER.map((st) => {
             const list = a.Orgs.filter((o) => o.Status === st);
             if (!list.length) return null;

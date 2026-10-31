@@ -980,10 +980,13 @@
   /* phone: the application states (in progress / completed / stopped) each on its own line, the period under them */
   @media (max-width: 560px) { .cab-nav.cab-nav-sub .cab-check { flex: 1 1 100%; height: 36px; justify-content: flex-start; } }   /* to the left */
   /* the card's person / place and date: first in the expanded part, one under the other, on the left */
-  .cab-det .meta { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+  .cab-det-head { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .cab-det .meta { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+  .cab-det-head .cab-details-ico { flex: none; }
   .cab-det .meta .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  /* the amount on the loan's line: as large as the loan's name, after it */
-  .cab-card .info b .amt { font-size: inherit; margin-inline-start: 6px; }
+  /* the amount on the loan's line: as large as the loan's name, on the right */
+  .cab-card .info b { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 12px; }
+  .cab-card .info b .amt { font-size: inherit; margin-inline-start: auto; }   /* the amount pushed to the right of the loan's line */
   /* expand / fold: a full-width line at the bottom of the card, the chevron in its middle */
   .cab-card .cab-toggle-bar { width: 100%; height: 28px; border-top: 1px solid var(--line); border-radius: 0 0 8px 8px; }
-  .cab-card .cab-toggle-bar:hover { background: var(--bg-soft); color: var(--fg); }
+  .cab-card .cab-toggle-bar, .cab-card .cab-toggle-bar:hover { background: transparent; } .cab-card .cab-toggle-bar:hover { color: var(--fg); }   /* the card's own background, only the chevron darkens */
