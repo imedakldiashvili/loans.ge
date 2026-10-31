@@ -237,7 +237,7 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
               </div>
               {/* the organisations that lend the amount chosen above — their numbers follow it */}
               <h3 className="wz-subtitle">{t('ორგანიზაციების არჩევა')}</h3>
-              <p className="wz-note">{t('მონიშნე ორგანიზაციები, რომლებსაც გინდა განაცხადი გაუგზავნო. თითოეული ცალ-ცალკე მოგცემს შეთავაზებას.')}</p>
+              <p className="wz-note">{t('მონიშნე ორგანიზაციები, რომლებსაც გინდა განაცხადი გაუგზავნო.')}</p>
               <div className="wz-form wz-form-wide">
                 <div className="org-groups">
                   {CATEGORIES.map(([cat, label]) => {
