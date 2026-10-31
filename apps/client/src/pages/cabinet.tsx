@@ -319,14 +319,14 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             </svg>
           </span>
           <span className="info">
-            {/* the product with the application's number beside it — the same number the partners and the support see */}
+            {/* the product with the amount on its line; the application's number under them — the same number the partners and the support see */}
             <b>
-              {/* the amount on the same line as the loan */}
-              {n(a.ProductType)} <small className="app-no">- #{a.ID}</small> <i className="amt">{money(a.Amount, a.Currency)}</i>
+              {n(a.ProductType)} <i className="amt">{money(a.Amount, a.Currency)}</i>
             </b>
+            <small className="app-no">#{a.ID}</small>
           </span>
         </button>
-        {/* the offers received, the detailed view, the expand to the right */}
+        {/* the offers received and the detailed view */}
         <div className="cab-right">
           <span className="cab-right-col">
             {/* the offers that came in — in the application icon's colour; always shown (none yet: 0, not clickable); filled while an answer is awaited */}
@@ -348,9 +348,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               {I.eye}
             </button>
           </span>
-          <button type="button" className="cab-toggle" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
-            <Chevron />
-          </button>
         </div>
       </div>
       {open && (
@@ -432,6 +429,10 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
           })}
         </div>
       )}
+      {/* expand / fold: a line of its own at the bottom of the card */}
+      <button type="button" className="cab-toggle cab-toggle-bar" aria-expanded={open} aria-label={t('ჩამოშლა')} title={t('ჩამოშლა')} onClick={() => setOpen(!open)}>
+        <Chevron />
+      </button>
       {offer && <OfferModal o={offer} onClose={() => setOffer(null)} />}
       {cancel && (
         <CancelModal
