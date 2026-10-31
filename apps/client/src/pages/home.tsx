@@ -1,6 +1,6 @@
 import { lang, n, t, up } from '../i18n';
 import { useQuery } from '@tanstack/react-query';
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../api';
 import { CATEGORIES, OrgLogo, ProductType, useRefs } from '../session';
 import { fmt } from '../ui';
@@ -16,51 +16,38 @@ export interface Start {
 
 const short = (n: number) => (n >= 1e6 ? `${n / 1e6}M` : n >= 1e3 ? `${n / 1e3}K` : String(n));
 
-/** Loan purpose, amount range + slider, currency → "შეავსე განაცხადი" (prototype #quick). */
-export function QuickForm({ onSubmit, initial }: { onSubmit: (s: Start) => void; initial?: number }) {
-  const { productTypes, currencies } = useRefs();
-  const [ptId, setPtId] = useState<number | null>(initial ?? null);
-  const pt = productTypes.find((p) => p.ID === ptId) ?? productTypes[0];
+/** Amount range buttons, the amount with the currency, the slider and its ticks (prototype #quick) — the quick form and the wizard's first step. */
+export function AmountPicker({ pt, amount, currency, onChange }: { pt?: ProductType; amount: number; currency: string; onChange: (amount: number, currency: string) => void }) {
+  const { currencies } = useRefs();
   // ranges: min → 10×min, ten steps (moneymarket.ge); only ranges the product allows
   const ranges = (pt?.AmountRanges?.length ? pt.AmountRanges : [100, 1000, 10000]).filter((r) => !pt || r < pt.MaxAmount);
-  const [range, setRange] = useState(1000);
-  const [value, setValue] = useState(5000);
-  const [cur, setCur] = useState('GEL');
+  // the range the amount falls in (the largest that starts at or under it)
+  const [range, setRange] = useState(() => [...ranges].reverse().find((x) => x <= amount) ?? 1000);
   const [curOpen, setCurOpen] = useState(false);
   const curRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (initial) setPtId(initial);
-  }, [initial]);
 
   const r = ranges.includes(range) ? range : ranges[Math.min(1, ranges.length - 1)] ?? 1000;
   // always the whole range, whatever the product: 100 → 1 000, 1 000 → 10 000, …
   const min = r;
   const max = r * 10;
   const ticks = Array.from({ length: 10 }, (_, i) => r * (i + 1));
-  const v = Math.min(Math.max(value, min), max);
+  const v = Math.min(Math.max(amount, min), max);
   const p = max > min ? ((v - min) / (max - min)) * 100 : 0;
   const curs = currencies.length ? currencies : [{ ID: 0, Code: 'GEL', Symbol: '₾' }];
-  const sym = curs.find((c) => c.Code === cur)?.Symbol ?? '₾';
+  const sym = curs.find((c) => c.Code === currency)?.Symbol ?? '₾';
 
+  // the amount shown is always the one kept (outside the range it is pulled in)
+  useEffect(() => {
+    if (v !== amount) onChange(v, currency);
+  }, [v, amount, currency, onChange]);
   useEffect(() => {
     const close = (e: MouseEvent) => !curRef.current?.contains(e.target as Node) && setCurOpen(false);
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
   }, []);
 
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    if (pt) onSubmit({ productType: pt, amount: v, currency: cur });
-  };
   return (
-    <form className="calc" aria-label={t('სესხის განაცხადი')} onSubmit={submit}>
-      <select required aria-label={t('მიზნობრიობა')} value={pt?.ID ?? ''} onChange={(e) => setPtId(Number(e.target.value))}>
-        {productTypes.map((x) => (
-          <option key={x.ID} value={x.ID}>
-            {n(x)}
-          </option>
-        ))}
-      </select>
+    <>
       <div className="amount">
         <div className="ranges">
           {ranges.map((x) => (
@@ -70,7 +57,7 @@ export function QuickForm({ onSubmit, initial }: { onSubmit: (s: Start) => void;
               className={x === r ? 'on' : ''}
               onClick={() => {
                 setRange(x);
-                setValue(x);
+                onChange(x, currency);
               }}
             >
               {fmt(x)} +
@@ -89,9 +76,9 @@ export function QuickForm({ onSubmit, initial }: { onSubmit: (s: Start) => void;
                   <li
                     key={c.Code}
                     role="option"
-                    aria-selected={c.Code === cur}
+                    aria-selected={c.Code === currency}
                     onClick={() => {
-                      setCur(c.Code);
+                      onChange(v, c.Code);
                       setCurOpen(false);
                     }}
                   >
@@ -103,16 +90,62 @@ export function QuickForm({ onSubmit, initial }: { onSubmit: (s: Start) => void;
           </div>
         </div>
       </div>
-      <input type="range" min={min} max={max} step={Math.max(1, r / 10)} value={v} aria-label={t('თანხა')} style={{ ['--p' as string]: `${p}%` }} onChange={(e) => setValue(Number(e.target.value))} />
+      <input type="range" min={min} max={max} step={Math.max(1, r / 10)} value={v} aria-label={t('თანხა')} style={{ ['--p' as string]: `${p}%` }} onChange={(e) => onChange(Number(e.target.value), currency)} />
       <div className="ticks">
         {ticks.map((x) => (
           <span key={x}>{short(x)}</span>
         ))}
       </div>
+    </>
+  );
+}
+
+/** Loan purpose, amount range + slider, currency → "შეავსე განაცხადი" (prototype #quick). */
+export function QuickForm({ onSubmit, initial }: { onSubmit: (s: Start) => void; initial?: number }) {
+  const { productTypes } = useRefs();
+  const [ptId, setPtId] = useState<number | null>(initial ?? null);
+  const pt = productTypes.find((p) => p.ID === ptId) ?? productTypes[0];
+  const [amt, setAmt] = useState({ amount: 5000, currency: 'GEL' });
+  const onAmount = useCallback((amount: number, currency: string) => setAmt({ amount, currency }), []);
+  useEffect(() => {
+    if (initial) setPtId(initial);
+  }, [initial]);
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (pt) onSubmit({ productType: pt, ...amt });
+  };
+  return (
+    <form className="calc" aria-label={t('სესხის განაცხადი')} onSubmit={submit}>
+      <select required aria-label={t('მიზნობრიობა')} value={pt?.ID ?? ''} onChange={(e) => setPtId(Number(e.target.value))}>
+        {productTypes.map((x) => (
+          <option key={x.ID} value={x.ID}>
+            {n(x)}
+          </option>
+        ))}
+      </select>
+      <AmountPicker key={pt?.ID} pt={pt} amount={amt.amount} currency={amt.currency} onChange={onAmount} />
       <button type="submit" className="btn btn-green full" disabled={!pt}>
         {t('შეავსე განაცხადი')}
       </button>
     </form>
+  );
+}
+
+/** The new-application dialog: the loans as a list — a click starts the application (the amount is its first step). */
+export function ProductPick({ onPick, initial }: { onPick: (pt: ProductType) => void; initial?: number }) {
+  const { productTypes } = useRefs();
+  return (
+    <div className="pt-pick" role="list">
+      {productTypes.map((x) => (
+        <button key={x.ID} type="button" role="listitem" className={x.ID === initial ? 'on' : ''} onClick={() => onPick(x)}>
+          <span>{n(x)}</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </button>
+      ))}
+    </div>
   );
 }
 

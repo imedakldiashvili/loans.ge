@@ -1,12 +1,12 @@
 import { n, t, up } from '../i18n';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api, Ref } from '../api';
 import { OtpModal, useAskLogin } from '../auth';
 import { CATEGORIES, OrgLogo, useRefs, useSession } from '../session';
 import { Chevron, fmt, fmtPhone, money } from '../ui';
-import { Start } from './home';
+import { AmountPicker, Start } from './home';
 
-// Application wizard (prototype #wizard): credit history → sector → incomes → banks → organisations → personal data.
+// Application wizard (prototype #wizard): amount → credit history → sector → incomes → banks → organisations → personal data.
 // Personal data needs a login (the application belongs to the account); the phone is confirmed with an SMS code
 // unless it is the account's own phone. POST /client/application/add.
 
@@ -17,13 +17,16 @@ export interface Sent {
   orgs: number;
 }
 
-const STEPS = 6;
+const STEPS = 7;
 
 export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => void }) {
   const { me } = useSession();
   const askLogin = useAskLogin();
   const refs = useRefs();
   const [step, setStep] = useState(1);
+  // the amount: the first step (as the quick form had it), starting from what the start brought
+  const [amt, setAmt] = useState({ amount: start.amount, currency: start.currency });
+  const onAmount = useCallback((amount: number, currency: string) => setAmt({ amount, currency }), []);
   const [credit, setCredit] = useState('');
   const [sector, setSector] = useState('');
   const [incomes, setIncomes] = useState<Record<string, string>>({}); // source name → amount (checked when present)
@@ -37,15 +40,21 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
   const total = Object.values(incomes).reduce((t, v) => t + (Number(v) || 0), 0);
   const cityDistricts = refs.districts.filter((d) => String(d.CityID) === p.city);
   // only organisations that take this loan and lend this amount
-  const lends = (x: { MinAmount: number | string | null; MaxAmount: number | string | null }) => (x.MinAmount === null || Number(x.MinAmount) <= start.amount) && (x.MaxAmount === null || Number(x.MaxAmount) >= start.amount);
+  const lends = (x: { MinAmount: number | string | null; MaxAmount: number | string | null }) => (x.MinAmount === null || Number(x.MinAmount) <= amt.amount) && (x.MaxAmount === null || Number(x.MaxAmount) >= amt.amount);
   const accepting = refs.organizations.filter((o) => o.IsPartner && o.ProductTypes.some((x) => x.ProductTypeID === pt.ID && lends(x)));
   const bankList = refs.organizations.filter((o) => o.Category === 'bank');
+  // a changed amount: drop the organisations that no longer lend it
+  useEffect(() => {
+    setOrgs((x) => x.filter((id) => accepting.some((o) => o.ID === id)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amt.amount]);
   const valid = (n: number) =>
-    n === 1 ? !!credit
-    : n === 2 ? !!sector
-    : n === 3 ? Object.keys(incomes).length > 0
-    : n === 4 ? true // banks are optional
-    : n === 5 ? orgs.length > 0
+    n === 1 ? amt.amount > 0
+    : n === 2 ? !!credit
+    : n === 3 ? !!sector
+    : n === 4 ? Object.keys(incomes).length > 0
+    : n === 5 ? true // banks are optional
+    : n === 6 ? orgs.length > 0
     : /^\d{11}$/.test(p.pid) && !!p.first.trim() && !!p.last.trim() && !!p.dob && !!p.city && /^5\d{8}$/.test(p.phone);
 
   // personal data needs an account: ask to log in, then fill from the profile
@@ -82,13 +91,13 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
   }, [step]);
 
   const body = (code?: { ref: Ref; code: string }) => ({
-    ProductTypeID: pt.ID, Amount: start.amount, Currency: start.currency, CreditHistory: credit, Sector: sector,
+    ProductTypeID: pt.ID, Amount: amt.amount, Currency: amt.currency, CreditHistory: credit, Sector: sector,
     Incomes: Object.entries(incomes).map(([Src, v]) => ({ Src, Amount: Number(v) || 0 })), Banks: banks, OrganizationIDs: orgs,
     Pid: p.pid, FirstName: p.first.trim(), LastName: p.last.trim(), BirthDate: p.dob, Phone: p.phone,
     CityID: Number(p.city), DistrictID: p.district ? Number(p.district) : null, Village: p.village.trim() || null,
     ...(code ? { Otp: { ID: code.ref.ID, UID: code.ref.UID, Code: code.code } } : {}),
   });
-  const sent = (ref: Ref) => onSent({ ref, amount: money(start.amount, start.currency), loan: n(pt), orgs: orgs.length });
+  const sent = (ref: Ref) => onSent({ ref, amount: money(amt.amount, amt.currency), loan: n(pt), orgs: orgs.length });
 
   const next = async () => {
     if (!valid(step)) return;
@@ -146,23 +155,33 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
       <div className="wrap">
         <div className="wz-summary">
           <b>{n(pt)}</b>
-          <b id="wzAmount">{money(start.amount, start.currency)}</b>
+          <b id="wzAmount">{money(amt.amount, amt.currency)}</b>
         </div>
         <div className="wz-head">{nav('head')}</div>
         <div className="wz-body">
           {step === 1 && (
             <div className="wz-panel">
+              <h2 className="sec-title">{up(t('სესხის თანხა'))}</h2>
+              <div className="wz-form">
+                <div className="calc wz-amount">
+                  <AmountPicker pt={pt} amount={amt.amount} currency={amt.currency} onChange={onAmount} />
+                </div>
+              </div>
+            </div>
+          )}
+          {step === 2 && (
+            <div className="wz-panel">
               <h2 className="sec-title">{up(t('საკრედიტო ისტორია'))}</h2>
               <div className="wz-form">{radios('credit', refs.creditHistory, credit, setCredit)}</div>
             </div>
           )}
-          {step === 2 && (
+          {step === 3 && (
             <div className="wz-panel">
               <h2 className="sec-title">{up(t('საქმიანობის სფერო'))}</h2>
               <div className="wz-form">{radios('sector', refs.sectors, sector, setSector)}</div>
             </div>
           )}
-          {step === 3 && (
+          {step === 4 && (
             <div className="wz-panel">
               <h2 className="sec-title">{up(t('შემოსავლის წყარო'))}</h2>
               <div className="wz-form">
@@ -202,7 +221,7 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
               </div>
             </div>
           )}
-          {step === 4 && (
+          {step === 5 && (
             <div className="wz-panel">
               <h2 className="sec-title">{up(t('რომელი ბანკის სერვისებით სარგებლობთ'))}</h2>
               <div className="wz-form">
@@ -219,7 +238,7 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
               </div>
             </div>
           )}
-          {step === 5 && (
+          {step === 6 && (
             <div className="wz-panel">
               <h2 className="sec-title">{up(t('ორგანიზაციების არჩევა'))}</h2>
               <p className="wz-note">{t('მონიშნე ორგანიზაციები, რომლებსაც გინდა განაცხადი გაუგზავნო. თითოეული ცალ-ცალკე მოგცემს შეთავაზებას.')}</p>
@@ -293,7 +312,7 @@ export function Wizard({ start, onSent }: { start: Start; onSent: (s: Sent) => v
               </div>
             </div>
           )}
-          {step === 6 && (
+          {step === 7 && (
             <div className="wz-panel">
               <h2 className="sec-title">{up(t('პირადი მონაცემები'))}</h2>
               <div className="wz-form">

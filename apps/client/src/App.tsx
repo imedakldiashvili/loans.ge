@@ -7,7 +7,7 @@ import { useLiveEvents } from './live';
 import logo from './logo.png';
 import { AppView, Cabinet } from './pages/cabinet';
 import { Compare } from './pages/compare';
-import { AboutPage, Home, PartnersPage, QuickForm, Start, TermsPage } from './pages/home';
+import { AboutPage, Home, PartnersPage, ProductPick, Start, TermsPage } from './pages/home';
 import { Sent, Wizard } from './pages/wizard';
 import { useRefs, useSession } from './session';
 import { Modal } from './ui';
@@ -245,8 +245,8 @@ export function App() {
 
       {newApp && (
         <Modal onClose={() => setNewApp(false)} className="newapp-box" labelledBy="newAppTitle">
-          <h3 id="newAppTitle">{t('ახალი განაცხადი')}</h3>
-          <QuickForm onSubmit={begin} initial={newApp.loan} />
+          <h3 id="newAppTitle">{t('აირჩიე პროდუქტი')}</h3>
+          <ProductPick initial={newApp.loan} onPick={(productType) => begin({ productType, amount: 5000, currency: 'GEL' })} />
         </Modal>
       )}
       {sent && (

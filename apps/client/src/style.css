@@ -390,6 +390,16 @@
   .newapp-box h3 { margin-bottom: 16px; }
   .newapp-box .calc { display: block; }
   .newapp-box .calc > select, .newapp-box .amount, .newapp-box .ticks { margin-bottom: 14px; }
+  /* the new-application dialog: the loans as a list, a click goes on */
+  .pt-pick { display: grid; gap: 8px; }
+  .pt-pick button { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font: inherit; font-size: 14px; font-weight: 500; color: var(--fg); text-align: start; cursor: pointer; transition: border-color .15s, background .15s; }
+  .pt-pick button svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
+  .pt-pick button:hover, .pt-pick button.on { border-color: var(--green); background: var(--green-soft); }
+  .pt-pick button:hover svg, .pt-pick button.on svg { color: var(--green); }
+  .pt-pick button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+  /* the wizard's amount step: the quick form's amount, in a frame */
+  .wz-amount { display: block; flex: none; padding: 20px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+  .wz-amount .ticks { margin-bottom: 0; }
   /* Done modal + cabinet */
   .done-sum { font-size: 14px !important; color: var(--fg) !important; }
   .done-sum b { color: var(--orange); }
