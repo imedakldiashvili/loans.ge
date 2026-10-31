@@ -990,9 +990,13 @@
   .cab-view-link { border: 1px solid var(--line); background: transparent; padding: 5px 14px; font: inherit; font-size: 12px; font-weight: 600; color: var(--fg); cursor: pointer; border-radius: 6px; }   /* smaller, no background of its own: the card's shows through */
   .cab-view-link:hover { border-color: var(--muted); } .cab-view-link:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }   /* the detailed view: at the bottom of the expanded part, on the right */
   .cab-det .meta .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  /* one line: the loan on the left, the number in the middle, the amount on the right */
-  .cab-card .cab-sum .info { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "name no amt"; column-gap: 16px; align-items: center; }   /* the loan | the number in the middle | the amount */
-  .cab-card .cab-sum .info .app-no { justify-self: center; font-size: 14px; } .cab-card .cab-sum .info .amt { justify-self: end; }
+  /* the loan on the left, the amount on the right */
+  .cab-card .cab-sum .info { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name amt"; column-gap: 16px; align-items: center; }   /* the loan | the amount */
+  .cab-card .cab-sum .info .amt { justify-self: end; }
+  /* the number sits on the card's top line, in the middle (as a legend): the card lets it out, the list gives it room */
+  .cab-card { position: relative; overflow: visible; }
+  .cab-cards { gap: 22px; padding-top: 10px; }
+  .cab-no { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); z-index: 1; padding: 1px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--card, var(--bg)); font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .cab-card .cab-sum .info b { grid-area: name; } .cab-card .cab-sum .info .app-no { grid-area: no; }
   .cab-card .cab-sum .info .amt { grid-area: amt; font-size: 20px; }   /* the amount: a column of its own on the right */
   /* expand / fold: a full-width line at the bottom of the card, the chevron in its middle */
@@ -1006,5 +1010,6 @@
     .cab-top-row .recv-offers b { margin-inline-start: auto; }
   }
   .cab-card.open .cab-toggle-bar svg { transform: rotate(180deg); }   /* open: the chevron points up (fold), closed: down (expand) */
-  /* phone: no room to centre the number exactly — the amount takes what it needs, the number stays between */
-  @media (max-width: 680px) { .cab-card .cab-sum .info { grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 10px; } }
+
+  /* phone: the loan, the amount under it (a long loan name has no room beside the amount) */
+  @media (max-width: 680px) { .cab-card .cab-sum .info { grid-template-columns: minmax(0, 1fr); grid-template-areas: "name" "amt"; row-gap: 2px; } .cab-card .cab-sum .info .amt { justify-self: start; } }

@@ -309,6 +309,8 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
 
   return (
     <article className={`cab-card${open ? ' open' : ''}`}>
+      {/* the application's number on the card's top line, in the middle (the same number the partners and the support see) */}
+      <small className="cab-no">#{a.ID}</small>
       <div className="cab-top-row">
         <button type="button" className="cab-sum" aria-expanded={open} onClick={() => setOpen(!open)}>
           {/* the application's state in the icon's colour: in progress / done / cancelled */}
@@ -319,9 +321,8 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
             </svg>
           </span>
           <span className="info">
-            {/* one line: the product, the application's number in the middle (the same number the partners and the support see), the amount */}
+            {/* the product, the amount on the right */}
             <b>{n(a.ProductType)}</b>
-            <small className="app-no">#{a.ID}</small>
             <i className="amt">{money(a.Amount, a.Currency)}</i>
           </span>
         </button>
