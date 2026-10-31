@@ -387,7 +387,8 @@
   .login-email { width: 100%; font: inherit; font-size: 16px; padding: 11px 14px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--fg); margin-bottom: 16px; text-align: start; }
   .login-email:focus { outline: 2px solid var(--green); outline-offset: 0; border-color: var(--green); }
   .newapp-box { max-width: 460px; text-align: start; }
-  .newapp-box h3 { margin-bottom: 16px; }
+  .newapp-box h3 { margin: -14px 0 16px; line-height: 32px; padding-inline-end: 40px; } /* level with the close button (×) */
+  .newapp-box .modal-x { top: 14px; }
   .newapp-box .calc { display: block; }
   .newapp-box .calc > select, .newapp-box .amount, .newapp-box .ticks { margin-bottom: 14px; }
   /* the new-application dialog: the loans as a list, a click goes on */
