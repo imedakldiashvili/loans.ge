@@ -507,17 +507,19 @@ export function AppView({ id, uid, onBack }: { id: number; uid: string; onBack: 
           <h3 className="view-title">
             {n(a.ProductType)} · {money(a.Amount, a.Currency)}
           </h3>
-          {/* in progress: stopping the application — top right */}
-          {!isClosed && (
-            <button type="button" className="btn btn-ghost cab-end view-stop" onClick={() => setCancel(true)}>
-              {I.timer}
-              {t('განაცხადის შეწყვეტა')}
-            </button>
-          )}
         </div>
         <div className="view-page">
           <AppDetails a={a} />
         </div>
+        {/* in progress: stopping the application — under the form, a line of its own, centred */}
+        {!isClosed && (
+          <div className="view-stop-row">
+            <button type="button" className="btn btn-ghost view-stop" onClick={() => setCancel(true)}>
+              {I.timer}
+              {t('განაცხადის შეწყვეტა')}
+            </button>
+          </div>
+        )}
       </div>
       {cancel && (
         <CancelModal
