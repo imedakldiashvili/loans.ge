@@ -411,7 +411,7 @@
   body.in-cabinet .hero, body.in-cabinet #how, body.in-cabinet .advsec, body.in-cabinet .partners, body.in-cabinet .wizard { display: none !important; }
   .userbtn { margin-inline-start: -20px; }
   .userbtn[hidden], .login[hidden] { display: none !important; }
-  .usermenu .userbtn { color: var(--green); border-color: var(--green); } /* signed in: the user icon green */
+  .usermenu .userbtn { color: var(--green); background: none; } /* signed in: the icon green, the usual frame, no background */
   .usermenu .userbtn:hover { background: var(--bg-soft); }
   .logout { margin-inline-start: -20px; } /* სახელთან ახლოს — 8px დაშორება */
   .logout[hidden] { display: none !important; }
