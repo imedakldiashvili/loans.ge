@@ -324,17 +324,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               {n(a.ProductType)} <small className="app-no">- #{a.ID}</small>
             </b>
           </span>
-          {/* a line of its own under the icon and the product: the person on the left, the place and the date on the right */}
-          <span className="meta">
-            <span className="who">
-              {/* personal number before the name (as in the partner cabinet) */}
-              {a.Pid ? `${a.Pid} · ` : ''}
-              {a.FirstName} {a.LastName}
-            </span>
-            <small className="when">
-              {[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '-'} · {fmtDate(a.CreatedOn)}
-            </small>
-          </span>
         </button>
         {/* the amount, the offers received beside it, the expand to the right */}
         <div className="cab-right">
@@ -366,6 +355,17 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
       </div>
       {open && (
         <div className="cab-det">
+          {/* first in the expanded part: the person on the left, the place and the date on the right */}
+          <span className="meta">
+            <span className="who">
+              {/* personal number before the name (as in the partner cabinet) */}
+              {a.Pid ? `${a.Pid} · ` : ''}
+              {a.FirstName} {a.LastName}
+            </span>
+            <small className="when">
+              {[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '-'} · {fmtDate(a.CreatedOn)}
+            </small>
+          </span>
           {GROUP_ORDER.map((st) => {
             const list = a.Orgs.filter((o) => o.Status === st);
             if (!list.length) return null;

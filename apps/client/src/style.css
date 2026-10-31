@@ -983,6 +983,6 @@
   @media (max-width: 380px) { .cab-top-row .cab-right-col { flex-wrap: wrap; row-gap: 8px; } .cab-top-row .cab-right-col .amt { flex-basis: 100%; } }
   /* phone: the application states (in progress / completed / stopped) each on its own line, the period under them */
   @media (max-width: 560px) { .cab-nav.cab-nav-sub .cab-check { flex: 1 1 100%; height: 36px; justify-content: flex-start; } }   /* to the left */
-  /* the card's person / place and date: a line of its own under the icon and the product — the person left, the place and date right */
-  .cab-sum .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; min-width: 0; }
-  .cab-sum .meta .when { margin-inline-start: auto; text-align: end; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  /* the card's person / place and date: first in the expanded part — the person left, the place and date right */
+  .cab-det .meta { display: flex; padding: 10px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; min-width: 0; }
+  .cab-det .meta .when { margin-inline-start: auto; text-align: end; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
