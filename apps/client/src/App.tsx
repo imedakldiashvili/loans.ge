@@ -160,7 +160,7 @@ function LangMenu() {
   );
 }
 
-/** The user icon once signed in: a menu under it — the name, the cabinet, the profile and logging out. */
+/** The user icon once signed in: a menu under it — the cabinet, the profile and logging out, each with its icon (the name in the tooltip). */
 function UserMenu({ name, onLogout }: { name: string; onLogout: () => void }) {
   const { open, setOpen, box } = usePop();
   const close = () => setOpen(false);
@@ -174,11 +174,18 @@ function UserMenu({ name, onLogout }: { name: string; onLogout: () => void }) {
       </button>
       {open && (
         <div className="um-pop" role="menu">
-          <div className="um-name">{name}</div>
           <Link role="menuitem" to="/cabinet" onClick={close}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+              <path d="M14 3v6h6M9 13h6M9 17h6" />
+            </svg>
             {t('ჩემი განაცხადები')}
           </Link>
           <Link role="menuitem" to="/cabinet/profile" onClick={close}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21a8 8 0 0 1 16 0" />
+            </svg>
             {t('პროფილი')}
           </Link>
           <button

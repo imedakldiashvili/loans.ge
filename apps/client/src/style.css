@@ -415,18 +415,17 @@
   .usermenu .userbtn:hover { background: var(--bg-soft); }
   .logout { margin-inline-start: -20px; } /* სახელთან ახლოს — 8px დაშორება */
   .logout[hidden] { display: none !important; }
-  /* the user menu (signed in): under the user icon — the name, the cabinet, the profile, logging out */
+  /* the user menu (signed in): under the user icon — the cabinet, the profile, logging out, each with an icon */
   .usermenu { position: relative; margin-inline-start: -20px; } .usermenu .userbtn { margin-inline-start: 0; }
   /* signed in: the notifications and the user in one frame, a line between them */
   .me-group { margin-inline-start: -20px; display: flex; align-items: center; height: 36px; border: 1px solid var(--line); border-radius: 4px; }
   .me-group .theme { height: 34px; border: 0; border-radius: 3px; }
   .me-group .usermenu { margin-inline-start: 0; border-inline-start: 1px solid var(--line); }
   .um-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; min-width: 200px; padding: 6px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, .14); display: grid; }
-  .um-name { padding: 8px 10px 10px; margin-bottom: 4px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
   .um-pop a, .um-pop .um-out { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 0; border-radius: 6px; background: none; font: inherit; font-size: 13px; color: var(--fg); text-align: start; cursor: pointer; }
   .um-pop a:hover, .um-pop .um-out:hover { background: var(--bg-soft); }
   .um-pop .um-out { margin-top: 4px; border-top: 1px solid var(--line); border-radius: 0 0 6px 6px; color: var(--muted); }
-  .um-pop .um-out svg { width: 16px; height: 16px; }
+  .um-pop svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
   /* the language: the current flag, the languages in a menu under it */
   .langmenu { position: relative; margin-inline-start: -20px; }
   .langmenu .theme { margin-inline-start: 0; }
