@@ -347,7 +347,7 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
       </div>
       {open && (
         <div className="cab-det">
-          {/* first in the expanded part: the person and the place / date on the left, the detailed view (its own page) on the right */}
+          {/* first in the expanded part: the person, the place and the date */}
           <div className="cab-det-head">
             <span className="meta">
               <span className="who">
@@ -359,9 +359,6 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
                 {[n(cities.find((c) => c.ID === a.CityID)), n(districts.find((d) => d.ID === a.DistrictID)) || a.Village].filter(Boolean).join(', ') || '-'} · {fmtDate(a.CreatedOn)}
               </small>
             </span>
-            <button type="button" className={`cab-details-ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
-              {I.eye}
-            </button>
           </div>
           {GROUP_ORDER.map((st) => {
             const list = a.Orgs.filter((o) => o.Status === st);
@@ -427,6 +424,12 @@ function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onComp
               </div>
             );
           })}
+          {/* last in the expanded part: the detailed view (its own page) */}
+          <div className="cab-det-foot-view">
+            <button type="button" className={`cab-details-ico ${isClosed ? (isCancelled ? 'st-off' : 'st-done') : 'st-on'}`} title={t('დეტალური ნახვა')} aria-label={t('დეტალური ნახვა')} onClick={() => nav(`/cabinet/view/${a.ID}/${a.UID}`)}>
+              {I.eye}
+            </button>
+          </div>
         </div>
       )}
       {/* expand / fold: a line of its own at the bottom of the card */}

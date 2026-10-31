@@ -982,7 +982,7 @@
   /* the card's person / place and date: first in the expanded part, one under the other, on the left */
   .cab-det-head { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .cab-det .meta { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
-  .cab-det-head .cab-details-ico { flex: none; }
+  .cab-det-foot-view { display: flex; justify-content: flex-end; }   /* the detailed view: at the bottom of the expanded part, on the right */
   .cab-det .meta .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
   /* the loan and its number in one column, the amount in a second */
   .cab-card .cab-sum .info { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name amt" "no amt"; column-gap: 16px; row-gap: 4px; align-items: center; }
