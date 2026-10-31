@@ -191,9 +191,8 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
                   <b>{none ? 0 : q.data?.TotalCount ?? 0}</b>
                 </span>
                 {/* a new application — above the list, on the right */}
-                <button type="button" className="btn btn-green cab-new-btn" id="cabNew" title={t('ახალი განაცხადი')} aria-label={t('ახალი განაცხადი')} onClick={onNew}>
-                  <span aria-hidden="true">+</span>
-                  <span className="txt">{t('ახალი განაცხადი')}</span>
+                <button type="button" className="btn btn-green cab-new-btn" id="cabNew" onClick={onNew}>
+                  <span className="txt">{t('შეავსე განაცხადი')}</span>
                 </button>
               </div>
               <div className="cab-cards">
