@@ -197,7 +197,7 @@ export function Cabinet({ view, onNew }: { view: CabView; onNew: () => void }) {
               </div>
               <div className="cab-cards">
                 {none && <div className="cab-group-empty">{t('მონიშნე მიმდინარე, დასრულებული ან შეწყვეტილი')}</div>}
-                {!none && q.data?.Items.map((a) => <AppCard key={a.ID} a={a} expanded={false} onCompare={() => onCompare(a)} />)}
+                {!none && byOffers(q.data?.Items ?? []).map((a) => <AppCard key={a.ID} a={a} expanded={false} onCompare={() => onCompare(a)} />)}
                 {!none && q.data && !q.data.Items.length && <div className="cab-group-empty">{t(counts && counts.Active + counts.Done === 0 ? 'განაცხადები ჯერ არ გაგიგზავნია' : 'ჯერ არ არის')}</div>}
                 {!none && q.isLoading && <div className="cab-group-empty">{t('იტვირთება…')}</div>}
               </div>
@@ -277,6 +277,13 @@ function Countdown({ o }: { o: AppOrg }) {
     </span>
   );
 }
+
+/** In progress first, the most offers received on top (organisations that sent one); the rest keep the server's order. */
+const byOffers = (items: App[]) => {
+  const inProgress = (a: App) => a.Orgs.some((o) => o.Next.length > 0);
+  const received = (a: App) => a.Orgs.filter((o) => o.Offers.length > 0).length;
+  return [...items].sort((x, y) => Number(inProgress(y)) - Number(inProgress(x)) || (inProgress(x) ? received(y) - received(x) : 0));
+};
 
 function AppCard({ a, expanded, onCompare }: { a: App; expanded: boolean; onCompare: () => void }) {
   const qc = useQueryClient();
