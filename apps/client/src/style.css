@@ -397,7 +397,8 @@
   .userbtn { margin-inline-start: -20px; }
   .userbtn[hidden], .login[hidden] { display: none !important; }
   .userbtn.guest { color: #fff; background: var(--orange); border-color: var(--orange); } /* not signed in: the user icon on orange */
-  .userbtn.guest:hover { filter: brightness(.92); }
+  .usermenu .userbtn { color: #fff; background: var(--green); border-color: var(--green); } /* signed in: the user icon on green */
+  .userbtn.guest:hover, .usermenu .userbtn:hover { filter: brightness(.92); }
   .logout { margin-inline-start: -20px; } /* სახელთან ახლოს — 8px დაშორება */
   .logout[hidden] { display: none !important; }
   /* the user menu (signed in): under the user icon — the name, the cabinet, the profile, logging out */
