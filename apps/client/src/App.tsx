@@ -4,7 +4,7 @@ import { useAskLogin } from './auth';
 import { Bell } from './bell';
 import { Lang, n, t, useLang } from './i18n';
 import { useLiveEvents } from './live';
-import logo from './logo.png';
+import logo from './logo.svg';
 import { AppView, Cabinet } from './pages/cabinet';
 import { Compare } from './pages/compare';
 import { AboutPage, Home, PartnersPage, ProductPick, Start, TermsPage } from './pages/home';

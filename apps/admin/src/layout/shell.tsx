@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { crud } from '../api/client';
 import { useLiveEvents } from '../api/live';
 import { ADMIN_ROLES, useAuth } from '../auth/auth';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo.svg';
 import { Confirm } from '../ui/dialog';
 import { Icon } from '../ui/icons';
 import { groupOf, MENU } from './menu';

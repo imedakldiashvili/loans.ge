@@ -4,7 +4,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../api';
 import { CATEGORIES, OrgLogo, ProductType, useRefs } from '../session';
 import { fmt } from '../ui';
-import logo from '../logo.png';
+import logo from '../logo.svg';
 
 // Home page (prototype hero, #how, .advsec), quick form, partners / terms / about pages.
 

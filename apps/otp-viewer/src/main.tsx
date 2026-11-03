@@ -1,6 +1,6 @@
 import { StrictMode, useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import logo from './logo.png';
+import logo from './logo.svg';
 import './style.css';
 
 // OTP viewer — TEST ENVIRONMENTS ONLY.

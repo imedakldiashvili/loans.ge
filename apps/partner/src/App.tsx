@@ -1,7 +1,7 @@
 import { FormEvent, ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
 import { api, ApiError, Ref } from './api';
-import logo from './logo.png';
+import logo from './logo.svg';
 import { AppsPage } from './pages/apps';
 import { IntegrationPage } from './pages/integration';
 import { MePage } from './pages/me';
